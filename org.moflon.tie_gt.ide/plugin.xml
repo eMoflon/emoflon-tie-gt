@@ -2,11 +2,12 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         id="org.moflon.tie_gt.ide.core.runtime.natures."
-         point="org.eclipse.core.resources.natures">
+         id="org.moflon.tie_gt.ide.core.runtime.natures.TieGTNature"
+         point="org.eclipse.core.resources.natures"
+         name="Moflon TIE-GT Nature">
       <runtime>
          <run
-               class="org.moflon.tie_gt.ide.core.runtime.natures.TIEGTNature">
+               class="org.moflon.tie_gt.ide.core.runtime.natures.TieGTNature">
          </run>
       </runtime>
    </extension>
