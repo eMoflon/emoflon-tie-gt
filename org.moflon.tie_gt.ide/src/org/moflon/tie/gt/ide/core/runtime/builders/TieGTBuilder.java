@@ -32,7 +32,7 @@ import org.moflon.tie.gt.ide.core.codegeneration.TieGTCodeGenerator;
 
 public class TieGTBuilder extends AbstractVisitorBuilder{
 	
-	public static String TIE_GT_BUILDER_ID=TieGTBuilder.class.toString();
+	public static String TIE_GT_BUILDER_ID=TieGTBuilder.class.getName();
 
 	public static final Logger logger = Logger.getLogger(TieGTBuilder.class);
 
