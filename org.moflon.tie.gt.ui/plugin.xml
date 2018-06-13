@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension	
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="org.moflon.ide.ui.category"
+            name="eMoflon">
+      </category>
+      <wizard
+            canFinishEarly="false"
+            category="org.moflon.ide.ui.category"
+            class="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
+            finalPerspective="org.moflon.ide.ui.MoflonPerspective"
+            hasPages="true"
+            id="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
+            name="New TIE-GT Repository Project Wizard"
+            preferredPerspectives="org.moflon.ide.ui.perspective"
+            project="true">
+      </wizard>
+   </extension>
+</plugin>

@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: org.moflon.tie_gt.ide
-Bundle-SymbolicName: org.moflon.tie_gt.ide;singleton:=true
+Bundle-SymbolicName: org.moflon.tie.gt.ide;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Automatic-Module-Name: org.moflon.tie-gt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -20,5 +20,13 @@ Require-Bundle: org.moflon.core.build;bundle-version="1.0.0",
  org.moflon.emf.injection;bundle-version="1.0.0",
  org.moflon.emf.injection.ide;bundle-version="1.0.0",
  org.moflon.emf.injection.ui;bundle-version="1.1.0",
- org.moflon.sdm.compiler.eclipse;bundle-version="3.0.0"
-Export-Package: org.moflon.tie_gt.ide.core.runtime.natures
+ org.moflon.sdm.compiler.eclipse;bundle-version="3.0.0",
+ org.eclipse.ui.workbench,
+ org.moflon.ide.core;bundle-version="2.3.0",
+ org.moflon.core.plugins;bundle-version="3.1.0",
+ org.moflon.core.ui,
+ org.eclipse.core.jobs,
+ org.eclipse.equinox.registry,
+ org.apache.log4j
+Export-Package: org.moflon.tie.gt.ide.core.runtime.builders,
+ org.moflon.tie.gt.ide.core.runtime.natures
