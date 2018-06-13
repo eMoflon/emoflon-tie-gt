@@ -29,6 +29,7 @@ import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTCodeGenerator;
+import org.moflon.tie.gt.ide.core.runtime.utilities.TieGTWorkspaceHelper;
 
 public class TieGTBuilder extends AbstractVisitorBuilder{
 	
@@ -196,12 +197,13 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 
 	private static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor)
 			throws CoreException {
-		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project " + project, 4);
+		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project " + project, 5);
 
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getSourceFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
+		WorkspaceHelper.createFolderIfNotExists(TieGTWorkspaceHelper.getGTFolder(project), subMon.split(1));
 	}
 
 	
