@@ -28,6 +28,7 @@ import org.moflon.core.utilities.ClasspathUtil;
 import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTCodeGenerator;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TieGTWorkspaceHelper;
 
@@ -118,10 +119,9 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
 				eMoflonEMFUtil.installCrossReferencers(resourceSet);
 				subMon.worked(1);
-
-				final TieGTCodeGenerator codeGenerationTask = new TieGTCodeGenerator(ecoreFile, resourceSet,
-						EMoflonPreferencesActivator.getDefault().getPreferencesStorage());
-
+				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask= new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(ecoreFile,resourceSet,EMoflonPreferencesActivator.getDefault().getPreferencesStorage());
+				TieGTCodeGenerator tieGTCodeGenerationPhase = new TieGTCodeGenerator();
+				codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);
 				final IStatus status = codeGenerationTask.run(subMon.split(1));
 				subMon.worked(3);
 				emfBuilderStatus.add(status);
@@ -129,7 +129,8 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				if (!emfBuilderStatus.isOK())
 					return;
 
-				final GenModel genModel = codeGenerationTask.getGenModel();
+				//TODO: fix this when MoflonEmfCodeGenerator is fixed
+				final GenModel genModel = codeGenerationTask.getGenModelDummy();
 				if (genModel == null) {
 					emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
 							String.format("No GenModel found for '%s'", getProject())));
