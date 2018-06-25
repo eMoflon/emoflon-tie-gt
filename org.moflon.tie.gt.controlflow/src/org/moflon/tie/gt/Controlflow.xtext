@@ -1,0 +1,9 @@
+grammar org.moflon.tie.gt.Controlflow with org.eclipse.xtext.common.Terminals
+
+generate controlflow "http://www.moflon.org/tie/gt/Controlflow"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
