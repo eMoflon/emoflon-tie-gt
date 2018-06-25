@@ -3,12 +3,12 @@
  */
 package org.moflon.tie.gt.ui.contentassist
 
-import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.Assignment
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
-import org.eclipse.emf.ecore.EObject
-import org.moflon.tie.gt.controlflow.EditorCFFile
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
 import org.moflon.core.utilities.WorkspaceSearch
+import org.moflon.tie.gt.controlflow.EditorCFFile
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
