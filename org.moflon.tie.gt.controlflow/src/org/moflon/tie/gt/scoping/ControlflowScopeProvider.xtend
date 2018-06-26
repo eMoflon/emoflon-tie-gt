@@ -3,7 +3,6 @@
  */
 package org.moflon.tie.gt.scoping
 
-
 /**
  * This class contains custom scoping description.
  * 

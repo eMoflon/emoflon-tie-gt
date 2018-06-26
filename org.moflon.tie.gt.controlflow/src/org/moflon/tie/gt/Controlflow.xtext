@@ -14,7 +14,7 @@ EditorImport:
 	'import' name=STRING;
 //
 EditorMethod:
-	class=[ecore::EClass]'.'name=ID;// ('('
+	'Class' class=[ecore::EClass]'.'name=ID;// ('('
 //	(parameters+=EditorParameter (',' parameters+=EditorParameter)*)?
 //	')')?
 //	('{'

@@ -3,7 +3,6 @@
  */
 package org.moflon.tie.gt.validation
 
-
 /**
  * This class contains custom validation rules. 
  *

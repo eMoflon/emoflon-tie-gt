@@ -3,7 +3,6 @@
  */
 package org.moflon.tie.gt
 
-
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
  */

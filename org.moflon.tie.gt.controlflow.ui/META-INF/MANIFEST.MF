@@ -16,7 +16,7 @@ Require-Bundle: org.moflon.tie.gt.controlflow,
  org.eclipse.compare,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
- org.eclipse.xtext.xbase.lib,
+ org.eclipse.xtext.xbase.lib;bundle-version="2.14.0",
  org.moflon.core.utilities
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -24,3 +24,4 @@ Export-Package: org.moflon.tie.gt.ui.contentassist,
  org.moflon.tie.gt.controlflow.ui.internal,
  org.moflon.tie.gt.ui.quickfix
 Bundle-Activator: org.moflon.tie.gt.controlflow.ui.internal.ControlflowActivator
+Automatic-Module-Name: org.moflon.tie.gt.controlflow.ui
