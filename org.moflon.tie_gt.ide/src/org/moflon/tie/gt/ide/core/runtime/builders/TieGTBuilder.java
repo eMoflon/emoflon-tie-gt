@@ -1,5 +1,6 @@
 package org.moflon.tie.gt.ide.core.runtime.builders;
 
+import com.google.inject.Injector;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -18,6 +19,8 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.xtext.resource.XtextResource;
+import org.eclipse.xtext.resource.XtextResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.moflon.core.build.AbstractVisitorBuilder;
 import org.moflon.core.build.CleanVisitor;
@@ -28,9 +31,9 @@ import org.moflon.core.utilities.ClasspathUtil;
 import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTCodeGenerator;
-import org.moflon.tie.gt.ide.core.runtime.utilities.TieGTWorkspaceHelper;
 
 public class TieGTBuilder extends AbstractVisitorBuilder{
 	
@@ -116,7 +119,8 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				removeGeneratedCode(project);
 
 				// Build
-				final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
+				//final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
+				final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
 				eMoflonEMFUtil.installCrossReferencers(resourceSet);
 				subMon.worked(1);
 				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask= new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(ecoreFile,resourceSet,EMoflonPreferencesActivator.getDefault().getPreferencesStorage());
@@ -204,12 +208,25 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
-		WorkspaceHelper.createFolderIfNotExists(TieGTWorkspaceHelper.getGTFolder(project), subMon.split(1));
 	}
 
 	
 	public static String getId() {
 		return TIE_GT_BUILDER_ID;
 	}
+	
+	/**
+	    * Prepare an {@link ResourceSet} that is suitable for a MOSL-GT-based build process
+	    * 
+	    * @return the initialized resource set
+	    */
+	   public static ResourceSet initializeResourceSet()
+	   {
+	      final Injector injector = LanguageActivator.getInstance().getInjector(LanguageActivator.ORG_MOFLON_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
+	      final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
+	      resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
+	      eMoflonEMFUtil.installCrossReferencers(resourceSet);
+	      return resourceSet;
+	   }
 
 }

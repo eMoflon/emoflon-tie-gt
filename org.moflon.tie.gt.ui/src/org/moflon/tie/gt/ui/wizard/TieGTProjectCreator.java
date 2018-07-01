@@ -29,7 +29,7 @@ public class TieGTProjectCreator extends MoflonProjectCreator {
 	 *            the project configurator
 	 */
 	public TieGTProjectCreator(IProject project, PluginProperties projectProperties,
-			MoflonProjectConfigurator projectConfigurator) {
+			MoflonProjectConfigurator projectConfigurator) throws CoreException{
 		super(project, projectProperties, projectConfigurator);
 	}
 

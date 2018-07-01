@@ -14,7 +14,7 @@
             finalPerspective="org.moflon.ide.ui.MoflonPerspective"
             hasPages="true"
             id="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
-            name="New TIE-GT Repository Project Wizard"
+            name="New TIE-GT Project Wizard"
             preferredPerspectives="org.moflon.ide.ui.perspective"
             project="true">
       </wizard>

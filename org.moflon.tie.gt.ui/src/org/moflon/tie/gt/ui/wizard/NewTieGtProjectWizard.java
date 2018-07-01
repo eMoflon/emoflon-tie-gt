@@ -1,13 +1,20 @@
 package org.moflon.tie.gt.ui.wizard;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.ui.IWorkingSet;
+import org.emoflon.ibex.gt.editor.ui.builder.GTNature;
 import org.moflon.core.build.MoflonProjectCreator;
 import org.moflon.core.plugins.PluginProducerWorkspaceRunnable;
 import org.moflon.core.plugins.PluginProperties;
@@ -29,7 +36,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	   /**
 	    * This is the ID that is also used in plugin.xml
 	    */
-	   public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tie_gt.ui.wizard.NewTieGtProjectWizard";
+	   public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard";
 
 	   protected AbstractMoflonProjectInfoPage projectInfo;
 
@@ -48,7 +55,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	   {
 	      try
 	      {
-	         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating eMoflon EMF project", 8);
+	         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating eMoflon::TIE project", 8);
 
 	         final String projectName = projectInfo.getProjectName();
 
@@ -85,6 +92,13 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project", 1);
 	      final TieGTProjectCreator createMoflonProject = new TieGTProjectCreator(project, pluginProperties, new TieGTNature());
 	      ResourcesPlugin.getWorkspace().run(createMoflonProject, subMon.split(1));
+	      final IProjectDescription description = project.getDescription();
+		  final List<String> natures = new ArrayList<>(Arrays.asList(description.getNatureIds()));
+		  if (!natures.contains(GTNature.NATURE_ID)) {
+				natures.add(0, GTNature.NATURE_ID);
+				description.setNatureIds(natures.toArray(new String[natures.size()]));
+		  }
+		  project.setDescription(description, new NullProgressMonitor());
 	   }
 
 	   /**
