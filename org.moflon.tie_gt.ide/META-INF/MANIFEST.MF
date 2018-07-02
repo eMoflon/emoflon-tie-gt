@@ -29,6 +29,8 @@ Require-Bundle: org.moflon.core.build;bundle-version="1.0.0",
  org.moflon.sdm.compiler.eclipse,
  com.google.inject,
  org.eclipse.xtext,
- org.moflon.gt.mosl.controlflow.language.ui
+ org.moflon.gt.mosl.controlflow.language.ui,
+ org.eclipse.emf.ecore,
+ org.moflon.gt.mosl.controlflow.language
 Export-Package: org.moflon.tie.gt.ide.core.runtime.builders,
  org.moflon.tie.gt.ide.core.runtime.natures
