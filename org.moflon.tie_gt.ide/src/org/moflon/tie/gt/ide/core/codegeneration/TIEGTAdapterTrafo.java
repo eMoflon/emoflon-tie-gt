@@ -10,6 +10,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
@@ -57,8 +58,40 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 		List<EditorPattern> redPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isRedPattern(p)).collect(Collectors.toList());
 		List<EditorPattern> greenPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isGreenPattern(p)).collect(Collectors.toList());
 		List<EditorPattern> expressionPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isExpressionPattern(p)).collect(Collectors.toList());
-		//TODO: Translate Patterns
+		//TODO: Transform Patterns
+		Map<Pattern,List<EClass> > democlesPatterns=new HashMap<Pattern, List<EClass> >();
+		blackPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformBlackPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		redPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformRedPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		greenPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformGreenPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		expressionPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformExpressionPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		//add Patterns to EClasses
+		democlesPatterns.forEach((pattern, classes) ->classes.stream().forEach(clazz -> attachToEClass(clazz,pattern)));
 		return contextEPackage;
+	}
+
+	private void attachToEClass(EClass clazz, Pattern pattern) {
+		// TODO implement or do inline
+		return ;
+	}
+
+	private Pattern transformExpressionPattern(EditorPattern gtPattern) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Pattern transformGreenPattern(EditorPattern gtPattern) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Pattern transformRedPattern(EditorPattern gtPattern) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private Pattern transformBlackPattern(EditorPattern gtPattern) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

@@ -32,6 +32,7 @@ Require-Bundle: org.moflon.core.build;bundle-version="1.0.0",
  org.moflon.gt.mosl.controlflow.language.ui,
  org.eclipse.emf.ecore,
  org.moflon.gt.mosl.controlflow.language,
- org.emoflon.ibex.gt.editor
+ org.emoflon.ibex.gt.editor,
+ org.gervarro.democles.specification.emf;bundle-version="2.0.0"
 Export-Package: org.moflon.tie.gt.ide.core.runtime.builders,
  org.moflon.tie.gt.ide.core.runtime.natures
