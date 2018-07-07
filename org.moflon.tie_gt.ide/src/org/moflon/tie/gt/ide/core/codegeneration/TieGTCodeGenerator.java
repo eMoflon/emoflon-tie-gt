@@ -36,7 +36,9 @@ import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 
 
-	   /**
+	   public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
+
+	/**
 	    * The top-level {@link EPackage} of the ongoing build process
 	    */
 	   private EPackage ePackage;
@@ -82,7 +84,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	   @Override
 	   public IStatus run(IProgressMonitor monitor)
 	   {
-	      final IStatus mgtLoadStatus = this.loadMgtFiles();
+	      final IStatus mgtLoadStatus = this.loadControlFlowFiles();
 	      if (mgtLoadStatus.matches(IStatus.ERROR))
 	         return mgtLoadStatus;
 
@@ -100,7 +102,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	    * 
 	    * For each .mgt file, an appropriate resource is created in this generator's resource set ({@link #getResourceSet()}
 	    */
-	   private IStatus loadMgtFiles()
+	   private IStatus loadControlFlowFiles()
 	   {
 	      try
 	      {
@@ -131,7 +133,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	            private boolean isMOSLCFFile(IResource resource)
 	            {
 	               final IFile file = resource.getAdapter(IFile.class);
-	               return resource != null && resource.exists() && file != null && LanguageActivator.MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
+	               return resource != null && resource.exists() && file != null && MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
 	            }
 
 	         });
@@ -160,10 +162,10 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	      {
 	         CodeadapterTrafo helper = this.transformationConfiguration.getCodeadapterTransformator();
 	         
-	         final List<Resource> mgtResources = this.resourceSet.getResources().stream()
-	               .filter(resource -> resource.getURI().lastSegment().endsWith('.' + LanguageActivator.MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION)).collect(Collectors.toList());
+	         final List<Resource> mcfResources = this.resourceSet.getResources().stream()
+	               .filter(resource -> resource.getURI().lastSegment().endsWith('.' + MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION)).collect(Collectors.toList());
 
-	         for (final Resource schemaResource : mgtResources)
+	         for (final Resource schemaResource : mcfResources)
 	         {
 	            processMCFResources(helper, schemaResource);
 
@@ -178,14 +180,14 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 
 	   private void processMCFResources(CodeadapterTrafo helper, final Resource schemaResource) throws IOException
 	   {
-	      final GraphTransformationControlFlowFile gtCF = GraphTransformationControlFlowFile.class.cast(schemaResource.getContents().get(0));
-	      if (gtCF.getImports().size() > 0)
+	      final GraphTransformationControlFlowFile mCF = GraphTransformationControlFlowFile.class.cast(schemaResource.getContents().get(0));
+	      if (mCF.getImports().size() > 0)
 	      {
 	         // TODO@rkluge: Probably, we will have to translate the .mgt files "package-by-package" and load the
 	         // appropriate packages
 
 	         // load context
-	         String contextEcorePath = gtCF.getImports().get(0).getName().replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
+	         String contextEcorePath = mCF.getImports().get(0).getName().replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
 	         Resource ecoreRes = this.resourceSet.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
 	         ecoreRes.load(null);
 	         // TODO@rkluge: Extend to support multiple root packages
@@ -199,7 +201,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	         contextEPackage.setNsURI(nsURI);
 	         enrichedEcoreResource.save(Collections.EMPTY_MAP);
 	         EcoreUtil.resolveAll(contextEPackage);
-	         final EPackage enrichedEPackage = helper.transform(contextEPackage, gtCF, this.resourceSet);
+	         final EPackage enrichedEPackage = helper.transform(contextEPackage, mCF, this.resourceSet);
 
 	         // save context
 	         enrichedEcoreResource.getContents().clear();
