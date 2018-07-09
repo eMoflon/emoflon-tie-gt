@@ -1,15 +1,17 @@
-package org.moflon.tie.gt.ide.core.codegeneration;
+package org.moflon.tie.gt.ide.core.patterns;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternType;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
@@ -17,6 +19,7 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
+import org.moflon.tie.gt.ide.core.codegeneration.CodeadapterTrafo;
 
 public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 	
@@ -54,16 +57,17 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 			}
 		}
 		//End of collection
-		List<EditorPattern> blackPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isBlackPattern(p)).collect(Collectors.toList());
-		List<EditorPattern> redPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isRedPattern(p)).collect(Collectors.toList());
-		List<EditorPattern> greenPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isGreenPattern(p)).collect(Collectors.toList());
-		List<EditorPattern> expressionPatterns=patternToClassesLookup.keySet().stream().filter( p -> EditorPatternClassifier.isExpressionPattern(p)).collect(Collectors.toList());
+		Stream<EditorPattern> blackPatterns=patternToClassesLookup.keySet().stream().filter( p -> p.getType()==EditorPatternType.PATTERN);
+		Stream<EditorPattern> redAndGreen=patternToClassesLookup.keySet().stream().filter(p->p.getType()!=EditorPatternType.PATTERN);
+		Stream<EditorPattern> redPatterns=redAndGreen.filter( p -> EditorPatternClassifier.isRedPattern(p));
+		Stream<EditorPattern> greenPatterns=redAndGreen.filter( p -> EditorPatternClassifier.isGreenPattern(p));
+		Stream<EditorPattern> expressionPatterns=redAndGreen.filter( p -> EditorPatternClassifier.isExpressionPattern(p));
 		//TODO: Transform Patterns
 		Map<Pattern,List<EClass> > democlesPatterns=new HashMap<Pattern, List<EClass> >();
-		blackPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformBlackPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
-		redPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformRedPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
-		greenPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformGreenPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
-		expressionPatterns.stream().forEach(gtPattern ->{democlesPatterns.put(transformExpressionPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		blackPatterns.forEach(gtPattern ->{democlesPatterns.put(transformBlackPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		redPatterns.forEach(gtPattern ->{democlesPatterns.put(transformRedPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		greenPatterns.forEach(gtPattern ->{democlesPatterns.put(transformGreenPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
+		expressionPatterns.forEach(gtPattern ->{democlesPatterns.put(transformExpressionPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
 		//add Patterns to EClasses
 		democlesPatterns.forEach((pattern, classes) ->classes.stream().forEach(clazz -> attachToEClass(clazz,pattern)));
 		return contextEPackage;

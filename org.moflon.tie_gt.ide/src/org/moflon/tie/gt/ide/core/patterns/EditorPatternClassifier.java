@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.codegeneration;
+package org.moflon.tie.gt.ide.core.patterns;
 
 import java.util.function.Predicate;
 
@@ -6,19 +6,12 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternType;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorRelation;
 
 public class EditorPatternClassifier {
 
-	
-	static boolean isBlackPattern(EditorPattern p) {
-			boolean result=true;
-			result&=checkOperator(p, n-> n.getOperator()==EditorOperator.CONTEXT);
-			result&=checkReferences(p,ref -> ((ref.getOperator()==EditorOperator.DELETE)||(ref.getOperator()==EditorOperator.CONTEXT)));
-			result&=checkAttributes(p,att ->att.getRelation()!=EditorRelation.ASSIGNMENT);
-			return result;
-	}
 	
 	private static boolean checkOperator(EditorPattern p, Predicate<? super EditorNode> pred) {
 		return p.getNodes().stream().allMatch(pred);
