@@ -56,12 +56,13 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 				}
 			}
 		}
+		
 		//End of collection
-		Stream<EditorPattern> blackPatterns=patternToClassesLookup.keySet().stream().filter( p -> p.getType()==EditorPatternType.PATTERN);
-		Stream<EditorPattern> redAndGreen=patternToClassesLookup.keySet().stream().filter(p->p.getType()!=EditorPatternType.PATTERN);
-		Stream<EditorPattern> redPatterns=redAndGreen.filter( p -> EditorPatternClassifier.isRedPattern(p));
-		Stream<EditorPattern> greenPatterns=redAndGreen.filter( p -> EditorPatternClassifier.isGreenPattern(p));
-		Stream<EditorPattern> expressionPatterns=redAndGreen.filter( p -> EditorPatternClassifier.isExpressionPattern(p));
+		List<EditorPattern> blackPatterns=patternToClassesLookup.keySet().stream().filter( p -> p.getType()==EditorPatternType.PATTERN).collect(Collectors.toList());
+		List<EditorPattern> redAndGreen=patternToClassesLookup.keySet().stream().filter(p->p.getType()!=EditorPatternType.PATTERN).collect(Collectors.toList());
+		List<EditorPattern> redPatterns=redAndGreen.stream().filter( p -> EditorPatternClassifier.isRedPattern(p)).collect(Collectors.toList());
+		List<EditorPattern> greenPatterns=redAndGreen.stream().filter( p -> EditorPatternClassifier.isGreenPattern(p)).collect(Collectors.toList());
+		List<EditorPattern> expressionPatterns=redAndGreen.stream().filter( p -> EditorPatternClassifier.isExpressionPattern(p)).collect(Collectors.toList());
 		//TODO: Transform Patterns
 		Map<Pattern,List<EClass> > democlesPatterns=new HashMap<Pattern, List<EClass> >();
 		blackPatterns.forEach(gtPattern ->{democlesPatterns.put(transformBlackPattern(gtPattern), patternToClassesLookup.get(gtPattern));} );
