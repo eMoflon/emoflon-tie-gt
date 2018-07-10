@@ -22,11 +22,10 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
 import org.moflon.tie.gt.ide.core.codegeneration.CodeadapterTrafo;
 
 public class TIEGTAdapterTrafo implements CodeadapterTrafo {
-	
 
 	@Override
 	public EPackage transform(EPackage contextEPackage, GraphTransformationControlFlowFile mCF,
-			ResourceSet resourceSet) {
+			ResourceSet resourceSet,Map<EditorPattern, Pattern> editorToDemoclesPatterns) {
 		Map<EditorPattern,List<EClass>> patternToClassesLookup=new HashMap<EditorPattern, List<EClass>>();
 		// TODO Auto-generated method stub
 		//PatternReferenceCollector

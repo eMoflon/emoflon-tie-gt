@@ -1,6 +1,5 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
-import IBeXLanguage.IBeXPatternSet;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,28 +20,29 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.EValidator.PatternMatcher;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
+import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
-import org.moflon.codegen.eclipse.CodeGeneratorPlugin;
 import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
-import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 import org.moflon.tie.gt.democles.EditorToIBeXPatternTransformation;
 import org.moflon.tie.gt.democles.IBeXToDemoclesPatternTransformation;
+
+import IBeXLanguage.IBeXPatternSet;
 
 public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 
 
 	   public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
 	   public static final String IBEX_GT_FILE_EXTENSION = "gt";
+	   public Map<EditorPattern,Pattern> editorToDemoclesPatterns;
 
 	/**
 	    * The top-level {@link EPackage} of the ongoing build process
@@ -70,6 +70,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	      this.ePackage = (EPackage) resource.getContents().get(0);
 	      this.resourceSet = ePackage.eResource().getResourceSet();
 	      this.transformationConfiguration = new TransformationConfiguration();
+	      this.editorToDemoclesPatterns=new HashMap<EditorPattern, Pattern>();
 	      //TODO:
 	      //final Map<String, PatternMatcher> patternMatcherConfiguration = methodBodyHandler.getPatternMatcherConfiguration();
 	      //this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
@@ -238,6 +239,15 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 			IBeXPatternSet ibexPatternSet=gtToIbextrafo.transform(gtFileRes);
 			IBeXToDemoclesPatternTransformation ibexToDemoclesTrafo= new IBeXToDemoclesPatternTransformation();
 			List<Pattern> democlesPatterns=ibexToDemoclesTrafo.transform(ibexPatternSet);
+			gtFileRes.getPatterns().forEach(editorPattern -> {
+				democlesPatterns.stream().forEach(democlesPattern -> {
+					if(democlesPattern.getName()==editorPattern.getName()) {
+						if(!this.editorToDemoclesPatterns.containsKey(editorPattern))
+							this.editorToDemoclesPatterns.put(editorPattern, democlesPattern);
+						else System.out.println("Duplicate Patterns for "+editorPattern.getName());
+					}
+				});
+			});
 			System.out.println("ObtainedDemoclesPatterns");
 			
 		}
@@ -289,7 +299,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	         contextEPackage.setNsURI(nsURI);
 	         enrichedEcoreResource.save(Collections.EMPTY_MAP);
 	         EcoreUtil.resolveAll(contextEPackage);
-	         final EPackage enrichedEPackage = helper.transform(contextEPackage, mCF, this.resourceSet);
+	         final EPackage enrichedEPackage = helper.transform(contextEPackage, mCF, this.resourceSet,this.editorToDemoclesPatterns);
 
 	         // save context
 	         enrichedEcoreResource.getContents().clear();
