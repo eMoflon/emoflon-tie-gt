@@ -9,4 +9,24 @@ public class TransformationConfiguration {
 		return new TIEGTAdapterTrafo();
 	}
 
+	public StatementBuilder getStatementCreationController() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public PatternBuilder getPatternCreationController() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ContextController getContextController() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public ECoreAdapterController getECoreAdapterController() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
