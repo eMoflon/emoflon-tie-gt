@@ -2,10 +2,10 @@
 <psf version="2.0">
 <provider id="org.eclipse.egit.core.GitProvider">
 <project reference="1.0,https://github.com/eMoflon/emoflon-ibex.git,master,org.emoflon.ibex.common"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,master,org.emoflon.ibex.common.editor.utils"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,master,org.emoflon.ibex.gt.editor"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,master,org.emoflon.ibex.gt.editor.ide"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,master,org.emoflon.ibex.gt.editor.ui"/>
+<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.common.editor.utils"/>
+<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.gt.editor"/>
+<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.gt.editor.ide"/>
+<project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.gt.editor.ui"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language.ide"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language.ui"/>
