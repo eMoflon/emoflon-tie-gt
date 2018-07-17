@@ -17,6 +17,7 @@ import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
+import org.moflon.compiler.sdm.democles.eclipse.DemoclesAdapterFactory;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -29,6 +30,7 @@ import org.moflon.emf.injection.build.XTextInjectionExtractor;
 import org.moflon.emf.injection.ide.CodeInjector;
 import org.moflon.emf.injection.ide.InjectionExtractor;
 import org.moflon.emf.injection.ide.InjectionManager;
+import org.moflon.sdm.runtime.democles.DemoclesFactory;
 
 public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonEmfCodeGenerator{
 	

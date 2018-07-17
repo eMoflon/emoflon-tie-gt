@@ -3,8 +3,6 @@ package org.moflon.tie.gt.ide.core.patterns;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
@@ -20,9 +18,8 @@ import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
-import org.moflon.sdm.runtime.democles.CFNode;
+import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.sdm.runtime.democles.DemoclesFactory;
-import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class PatternBuilderVisitor {

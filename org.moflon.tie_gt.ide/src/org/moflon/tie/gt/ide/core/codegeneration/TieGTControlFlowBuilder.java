@@ -26,9 +26,11 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
 import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
+import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 import org.moflon.tie.gt.ide.core.patterns.CodeadapterTrafo;
 import org.moflon.tie.gt.ide.core.patterns.TIEGTAdapterTrafo;
 

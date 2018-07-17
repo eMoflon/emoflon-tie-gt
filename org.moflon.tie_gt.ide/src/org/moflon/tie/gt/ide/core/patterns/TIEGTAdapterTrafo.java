@@ -12,6 +12,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
+import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
