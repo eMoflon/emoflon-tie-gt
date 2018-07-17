@@ -7,11 +7,9 @@
 <project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,master,org.emoflon.ibex.gt.editor.ide"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,master,org.emoflon.ibex.gt.editor.ui"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language.feature"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language.ide"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-controlflow.git,giessing-dev,org.moflon.gt.mosl.controlflow.language.ui"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-gt-ui-pattern.git,dev-giessing,org.moflon.gt.mosl.ide.ui"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,giessing-dev,org.moflon.tie.gt.democles"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,giessing-dev,org.moflon.tie_gt.ide"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,giessing-dev,org.moflon.tie.gt.ui"/>
 </provider>
