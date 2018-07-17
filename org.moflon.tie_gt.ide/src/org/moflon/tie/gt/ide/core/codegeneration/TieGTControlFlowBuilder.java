@@ -23,8 +23,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.emoflon.ibex.gt.editor.gT.EditorPattern;
-import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
 import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
@@ -39,7 +37,6 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 
 	   public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
 	   public static final String IBEX_GT_FILE_EXTENSION = "gt";
-	   public Map<EditorPattern,Pattern> editorToDemoclesPatterns;
 
 	/**
 	    * The top-level {@link EPackage} of the ongoing build process
@@ -67,7 +64,6 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 	      this.ePackage = (EPackage) resource.getContents().get(0);
 	      this.resourceSet = ePackage.eResource().getResourceSet();
 	      this.tieGTAdapterTransformation = new TIEGTAdapterTrafo();
-	      this.editorToDemoclesPatterns=new HashMap<EditorPattern, Pattern>();
 	      //TODO:
 	      //final Map<String, PatternMatcher> patternMatcherConfiguration = methodBodyHandler.getPatternMatcherConfiguration();
 	      //this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
@@ -207,7 +203,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 	         contextEPackage.setNsURI(nsURI);
 	         enrichedEcoreResource.save(Collections.EMPTY_MAP);
 	         EcoreUtil.resolveAll(contextEPackage);
-	         final EPackage enrichedEPackage = helper.transform(contextEPackage, mCF, this.resourceSet,this.editorToDemoclesPatterns);
+	         final EPackage enrichedEPackage = helper.transform(contextEPackage, mCF, this.resourceSet);
 
 	         // save context
 	         enrichedEcoreResource.getContents().clear();

@@ -10,6 +10,6 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformati
 
 public interface CodeadapterTrafo {
 
-	EPackage transform(EPackage contextEPackage, GraphTransformationControlFlowFile gtCF, ResourceSet resourceSet, Map<EditorPattern, Pattern> editorToDemoclesPatterns);
+	EPackage transform(EPackage contextEPackage, GraphTransformationControlFlowFile gtCF, ResourceSet resourceSet);
 
 }

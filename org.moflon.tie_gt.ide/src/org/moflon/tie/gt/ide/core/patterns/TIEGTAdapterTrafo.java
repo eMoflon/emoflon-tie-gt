@@ -1,8 +1,5 @@
 package org.moflon.tie.gt.ide.core.patterns;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,6 +13,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
@@ -23,6 +21,7 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
+import org.moflon.sdm.compiler.democles.validation.scope.ScopeFactory;
 import org.moflon.sdm.compiler.democles.validation.scope.ScopeValidator;
 import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;
@@ -45,11 +44,11 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 		this.adapterController= new ECoreAdapterController();
 	}
 
-	//TODO:remove map possibly
 	@Override
 	public EPackage transform(EPackage contextEPackage, GraphTransformationControlFlowFile mCF,
-			ResourceSet resourceSet,Map<EditorPattern, Pattern> editorToDemoclesPatterns) {
-		Map<EditorPattern,List<EClass>> patternToClassesLookup=new HashMap<EditorPattern, List<EClass>>();
+			ResourceSet resourceSet) {
+		//TODO:still necessary?
+		//Map<EditorPattern,List<EClass>> patternToClassesLookup=new HashMap<EditorPattern, List<EClass>>();
 		//PatternReferenceCollector
 		PatternBuilderVisitor visitor= new PatternBuilderVisitor(contextEPackage,resourceSet);
 		for(EClassDef clazz: mCF.getEClasses()) {
@@ -59,21 +58,8 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 				if(eOp.getStartStatement()!=null) {
 					Scope rootscope = democlesHelper.createScope();
 					//Create this Variable TODO: check if this process is ok, creating a CF Variable for every node in the pattern
-					CFVariable thisVariable=democlesHelper.createCFVariable();
-					thisVariable.setName("this");
-					thisVariable.setScope(rootscope);
-					thisVariable.setType(correspondingEClass);
-					thisVariable.setLocal(false);
-					rootscope.getVariables().add(thisVariable);
-					EOperation correspondingEop=correspondingEClass.getEOperations().stream().filter( clazzEop-> {return clazzEop.getName().equals(eOp.getName());}).findAny().get();
-					correspondingEop.getEParameters().forEach(param -> {
-						CFVariable cfVariable=democlesHelper.createCFVariable();
-						cfVariable.setName(param.getName());
-						cfVariable.setScope(rootscope);
-						cfVariable.setType(param.getEType());
-						cfVariable.setLocal(false);
-						rootscope.getVariables().add(cfVariable);
-					});
+					createThisVariable(correspondingEClass, rootscope);
+					EOperation correspondingEop = createCFVariableForParameters(correspondingEClass, eOp, rootscope);
 					Statement startStatement=eOp.getStartStatement();
 					//TODO: take care for return statements
 					int cfId=0;
@@ -94,33 +80,21 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 								Pattern democlesPattern=patterns.get(patternType);
 								if(democlesPattern==null)
 									continue;
-								PatternNameGenerator patternNameGenerator=new PatternNameGenerator();
-								patternNameGenerator.setSuffix(patternType.getSuffix());
-								patternNameGenerator.setCFNode(cfNode);
-								patternNameGenerator.setEClass(correspondingEClass);
-								patternNameGenerator.setEOperation(correspondingEop);
-								patternNameGenerator.setPatternDefinition(pattern);
-								democlesPattern.setName(patternNameGenerator.generateName());
+								PatternNameGenerator.setPatternName(correspondingEClass, correspondingEop, cfNode, pattern,
+										patternType,democlesPattern);
 								//register pattern
 								this.adapterController.saveAsRegisteredAdapter(democlesPattern,
 							            correspondingEClass, patternType.getSuffix(),
 							            resourceSet);
 								PatternInvocation invocation=createPatternInvocation(rootscope, cfNode, pattern, democlesPattern);
 								patternStmt.getParameters().forEach(param ->{
-									//TODO: Do smth with called parameter
-									ObjectVariableStatement elem=(ObjectVariableStatement) param.getObject();
-									CFVariable from =rootscope.getVariables().stream().filter( cfVar -> cfVar.getName().equals(elem.getName())).findFirst().get();
-									VariableReference varRef=democlesHelper.createVariableReference();
-									varRef.setFrom(from);
-									Variable to=democlesPattern.getSymbolicParameters().stream().filter(emfVar -> param.getParameter().getName().equals(emfVar.getName())).findFirst().get();
-									varRef.setTo(to);
-									varRef.setInvocation(invocation);
-									if(from.getConstructor()==null)
-										from.setConstructor(invocation);
+									bindConstructedVariablesFromParameter(rootscope, democlesPattern, invocation,
+											param);
 									
 								});
 							}
-							List<EClass> referencedEClasses;
+							//TODO: still necessary?
+							/*List<EClass> referencedEClasses;
 							if(patternToClassesLookup.containsKey(pattern)) {
 								referencedEClasses=patternToClassesLookup.get(pattern);
 							}
@@ -128,7 +102,7 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 								referencedEClasses= new ArrayList<EClass>();
 								patternToClassesLookup.put(pattern, referencedEClasses);
 							}
-							referencedEClasses.add(correspondingEClass);
+							referencedEClasses.add(correspondingEClass);*/
 							currentCFNode=cfNode;
 						}
 						else if(currentStatement instanceof ObjectVariableStatement) {
@@ -149,41 +123,47 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 		return contextEPackage;
 	}
 
+	private void bindConstructedVariablesFromParameter(Scope rootscope, Pattern democlesPattern,
+			PatternInvocation invocation, CalledPatternParameter param) {
+		//TODO: Do smth with called parameter
+		ObjectVariableStatement elem=(ObjectVariableStatement) param.getObject();
+		CFVariable from =rootscope.getVariables().stream().filter( cfVar -> cfVar.getName().equals(elem.getName())).findFirst().get();
+		VariableReference varRef=democlesHelper.createVariableReference();
+		varRef.setFrom(from);
+		Variable to=democlesPattern.getSymbolicParameters().stream().filter(emfVar -> param.getParameter().getName().equals(emfVar.getName())).findFirst().get();
+		varRef.setTo(to);
+		varRef.setInvocation(invocation);
+		if(from.getConstructor()==null)
+			from.setConstructor(invocation);
+	}
+
+	private EOperation createCFVariableForParameters(EClass correspondingEClass, MethodDec eOp, Scope rootscope) {
+		EOperation correspondingEop=correspondingEClass.getEOperations().stream().filter( clazzEop-> {return clazzEop.getName().equals(eOp.getName());}).findAny().get();
+		correspondingEop.getEParameters().forEach(param -> {
+			CFVariable cfVariable=democlesHelper.createCFVariable();
+			cfVariable.setName(param.getName());
+			cfVariable.setScope(rootscope);
+			cfVariable.setType(param.getEType());
+			cfVariable.setLocal(false);
+			rootscope.getVariables().add(cfVariable);
+		});
+		return correspondingEop;
+	}
+
+	private void createThisVariable(EClass correspondingEClass, Scope rootscope) {
+		CFVariable thisVariable=democlesHelper.createCFVariable();
+		thisVariable.setName("this");
+		thisVariable.setScope(rootscope);
+		thisVariable.setType(correspondingEClass);
+		thisVariable.setLocal(false);
+		rootscope.getVariables().add(thisVariable);
+	}
+
 	private PatternInvocation createPatternInvocation(Scope rootscope, CFNode cfNode, EditorPattern pattern,
 			Pattern blackPattern) {
 		RegularPatternInvocation patternInvocation=democlesHelper.createRegularPatternInvocation();
 		patternInvocation.setCfNode(cfNode);
 		patternInvocation.setPattern(blackPattern);
-		//TODO: Foreach CFVar that is free and passed to the pattern create a ConstructedVariable reference
-		/*blackPattern.getSymbolicParameters().forEach( symbolicParam ->{
-			if(rootscope.getVariables().stream().noneMatch( cfVariable -> {return symbolicParam.getName().equals(cfVariable.getName());})) {
-				CFVariable newCFVariable =democlesHelper.createCFVariable();
-				newCFVariable.setScope(rootscope);
-				newCFVariable.setName(symbolicParam.getName());
-				//TODO: newCFVariable.setType();
-				newCFVariable.setLocal(false);
-				newCFVariable.setType(pattern.getNodes().stream().filter(node -> {
-					return node.getName().equals(newCFVariable.getName());
-				}).findAny().get().getType());
-				patternInvocation.getConstructedVariables().add(newCFVariable);
-				rootscope.getVariables().add(newCFVariable);
-			}
-				
-		});*/
-		/*pattern.getParameters().forEach( editorParam -> {
-			if(editorParam.getName().equals("this"))
-				return;
-			else 
-				patternInvocation
-			}));
-		});
-		patternInvocation.getConstructedVariables().addAll(rootscope.getVariables().stream().filter(cfVar -> {
-			if(blackPattern!=null) {
-				return pattern.getParameters().stream().anyMatch(var -> var.getName().equals(cfVar.getName()));
-						}
-			else
-				return true;
-			}).collect(Collectors.toList()));*/
 		//Create Variable References
 			rootscope.getVariables().forEach(cfVar ->{
 			Optional<Variable> target= blackPattern.getSymbolicParameters().stream().filter( emfVar -> emfVar.getName().equals(cfVar.getName())).findFirst();
@@ -246,7 +226,6 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 	      }
 
 	      // Perform scope validation
-	      //TODO: own trafo
-	      //scope.accept(scopeValidator);
+	      scope.accept(ScopeFactory.eINSTANCE.createScopeValidator());
 	   }
 }

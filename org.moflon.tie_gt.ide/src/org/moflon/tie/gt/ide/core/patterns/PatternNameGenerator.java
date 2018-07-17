@@ -9,7 +9,9 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EOperation;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.sdm.runtime.democles.CFNode;
+import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
 
 /**
  * Configurable name generator for patterns
@@ -20,7 +22,6 @@ public class PatternNameGenerator
 {
    private EClass eContainingClass;
 
-   //TODO: possibly this should be a democles pattern
    private EditorPattern patternDefinition;
 
    private int eOperationIndex;
@@ -101,4 +102,15 @@ public class PatternNameGenerator
       });
       return operations;
    }
+   public static void setPatternName(EClass correspondingEClass, EOperation correspondingEop, CFNode cfNode,
+			EditorPattern pattern, PatternType patternType,Pattern democlesPattern) {
+		PatternNameGenerator patternNameGenerator= new PatternNameGenerator();
+		patternNameGenerator.setSuffix(patternType.getSuffix());
+		patternNameGenerator.setCFNode(cfNode);
+		patternNameGenerator.setEClass(correspondingEClass);
+		patternNameGenerator.setEOperation(correspondingEop);
+		patternNameGenerator.setPatternDefinition(pattern);
+		democlesPattern.setName(patternNameGenerator.generateName());
+	}
+   
 }
