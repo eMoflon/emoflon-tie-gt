@@ -36,7 +36,7 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
-import org.moflon.tie.gt.ide.core.codegeneration.TieGTCodeGenerator;
+import org.moflon.tie.gt.ide.core.codegeneration.TieGTControlFlowBuilder;
 
 public class TieGTBuilder extends AbstractVisitorBuilder{
 	
@@ -131,7 +131,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				eMoflonEMFUtil.installCrossReferencers(resourceSet);
 				subMon.worked(1);
 				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask= new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(ecoreFile,resourceSet,EMoflonPreferencesActivator.getDefault().getPreferencesStorage());
-				TieGTCodeGenerator tieGTCodeGenerationPhase = new TieGTCodeGenerator();
+				TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder();
 				codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);
 				final IStatus status = codeGenerationTask.run(subMon.split(1));
 				subMon.worked(3);

@@ -23,7 +23,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.eclipse.task.ITask;
@@ -32,12 +31,10 @@ import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
-import org.moflon.tie.gt.democles.EditorToIBeXPatternTransformation;
-import org.moflon.tie.gt.democles.IBeXToDemoclesPatternTransformation;
+import org.moflon.tie.gt.ide.core.patterns.CodeadapterTrafo;
+import org.moflon.tie.gt.ide.core.patterns.TIEGTAdapterTrafo;
 
-import IBeXLanguage.IBeXPatternSet;
-
-public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
+public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 
 
 	   public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
@@ -56,7 +53,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 
 	   private IProject project;
 	   
-	   private TransformationConfiguration transformationConfiguration;
+	   private TIEGTAdapterTrafo tieGTAdapterTransformation;
 
 	   public String getTaskName()
 	   {
@@ -69,7 +66,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	      this.project = project;
 	      this.ePackage = (EPackage) resource.getContents().get(0);
 	      this.resourceSet = ePackage.eResource().getResourceSet();
-	      this.transformationConfiguration = new TransformationConfiguration();
+	      this.tieGTAdapterTransformation = new TIEGTAdapterTrafo();
 	      this.editorToDemoclesPatterns=new HashMap<EditorPattern, Pattern>();
 	      //TODO:
 	      //final Map<String, PatternMatcher> patternMatcherConfiguration = methodBodyHandler.getPatternMatcherConfiguration();
@@ -99,11 +96,10 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	      //if (gtLoadStatus.matches(IStatus.ERROR))
 		  //       return gtLoadStatus;
 	      // This status collects all information about the weaving process for 'ePackage'
-	      final MultiStatus weavingMultiStatus = new MultiStatus(WorkspaceHelper.getPluginId(TieGTCodeGenerator.class), 0, getTaskName() + " failed", null);
+	      final MultiStatus weavingMultiStatus = new MultiStatus(WorkspaceHelper.getPluginId(TieGTControlFlowBuilder.class), 0, getTaskName() + " failed", null);
 	      final List<EClass> eClasses=eMoflonEMFUtil.getEClasses(this.ePackage);
 
 	      final SubMonitor subMon = SubMonitor.convert(monitor, getTaskName() + " in " + ePackage.getName(), eClasses.size());
-	      processGTiles(subMon);
 	      processMCFFiles(subMon);
 	      return weavingMultiStatus.isOK() ? Status.OK_STATUS : weavingMultiStatus;
 	   }
@@ -156,50 +152,6 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 
 	      return Status.OK_STATUS;
 	   }
-	   
-	   private IStatus loadGTFiles()
-	   {
-	      try
-	      {
-	         getProject().accept(new IResourceVisitor() {
-
-	            @Override
-	            public boolean visit(IResource resource) throws CoreException
-	            {
-	               if (resource.getName().equals("bin"))
-	                  return false;
-
-	               if (isIBeXGTFile(resource))
-	               {
-	                  final Resource schemaResource = (Resource) getResourceSet()
-	                        .createResource(URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(), false));
-	                  try
-	                  {
-	                     schemaResource.load(null);
-	                  } catch (final IOException e)
-	                  {
-	                     throw new CoreException(
-	                           new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Problems while loading MOSL-GT specification", e));
-	                  }
-	               }
-	               return true;
-	            }
-
-	            private boolean isIBeXGTFile(IResource resource)
-	            {
-	               final IFile file = resource.getAdapter(IFile.class);
-	               return resource != null && resource.exists() && file != null && IBEX_GT_FILE_EXTENSION.equals(file.getFileExtension());
-	            }
-
-	         });
-	         EcoreUtil.resolveAll(this.getResourceSet());
-	      } catch (final CoreException e)
-	      {
-	         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
-	      }
-
-	      return Status.OK_STATUS;
-	   }
 
 	   private ResourceSet getResourceSet()
 	   {
@@ -211,62 +163,17 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	      return project;
 	   }
 
-	   private IStatus processGTiles(final IProgressMonitor monitor)
-	   {
-	      try
-	      {
-	         CodeadapterTrafo helper = this.transformationConfiguration.getCodeadapterTransformator();
-	         
-	         final List<Resource> mcfResources = this.resourceSet.getResources().stream()
-	               .filter(resource -> resource.getURI().lastSegment().endsWith('.' + IBEX_GT_FILE_EXTENSION)).collect(Collectors.toList());
-
-	         for (final Resource schemaResource : mcfResources)
-	         {
-	            processGTResources(helper, schemaResource);
-
-	         }
-	         EcoreUtil.resolveAll(this.resourceSet);
-	      } catch (final IOException e)
-	      {
-	         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Problems while loading IBEX-GT specification", e);
-	      }
-	      return Status.OK_STATUS;
-	   }
-	   
-	   private void processGTResources(CodeadapterTrafo helper, Resource schemaResource) throws IOException {
-		if(schemaResource.getContents().get(0) instanceof EditorGTFile) {
-			EditorGTFile gtFileRes=(EditorGTFile)schemaResource.getContents().get(0);
-			EditorToIBeXPatternTransformation gtToIbextrafo = new EditorToIBeXPatternTransformation();
-			IBeXPatternSet ibexPatternSet=gtToIbextrafo.transform(gtFileRes);
-			IBeXToDemoclesPatternTransformation ibexToDemoclesTrafo= new IBeXToDemoclesPatternTransformation();
-			List<Pattern> democlesPatterns=ibexToDemoclesTrafo.transform(ibexPatternSet);
-			gtFileRes.getPatterns().forEach(editorPattern -> {
-				democlesPatterns.stream().forEach(democlesPattern -> {
-					if(democlesPattern.getName()==editorPattern.getName()) {
-						if(!this.editorToDemoclesPatterns.containsKey(editorPattern))
-							this.editorToDemoclesPatterns.put(editorPattern, democlesPattern);
-						else System.out.println("Duplicate Patterns for "+editorPattern.getName());
-					}
-				});
-			});
-			System.out.println("ObtainedDemoclesPatterns");
-			
-		}
-		
-	}
-
 	private IStatus processMCFFiles(final IProgressMonitor monitor)
 	   {
 	      try
 	      {
-	         CodeadapterTrafo helper = this.transformationConfiguration.getCodeadapterTransformator();
 	         
 	         final List<Resource> mcfResources = this.resourceSet.getResources().stream()
 	               .filter(resource -> resource.getURI().lastSegment().endsWith('.' + MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION)).collect(Collectors.toList());
 
 	         for (final Resource schemaResource : mcfResources)
 	         {
-	            processMCFResources(helper, schemaResource);
+	            processMCFResources(tieGTAdapterTransformation, schemaResource);
 
 	         }
 	         EcoreUtil.resolveAll(this.resourceSet);

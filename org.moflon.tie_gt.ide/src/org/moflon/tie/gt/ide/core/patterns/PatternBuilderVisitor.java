@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.codegeneration;
+package org.moflon.tie.gt.ide.core.patterns;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,8 +19,6 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.moflon.sdm.runtime.democles.DemoclesFactory;
-import org.moflon.tie.gt.ide.core.patterns.DemoclesMethodBodyHandler;
-import org.moflon.tie.gt.ide.core.patterns.PatternNameGenerator;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class PatternBuilderVisitor {

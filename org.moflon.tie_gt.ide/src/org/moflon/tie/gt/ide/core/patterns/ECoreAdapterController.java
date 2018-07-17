@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.codegeneration;
+package org.moflon.tie.gt.ide.core.patterns;
 
 import java.io.IOException;
 import java.util.Collections;
