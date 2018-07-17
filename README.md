@@ -10,6 +10,7 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 ## Install Developer Workspace
 1. Install the following team project set (via *Import &rarr; Team Project Set*) https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/giessing-dev/tieGTDevWorkspace.psf
 2. Run MWE2 workflows (Search for files ending with *.mwe2* via *Ctrl+Shift+R*).
+   * Proceed if Eclipse warns you about "Errors in the Workspace"
 3. Start Runtime from org.moflon.tie.gt.ide
    
    
