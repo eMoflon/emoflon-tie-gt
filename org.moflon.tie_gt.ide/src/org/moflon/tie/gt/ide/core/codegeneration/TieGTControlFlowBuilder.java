@@ -51,7 +51,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 	   private ResourceSet resourceSet;
 
 	   private IProject project;
-	   
+
 	   private TIEGTAdapterTrafo tieGTAdapterTransformation;
 
 	   public String getTaskName()
@@ -75,10 +75,10 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 
 	   /**
 	    * Entry point of this task
-	    * 
+	    *
 	    * It iterates through all {@link EClass}es in the metamodel and invokes
 	    * {@link #weaveEClass(EClass, MultiStatus, IProgressMonitor)} for each one.
-	    * 
+	    *
 	    * @param monitor
 	    *           the progress monitor
 	    * @return the status of the entire task
@@ -104,7 +104,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 
 	   /**
 	    * This routine identifies and loads all .mcf files in the current project.
-	    * 
+	    *
 	    * For each .mcf file, an appropriate resource is created in this generator's resource set ({@link #getResourceSet()}
 	    */
 	   private IStatus loadControlFlowFiles()
@@ -165,7 +165,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 	   {
 	      try
 	      {
-	         
+
 	         final List<Resource> mcfResources = this.resourceSet.getResources().stream()
 	               .filter(resource -> resource.getURI().lastSegment().endsWith('.' + MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION)).collect(Collectors.toList());
 
@@ -194,25 +194,26 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
 	         String contextEcorePath = mCF.getImports().get(0).getName().replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
 	         Resource ecoreRes = this.resourceSet.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
 	         ecoreRes.load(null);
-	         // TODO@rkluge: Extend to support multiple root packages
-	         final EPackage contextEPackage = EcoreUtil.copy((EPackage) ecoreRes.getContents().get(0));
+//	         final EPackage contextEPackage = EcoreUtil.copy((EPackage) ecoreRes.getContents().get(0));
+	         final EPackage contextEPackage = (EPackage) ecoreRes.getContents().get(0);
 
 	         // transformation
-	         Resource enrichedEcoreResource = ePackage.eResource(); // this.resourceSet.createResource(enrichedEcoreURI);
-	         String nsURI = ePackage.eResource().getURI().toString();
-	         enrichedEcoreResource.getContents().clear();
-	         enrichedEcoreResource.getContents().add(contextEPackage);
-	         contextEPackage.setNsURI(nsURI);
-	         enrichedEcoreResource.save(Collections.EMPTY_MAP);
-	         EcoreUtil.resolveAll(contextEPackage);
-	         final EPackage enrichedEPackage = helper.transform(contextEPackage, mCF, this.resourceSet);
+//	         Resource enrichedEcoreResource = ePackage.eResource(); // this.resourceSet.createResource(enrichedEcoreURI);
+//	         String nsURI = ePackage.eResource().getURI().toString();
+//	         enrichedEcoreResource.getContents().clear();
+//	         enrichedEcoreResource.getContents().add(contextEPackage);
+//	         contextEPackage.setNsURI(nsURI);
+//	         enrichedEcoreResource.save(Collections.EMPTY_MAP);
+//	         EcoreUtil.resolveAll(contextEPackage);
+//	         final EPackage enrichedEPackage =
+	        		 helper.transform(contextEPackage, mCF, this.resourceSet);
 
 	         // save context
-	         enrichedEcoreResource.getContents().clear();
-	         enrichedEcoreResource.getContents().add(enrichedEPackage);
-	         final Map<String, String> saveOptions = new HashMap<>();
-	         saveOptions.put(Resource.OPTION_LINE_DELIMITER, WorkspaceHelper.DEFAULT_RESOURCE_LINE_DELIMITER);
-	         enrichedEcoreResource.save(saveOptions);
+//	         enrichedEcoreResource.getContents().clear();
+//	         enrichedEcoreResource.getContents().add(enrichedEPackage);
+//	         final Map<String, String> saveOptions = new HashMap<>();
+//	         saveOptions.put(Resource.OPTION_LINE_DELIMITER, WorkspaceHelper.DEFAULT_RESOURCE_LINE_DELIMITER);
+//	         enrichedEcoreResource.save(saveOptions);
 
 	      }
 	   }

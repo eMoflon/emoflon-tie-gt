@@ -6,24 +6,31 @@ import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.BasicMonitor;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
 import org.moflon.codegen.eclipse.MoflonCodeGenerator;
 import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
+import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
+import org.moflon.compiler.sdm.democles.DemoclesGeneratorAdapterFactory;
+import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 import org.moflon.core.propertycontainer.SDMCodeGeneratorIds;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
@@ -67,6 +74,8 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 
 			// (1) Instantiate code generation engine
 			final Resource resource = getEcoreResource();
+			getResourceSet().getResources().add(resource);
+			final EPackage ePackage = (EPackage) resource.getContents().get(0);
 			final String engineID = SDMCodeGeneratorIds.DEMOCLES_ATTRIBUTES.getLiteral();
 			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
@@ -97,6 +106,46 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 				subMon.worked(10);
 			}
 
+			//TODO@rkluge: Only serves to initialize the template configuration and search plan builders
+			// See for instance org.moflon.compiler.sdm.democles.DefaultValidatorConfig
+			final ITask validator = methodBodyHandler.createValidator(ePackage);
+			final StatusHolder validationStatusHolder = new StatusHolder();
+			final WorkspaceJob validationJob = new WorkspaceJob(engineID) {
+				@Override
+				public IStatus runInWorkspace(final IProgressMonitor monitor) throws CoreException {
+					final SubMonitor subMon = SubMonitor.convert(monitor, "Validation job", 100);
+					try {
+						validationStatusHolder.status = validator.run(subMon.split(100));
+					} catch (final Exception e) {
+						validationStatusHolder.status = new Status(IStatus.ERROR,
+								WorkspaceHelper.getPluginId(MoflonCodeGenerator.class),
+								String.format("%s occurred during validation with message %s",
+										e.getClass().getSimpleName(), e.getMessage()));
+					}
+					return validationStatusHolder.status;
+				}
+			};
+			final JobGroup jobGroup = new JobGroup("Validation job group", 1, 1);
+			validationJob.setJobGroup(jobGroup);
+			validationJob.schedule();
+			final int timeoutForValidationTaskInMillis = getPreferencesStorage().getValidationTimeout();
+			jobGroup.join(timeoutForValidationTaskInMillis, subMon.split(10));
+
+			if (validationJob.getResult() == null) {
+				throw new OperationCanceledException(String.format(
+						"Validation took longer than %ds. This could(!) mean that some of your patterns have no valid search plan. You may increase the timeout value using the eMoflon property page",
+						(timeoutForValidationTaskInMillis / 1000)));
+			}
+
+			if (subMon.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
+
+			final IStatus validationStatus = validationStatusHolder.status;
+			if (validationStatus.matches(IStatus.ERROR)) {
+				return validationStatus;
+			}
+
 			// Build or load GenModel
 			final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(),
 					getAllResources(), getEcoreFile(), true, getMoflonProperties());
@@ -122,7 +171,7 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 
 			// Generate code
 			subMon.subTask("Generating code for project " + project.getName());
-			final Descriptor codeGenerationEngine = methodBodyHandler.createCodeGenerationEngine(this, resource);
+			final Descriptor codeGenerationEngine = createCodeGenerationEngine(this, resource);
 			final CodeGenerator codeGenerator = new CodeGenerator(codeGenerationEngine);
 			final IStatus codeGenerationStatus = codeGenerator.generateCode(genModel,
 					new BasicMonitor.EclipseSubProgress(subMon, 30));
@@ -146,6 +195,15 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 							+ "'. (Stacktrace is logged with level debug)",
 					e);
 		}
+	}
+
+	@Deprecated //TODO@rkluge Hack to avoid inheritance problems with getGenModel
+	public Descriptor createCodeGenerationEngine(final MoflonCodeGenerator codeGenerator, final Resource resource) {
+		final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(
+				getResourceSet(), getPreferencesStorage());
+		final TemplateConfigurationProvider templateConfig = defaultCodeGeneratorConfig
+				.createTemplateConfiguration(this.genModel);
+		return new DemoclesGeneratorAdapterFactory(templateConfig, codeGenerator.getInjectorManager());
 	}
 
 	// TODO: this should just be a protected method in MoflonEmfCodeGenerator
@@ -179,4 +237,9 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 	public void setAdditionalCodeGenerationPhase(final MoflonCodeGeneratorPhase codeGenerationPhase) {
 		this.additionalCodeGenerationPhase = codeGenerationPhase;
 	}
+
+	private static class StatusHolder {
+		IStatus status;
+	}
+
 }

@@ -36,11 +36,11 @@ import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
 
 public class TIEGTAdapterTrafo implements CodeadapterTrafo {
-	
+
 	DemoclesFactory democlesHelper = DemoclesFactory.eINSTANCE;
 	ECoreAdapterController adapterController;
 
-	
+
 	public TIEGTAdapterTrafo() {
 		this.adapterController= new ECoreAdapterController();
 	}
@@ -91,7 +91,7 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 								patternStmt.getParameters().forEach(param ->{
 									bindConstructedVariablesFromParameter(rootscope, democlesPattern, invocation,
 											param);
-									
+
 								});
 							}
 							//TODO: still necessary?
@@ -187,6 +187,7 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 		returnstmt.setScope(rootscope);
 		Action emptyReturnAction=democlesHelper.createAction();
 		emptyReturnAction.setCfNode(returnstmt);
+		returnstmt.setMainAction(emptyReturnAction);
 	}
 
 	private void createCFVariableFromObjectVariable(Scope rootscope, ObjectVariableStatement stmt) {
@@ -198,7 +199,7 @@ public class TIEGTAdapterTrafo implements CodeadapterTrafo {
 		rootscope.getVariables().add(cfVariable);
 	}
 
-	   
+
 	   public final void performScopeValidation(final ScopeValidator scopeValidator, final EOperation eOperation, final Scope scope,ResourceSet resourceSet)
 	   {
 		  boolean loadIntoResourceSet=true;
