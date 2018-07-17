@@ -22,6 +22,9 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
+import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
+import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
+import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
 import org.moflon.core.build.AbstractVisitorBuilder;
 import org.moflon.core.build.CleanVisitor;
 import org.moflon.core.plugins.manifest.ExportedPackagesInManifestUpdater;
@@ -121,6 +124,10 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				// Build
 				//final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
 				final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
+				final PatternResourceFactory blackFactory = new PatternResourceFactory(DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
+			    resourceSet.getAdapterFactories().add(blackFactory);
+			    final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
+			    resourceSet.getAdapterFactories().add(cfFactory);
 				eMoflonEMFUtil.installCrossReferencers(resourceSet);
 				subMon.worked(1);
 				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask= new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(ecoreFile,resourceSet,EMoflonPreferencesActivator.getDefault().getPreferencesStorage());

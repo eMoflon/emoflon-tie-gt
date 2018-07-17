@@ -94,6 +94,7 @@ public class TieGTCodeGenerator implements MoflonCodeGeneratorPhase,ITask{
 	      final IStatus mcfLoadStatus = this.loadControlFlowFiles();
 	      if (mcfLoadStatus.matches(IStatus.ERROR))
 	         return mcfLoadStatus;
+	      //TODO: load gt Resources if GTBuilder is removed in the future
 	      //final IStatus gtLoadStatus=this.loadGTFiles();
 	      //if (gtLoadStatus.matches(IStatus.ERROR))
 		  //       return gtLoadStatus;

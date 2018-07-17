@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
 import org.moflon.tie.gt.ide.core.patterns.TIEGTAdapterTrafo;
+import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class TransformationConfiguration {
 
