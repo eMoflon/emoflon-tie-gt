@@ -31,7 +31,6 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
-import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;

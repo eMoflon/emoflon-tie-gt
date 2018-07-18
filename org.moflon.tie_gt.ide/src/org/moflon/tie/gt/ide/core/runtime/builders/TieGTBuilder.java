@@ -1,6 +1,5 @@
 package org.moflon.tie.gt.ide.core.runtime.builders;
 
-import com.google.inject.Injector;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -38,6 +37,8 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTControlFlowBuilder;
+
+import com.google.inject.Injector;
 
 public class TieGTBuilder extends AbstractVisitorBuilder {
 
