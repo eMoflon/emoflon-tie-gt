@@ -23,7 +23,8 @@ import org.moflon.sdm.runtime.democles.DemoclesFactory;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class PatternBuilderVisitor {
-	public enum PatternType{BLACK_PATTERN,RED_PATTERN,GREEN_PATTERN,EXPRESSION_PATTERN,BINDING_PATTERN;
+	public enum PatternType{
+		BLACK_PATTERN,RED_PATTERN,GREEN_PATTERN,EXPRESSION_PATTERN,BINDING_PATTERN,BINDING_AND_BLACK_PATTERN;
 
 	public String getSuffix() {
 		switch (this)
@@ -38,11 +39,13 @@ public class PatternBuilderVisitor {
 	         return DemoclesMethodBodyHandler.RED_FILE_EXTENSION;
 	      case BINDING_PATTERN:
 	         return DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION;
+	      case BINDING_AND_BLACK_PATTERN:
+	    	  return DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION;
 	      default:
 	         return null;
 	      }
 	}};
-	
+
 	DemoclesFactory democlesHelper = DemoclesFactory.eINSTANCE;
 	EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
 	SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
@@ -50,7 +53,7 @@ public class PatternBuilderVisitor {
 	Map<EditorNode,EMFVariable> nodeToVariableLUT;
 	PatternNameGenerator patternNameGenerator;
 	ContextController contextController;
-	
+
 	public PatternBuilderVisitor(EPackage contextEPackage, ResourceSet resourceSet) {
 		this.generatedDemoclesPatterns=new HashMap<PatternBuilderVisitor.PatternType, Pattern>();
 		this.nodeToVariableLUT=new HashMap<EditorNode, EMFVariable>();
@@ -58,8 +61,8 @@ public class PatternBuilderVisitor {
 		this.contextController.setEPackage(contextEPackage);
 	    this.contextController.setResourceSet(resourceSet);
 	}
-	
-	
+
+
 	public Map<PatternType,Pattern> visit(EditorPattern pattern) {
 		//TODO: make this dynamic
 		Pattern blackPattern =patternHelper.createPattern();
@@ -69,7 +72,7 @@ public class PatternBuilderVisitor {
 		pattern.getNodes().forEach(n -> visit(n));
 		return generatedDemoclesPatterns;
 	}
-	
+
 	void visit(EditorNode node) {
 		if(node.getOperator()==EditorOperator.CONTEXT||node.getOperator()==EditorOperator.DELETE) {
 			EMFVariable var=emfHelper.createEMFVariable();
@@ -77,16 +80,16 @@ public class PatternBuilderVisitor {
 			this.nodeToVariableLUT.put(node,var);
 			generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getSymbolicParameters().add(var);
 			var.setEClassifier(node.getType());
-			
+
 			//TODO: do black stuff
 		}else {
 			//TODO: do green stuff?
 		}
-		
+
 		node.getAttributes().forEach(attribute -> visit(attribute));
 		node.getReferences().forEach(reference -> visit(reference,generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0),node));
 	}
-	
+
 	void visit(EditorAttribute attribute) {
 		if(attribute.getRelation()!=EditorRelation.ASSIGNMENT) {
 			//TODO: do black stuff
@@ -95,7 +98,7 @@ public class PatternBuilderVisitor {
 			//TODO: do green stuff
 		}
 	}
-	
+
 	void visit(EditorReference editorReference,PatternBody patternBody,EditorNode source) {
 		if(editorReference.getOperator()==EditorOperator.CONTEXT) {
 			//TODO: do black stuff

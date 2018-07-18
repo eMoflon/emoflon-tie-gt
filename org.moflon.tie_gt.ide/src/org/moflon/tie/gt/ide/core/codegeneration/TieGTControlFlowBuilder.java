@@ -1,10 +1,7 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IFile;
@@ -26,196 +23,191 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
 import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
+import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
-import org.moflon.tie.gt.ide.core.patterns.CodeadapterTrafo;
-import org.moflon.tie.gt.ide.core.patterns.TIEGTAdapterTrafo;
+import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
+import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 
-public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase,ITask{
+public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask {
 
-
-	   public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
-	   public static final String IBEX_GT_FILE_EXTENSION = "gt";
+	public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
+	public static final String IBEX_GT_FILE_EXTENSION = "gt";
 
 	/**
-	    * The top-level {@link EPackage} of the ongoing build process
-	    */
-	   private EPackage ePackage;
+	 * The top-level {@link EPackage} of the ongoing build process
+	 */
+	private EPackage ePackage;
 
-	   /**
-	    * The common {@link ResourceSet} of the ongoing build process
-	    */
-	   private ResourceSet resourceSet;
+	/**
+	 * The common {@link ResourceSet} of the ongoing build process
+	 */
+	private ResourceSet resourceSet;
 
-	   private IProject project;
+	private IProject project;
 
-	   private TIEGTAdapterTrafo tieGTAdapterTransformation;
+	private EditorToControlFlowTransformation tieGTAdapterTransformation;
+	private EMoflonPreferencesStorage preferencesStorage;
 
-	   public String getTaskName()
-	   {
-	      return "eMoflon-GT Transformation task";
-	   }
+	public TieGTControlFlowBuilder(EMoflonPreferencesStorage preferencesStorage) {
+		this.preferencesStorage = preferencesStorage;
+	}
 
-	   @Override
-	   public IStatus run(final IProject project, Resource resource, MethodBodyHandler methodBodyHandler, IProgressMonitor monitor)
-	   {
-	      this.project = project;
-	      this.ePackage = (EPackage) resource.getContents().get(0);
-	      this.resourceSet = ePackage.eResource().getResourceSet();
-	      this.tieGTAdapterTransformation = new TIEGTAdapterTrafo();
-	      //TODO:
-	      //final Map<String, PatternMatcher> patternMatcherConfiguration = methodBodyHandler.getPatternMatcherConfiguration();
-	      //this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
-	      //DemoclesMethodBodyHandler.initResourceSetForDemocles(resourceSet);
-	      return run(monitor);
-	   }
+	public String getTaskName() {
+		return "eMoflon-GT Transformation task";
+	}
 
-	   /**
-	    * Entry point of this task
-	    *
-	    * It iterates through all {@link EClass}es in the metamodel and invokes
-	    * {@link #weaveEClass(EClass, MultiStatus, IProgressMonitor)} for each one.
-	    *
-	    * @param monitor
-	    *           the progress monitor
-	    * @return the status of the entire task
-	    */
-	   @Override
-	   public IStatus run(IProgressMonitor monitor)
-	   {
-	      final IStatus mcfLoadStatus = this.loadControlFlowFiles();
-	      if (mcfLoadStatus.matches(IStatus.ERROR))
-	         return mcfLoadStatus;
-	      //TODO: load gt Resources if GTBuilder is removed in the future
-	      //final IStatus gtLoadStatus=this.loadGTFiles();
-	      //if (gtLoadStatus.matches(IStatus.ERROR))
-		  //       return gtLoadStatus;
-	      // This status collects all information about the weaving process for 'ePackage'
-	      final MultiStatus weavingMultiStatus = new MultiStatus(WorkspaceHelper.getPluginId(TieGTControlFlowBuilder.class), 0, getTaskName() + " failed", null);
-	      final List<EClass> eClasses=eMoflonEMFUtil.getEClasses(this.ePackage);
+	@Override
+	public IStatus run(final IProject project, Resource resource, MethodBodyHandler methodBodyHandler,
+			IProgressMonitor monitor) {
+		this.project = project;
+		this.ePackage = (EPackage) resource.getContents().get(0);
+		this.resourceSet = ePackage.eResource().getResourceSet();
+		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()), preferencesStorage);
+		// TODO:
+		// final Map<String, PatternMatcher> patternMatcherConfiguration =
+		// methodBodyHandler.getPatternMatcherConfiguration();
+		// this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
+		// DemoclesMethodBodyHandler.initResourceSetForDemocles(resourceSet);
+		return run(monitor);
+	}
 
-	      final SubMonitor subMon = SubMonitor.convert(monitor, getTaskName() + " in " + ePackage.getName(), eClasses.size());
-	      processMCFFiles(subMon);
-	      return weavingMultiStatus.isOK() ? Status.OK_STATUS : weavingMultiStatus;
-	   }
+	/**
+	 * Entry point of this task
+	 *
+	 * It iterates through all {@link EClass}es in the metamodel and invokes
+	 * {@link #weaveEClass(EClass, MultiStatus, IProgressMonitor)} for each one.
+	 *
+	 * @param monitor
+	 *            the progress monitor
+	 * @return the status of the entire task
+	 */
+	@Override
+	public IStatus run(final IProgressMonitor monitor) {
+		final IStatus mcfLoadStatus = this.loadControlFlowFiles();
+		if (mcfLoadStatus.matches(IStatus.ERROR))
+			return mcfLoadStatus;
+		final List<EClass> eClasses = eMoflonEMFUtil.getEClasses(this.ePackage);
 
-	   /**
-	    * This routine identifies and loads all .mcf files in the current project.
-	    *
-	    * For each .mcf file, an appropriate resource is created in this generator's resource set ({@link #getResourceSet()}
-	    */
-	   private IStatus loadControlFlowFiles()
-	   {
-	      try
-	      {
-	         getProject().accept(new IResourceVisitor() {
+		final SubMonitor subMon = SubMonitor.convert(monitor, getTaskName() + " in " + ePackage.getName(),
+				eClasses.size());
+		final IStatus weavingMultiStatus = processMCFFiles(subMon);
+		return weavingMultiStatus.isOK() ? Status.OK_STATUS : weavingMultiStatus;
+	}
 
-	            @Override
-	            public boolean visit(IResource resource) throws CoreException
-	            {
-	               if (resource.getName().equals("bin"))
-	                  return false;
+	/**
+	 * This routine identifies and loads all .mcf files in the current project.
+	 *
+	 * For each .mcf file, an appropriate resource is created in this generator's
+	 * resource set ({@link #getResourceSet()}
+	 */
+	private IStatus loadControlFlowFiles() {
+		try {
+			getProject().accept(new IResourceVisitor() {
 
-	               if (isMOSLCFFile(resource))
-	               {
-	                  final Resource schemaResource = (Resource) getResourceSet()
-	                        .createResource(URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(), false));
-	                  try
-	                  {
-	                     schemaResource.load(null);
-	                  } catch (final IOException e)
-	                  {
-	                     throw new CoreException(
-	                           new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Problems while loading MOSL-GT specification", e));
-	                  }
-	               }
-	               return true;
-	            }
+				@Override
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource.getName().equals("bin"))
+						return false;
 
-	            private boolean isMOSLCFFile(IResource resource)
-	            {
-	               final IFile file = resource.getAdapter(IFile.class);
-	               return resource != null && resource.exists() && file != null && MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
-	            }
+					if (isMOSLCFFile(resource)) {
+						final Resource schemaResource = (Resource) getResourceSet().createResource(
+								URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(),
+										false));
+						try {
+							schemaResource.load(null);
+						} catch (final IOException e) {
+							throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+									"Problems while loading MOSL-GT specification", e));
+						}
+					}
+					return true;
+				}
 
-	         });
-	         EcoreUtil.resolveAll(this.getResourceSet());
-	      } catch (final CoreException e)
-	      {
-	         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
-	      }
+				private boolean isMOSLCFFile(IResource resource) {
+					final IFile file = resource.getAdapter(IFile.class);
+					return resource != null && resource.exists() && file != null
+							&& MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
+				}
 
-	      return Status.OK_STATUS;
-	   }
+			});
+			EcoreUtil.resolveAll(this.getResourceSet());
+		} catch (final CoreException e) {
+			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
+		}
 
-	   private ResourceSet getResourceSet()
-	   {
-	      return this.resourceSet;
-	   }
+		return Status.OK_STATUS;
+	}
 
-	   private IProject getProject()
-	   {
-	      return project;
-	   }
+	private ResourceSet getResourceSet() {
+		return this.resourceSet;
+	}
 
-	private IStatus processMCFFiles(final IProgressMonitor monitor)
-	   {
-	      try
-	      {
+	private IProject getProject() {
+		return project;
+	}
 
-	         final List<Resource> mcfResources = this.resourceSet.getResources().stream()
-	               .filter(resource -> resource.getURI().lastSegment().endsWith('.' + MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION)).collect(Collectors.toList());
+	private IStatus processMCFFiles(final IProgressMonitor monitor) {
+		try {
 
-	         for (final Resource schemaResource : mcfResources)
-	         {
-	            processMCFResources(tieGTAdapterTransformation, schemaResource);
+			final List<Resource> mcfResources = this.resourceSet.getResources().stream().filter(
+					resource -> resource.getURI().lastSegment().endsWith('.' + MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION))
+					.collect(Collectors.toList());
 
-	         }
-	         EcoreUtil.resolveAll(this.resourceSet);
-	      } catch (final IOException e)
-	      {
-	         return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Problems while loading TIE-Controlflow specification", e);
-	      }
-	      return Status.OK_STATUS;
-	   }
+			for (final Resource schemaResource : mcfResources) {
+				IStatus status = processMCFResources(tieGTAdapterTransformation, schemaResource);
+				if (status.matches(IStatus.ERROR)) {
+					return status;
+				}
+			}
+			EcoreUtil.resolveAll(this.resourceSet);
+		} catch (final IOException e) {
+			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+					"Problems while loading TIE-Controlflow specification", e);
+		}
+		return Status.OK_STATUS;
+	}
 
-	   private void processMCFResources(CodeadapterTrafo helper, final Resource schemaResource) throws IOException
-	   {
-	      final GraphTransformationControlFlowFile mCF = GraphTransformationControlFlowFile.class.cast(schemaResource.getContents().get(0));
-	      if (mCF.getImports().size() > 0)
-	      {
-	         // TODO@rkluge: Probably, we will have to translate the .mgt files "package-by-package" and load the
-	         // appropriate packages
+	private IStatus processMCFResources(EditorToControlFlowTransformation helper, final Resource schemaResource) throws IOException {
+		final GraphTransformationControlFlowFile mCF = GraphTransformationControlFlowFile.class
+				.cast(schemaResource.getContents().get(0));
+		if (mCF.getImports().size() > 0) {
+			// TODO@rkluge: Probably, we will have to translate the .mgt files
+			// "package-by-package" and load the
+			// appropriate packages
 
-	         // load context
-	         String contextEcorePath = mCF.getImports().get(0).getName().replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
-	         Resource ecoreRes = this.resourceSet.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
-	         ecoreRes.load(null);
-//	         final EPackage contextEPackage = EcoreUtil.copy((EPackage) ecoreRes.getContents().get(0));
-	         final EPackage contextEPackage = (EPackage) ecoreRes.getContents().get(0);
+			// load context
+			String contextEcorePath = mCF.getImports().get(0).getName().replaceFirst("platform:/resource", "")
+					.replaceFirst("platform:/plugin", "");
+			Resource ecoreRes = this.resourceSet.getResource(URI.createPlatformResourceURI(contextEcorePath, false),
+					true);
+			ecoreRes.load(null);
+			// final EPackage contextEPackage = EcoreUtil.copy((EPackage)
+			// ecoreRes.getContents().get(0));
+			final EPackage contextEPackage = (EPackage) ecoreRes.getContents().get(0);
 
-	         // transformation
-//	         Resource enrichedEcoreResource = ePackage.eResource(); // this.resourceSet.createResource(enrichedEcoreURI);
-//	         String nsURI = ePackage.eResource().getURI().toString();
-//	         enrichedEcoreResource.getContents().clear();
-//	         enrichedEcoreResource.getContents().add(contextEPackage);
-//	         contextEPackage.setNsURI(nsURI);
-//	         enrichedEcoreResource.save(Collections.EMPTY_MAP);
-//	         EcoreUtil.resolveAll(contextEPackage);
-//	         final EPackage enrichedEPackage =
-	        		 helper.transform(contextEPackage, mCF, this.resourceSet);
+			// transformation
+			// Resource enrichedEcoreResource = ePackage.eResource(); //
+			// this.resourceSet.createResource(enrichedEcoreURI);
+			// String nsURI = ePackage.eResource().getURI().toString();
+			// enrichedEcoreResource.getContents().clear();
+			// enrichedEcoreResource.getContents().add(contextEPackage);
+			// contextEPackage.setNsURI(nsURI);
+			// enrichedEcoreResource.save(Collections.EMPTY_MAP);
+			// EcoreUtil.resolveAll(contextEPackage);
+			// final EPackage enrichedEPackage =
+			return helper.transform(contextEPackage, mCF, this.resourceSet);
 
-	         // save context
-//	         enrichedEcoreResource.getContents().clear();
-//	         enrichedEcoreResource.getContents().add(enrichedEPackage);
-//	         final Map<String, String> saveOptions = new HashMap<>();
-//	         saveOptions.put(Resource.OPTION_LINE_DELIMITER, WorkspaceHelper.DEFAULT_RESOURCE_LINE_DELIMITER);
-//	         enrichedEcoreResource.save(saveOptions);
-
-	      }
-	   }
+			// save context
+			// enrichedEcoreResource.getContents().clear();
+			// enrichedEcoreResource.getContents().add(enrichedEPackage);
+			// final Map<String, String> saveOptions = new HashMap<>();
+			// saveOptions.put(Resource.OPTION_LINE_DELIMITER,
+			// WorkspaceHelper.DEFAULT_RESOURCE_LINE_DELIMITER);
+			// enrichedEcoreResource.save(saveOptions);
+		}
+		return Status.OK_STATUS;
+	}
 
 }

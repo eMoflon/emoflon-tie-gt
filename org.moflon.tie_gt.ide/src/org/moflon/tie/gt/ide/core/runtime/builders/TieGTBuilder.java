@@ -30,6 +30,7 @@ import org.moflon.core.build.CleanVisitor;
 import org.moflon.core.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.core.plugins.manifest.PluginXmlUpdater;
 import org.moflon.core.preferences.EMoflonPreferencesActivator;
+import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.ClasspathUtil;
 import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -38,9 +39,9 @@ import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTControlFlowBuilder;
 
-public class TieGTBuilder extends AbstractVisitorBuilder{
-	
-	public static String TIE_GT_BUILDER_ID=TieGTBuilder.class.getName();
+public class TieGTBuilder extends AbstractVisitorBuilder {
+
+	public static String TIE_GT_BUILDER_ID = TieGTBuilder.class.getName();
 
 	public static final Logger logger = Logger.getLogger(TieGTBuilder.class);
 
@@ -122,16 +123,22 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				removeGeneratedCode(project);
 
 				// Build
-				//final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
+				// final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
 				final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
-				final PatternResourceFactory blackFactory = new PatternResourceFactory(DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
-			    resourceSet.getAdapterFactories().add(blackFactory);
-			    final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
-			    resourceSet.getAdapterFactories().add(cfFactory);
+				final PatternResourceFactory blackFactory = new PatternResourceFactory(
+						DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
+				resourceSet.getAdapterFactories().add(blackFactory);
+				final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
+						DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
+				resourceSet.getAdapterFactories().add(cfFactory);
 				eMoflonEMFUtil.installCrossReferencers(resourceSet);
 				subMon.worked(1);
-				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask= new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(ecoreFile,resourceSet,EMoflonPreferencesActivator.getDefault().getPreferencesStorage());
-				TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder();
+				EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
+						.getPreferencesStorage();
+				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask = new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(
+						ecoreFile, resourceSet, preferencesStorage);
+				final TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder(
+						preferencesStorage);
 				codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);
 				final IStatus status = codeGenerationTask.run(subMon.split(1));
 				subMon.worked(3);
@@ -140,7 +147,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 				if (!emfBuilderStatus.isOK())
 					return;
 
-				//TODO: fix this when MoflonEmfCodeGenerator is fixed
+				// TODO: fix this when MoflonEmfCodeGenerator is fixed
 				final GenModel genModel = codeGenerationTask.getGenModelDummy();
 				if (genModel == null) {
 					emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
@@ -217,23 +224,23 @@ public class TieGTBuilder extends AbstractVisitorBuilder{
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
 	}
 
-	
 	public static String getId() {
 		return TIE_GT_BUILDER_ID;
 	}
-	
+
 	/**
-	    * Prepare an {@link ResourceSet} that is suitable for a MOSL-GT-based build process
-	    * 
-	    * @return the initialized resource set
-	    */
-	   public static ResourceSet initializeResourceSet()
-	   {
-	      final Injector injector = LanguageActivator.getInstance().getInjector(LanguageActivator.ORG_MOFLON_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
-	      final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
-	      resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
-	      eMoflonEMFUtil.installCrossReferencers(resourceSet);
-	      return resourceSet;
-	   }
+	 * Prepare an {@link ResourceSet} that is suitable for a MOSL-GT-based build
+	 * process
+	 *
+	 * @return the initialized resource set
+	 */
+	public static ResourceSet initializeResourceSet() {
+		final Injector injector = LanguageActivator.getInstance()
+				.getInjector(LanguageActivator.ORG_MOFLON_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
+		final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
+		resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
+		eMoflonEMFUtil.installCrossReferencers(resourceSet);
+		return resourceSet;
+	}
 
 }

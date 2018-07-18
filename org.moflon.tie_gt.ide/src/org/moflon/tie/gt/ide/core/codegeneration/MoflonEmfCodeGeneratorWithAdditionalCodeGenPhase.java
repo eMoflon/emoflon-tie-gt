@@ -76,7 +76,8 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 			final EPackage ePackage = (EPackage) resource.getContents().get(0);
-			final String engineID = SDMCodeGeneratorIds.DEMOCLES_ATTRIBUTES.getLiteral();
+			//TODO@rkluge: Switch to DEMOCLES_ATTRIBUTES
+			final String engineID = SDMCodeGeneratorIds.DEMOCLES.getLiteral();
 			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
 			subMon.worked(5);
@@ -86,24 +87,6 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 			}
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
-			}
-
-			// (2.1) Perform additional code generation phase
-			final IStatus weaverStatus;
-			if (this.additionalCodeGenerationPhase != null) {
-				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(), null,
-						subMon.split(10));
-
-				if (subMon.isCanceled()) {
-					return Status.CANCEL_STATUS;
-				}
-
-				if (weaverStatus.matches(IStatus.ERROR)) {
-					return weaverStatus;
-				}
-			} else {
-				weaverStatus = Status.OK_STATUS;
-				subMon.worked(10);
 			}
 
 			//TODO@rkluge: Only serves to initialize the template configuration and search plan builders
@@ -145,6 +128,26 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 			if (validationStatus.matches(IStatus.ERROR)) {
 				return validationStatus;
 			}
+
+
+			// (2.1) Perform additional code generation phase
+			final IStatus weaverStatus;
+			if (this.additionalCodeGenerationPhase != null) {
+				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(), methodBodyHandler,
+						subMon.split(10));
+
+				if (subMon.isCanceled()) {
+					return Status.CANCEL_STATUS;
+				}
+
+				if (weaverStatus.matches(IStatus.ERROR)) {
+					return weaverStatus;
+				}
+			} else {
+				weaverStatus = Status.OK_STATUS;
+				subMon.worked(10);
+			}
+
 
 			// Build or load GenModel
 			final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(),
