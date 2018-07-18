@@ -23,98 +23,108 @@ import org.moflon.emf.ui.wizard.DefaultEPackageContentGenerator;
 import org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature;
 
 public class NewTieGtProjectWizard extends AbstractMoflonWizard {
-	
+
 	private static final Logger logger = Logger.getLogger(NewTieGtProjectWizard.class);
 
-	   /**
-	    * This is the ID that is also used in plugin.xml
-	    */
-	   public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard";
+	/**
+	 * This is the ID that is also used in plugin.xml
+	 */
+	public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard";
 
-	   protected AbstractMoflonProjectInfoPage projectInfo;
+	protected AbstractMoflonProjectInfoPage projectInfo;
 
-	   /**
-	    * Configures this wizard to use the {@link NewMoflonTieGtProjectInfoPage}
-	    */
-	   @Override
-	   public void addPages()
-	   {
-	      projectInfo = new NewMoflonTieGtProjectInfoPage();
-	      addPage(projectInfo);
-	   }
+	/**
+	 * Configures this wizard to use the {@link NewMoflonTieGtProjectInfoPage}
+	 */
+	@Override
+	public void addPages() {
+		projectInfo = new NewMoflonTieGtProjectInfoPage();
+		addPage(projectInfo);
+	}
 
-	   @Override
-	   protected void doFinish(final IProgressMonitor monitor) throws CoreException
-	   {
-	      try
-	      {
-	         final SubMonitor subMon = SubMonitor.convert(monitor, "Creating eMoflon::TIE project", 8);
+	@Override
+	protected void doFinish(final IProgressMonitor monitor) throws CoreException {
+		try {
+			final SubMonitor subMon = SubMonitor.convert(monitor, "Creating eMoflon::TIE project", 8);
 
-	         final String projectName = projectInfo.getProjectName();
+			final String projectName = projectInfo.getProjectName();
 
-	         final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-	         final PluginProperties pluginProperties = new PluginProperties();
-	         pluginProperties.put(PluginProperties.NAME_KEY, projectName);
-	         pluginProperties.put(PluginProperties.PLUGIN_ID_KEY, projectName);
-	         createProject(subMon, project, pluginProperties);
-	         subMon.worked(3);
+			final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			final PluginProperties pluginProperties = new PluginProperties();
+			pluginProperties.put(PluginProperties.NAME_KEY, projectName);
+			pluginProperties.put(PluginProperties.PLUGIN_ID_KEY, projectName);
+			createProject(subMon, project, pluginProperties);
+			subMon.worked(3);
 
-	         generateDefaultFiles(subMon, project);
-	         subMon.worked(3);
+			generateDefaultFiles(subMon, project);
+			subMon.worked(3);
 
-	         ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, pluginProperties), subMon.split(1));
-	         subMon.worked(2);
+			ResourcesPlugin.getWorkspace().run(new PluginProducerWorkspaceRunnable(project, pluginProperties),
+					subMon.split(1));
+			subMon.worked(2);
 
-	         addToWorkingSet(project);
+			addToWorkingSet(project);
 
-	      } catch (final Exception e)
-	      {
-	         LogUtils.error(logger, e);
-	      }
-	   }
+		} catch (final Exception e) {
+			LogUtils.error(logger, e);
+		}
+	}
 
-	   /**
-	    * Initializes and runs the {@link MoflonProjectCreator} for the current project
-	    * @param monitor the progress monitor
-	    * @param project the project being created
-	    * @param pluginProperties the metadata of the project
-	    * @throws CoreException if setting up the project fails
-	    */
-	   protected void createProject(final IProgressMonitor monitor, final IProject project, final PluginProperties pluginProperties) throws CoreException
-	   {
-	      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project", 1);
-	      final TieGTProjectCreator createMoflonProject = new TieGTProjectCreator(project, pluginProperties, new TieGTNature());
-	      ResourcesPlugin.getWorkspace().run(createMoflonProject, subMon.split(1));
-	   }
+	/**
+	 * Initializes and runs the {@link MoflonProjectCreator} for the current project
+	 * 
+	 * @param monitor
+	 *            the progress monitor
+	 * @param project
+	 *            the project being created
+	 * @param pluginProperties
+	 *            the metadata of the project
+	 * @throws CoreException
+	 *             if setting up the project fails
+	 */
+	protected void createProject(final IProgressMonitor monitor, final IProject project,
+			final PluginProperties pluginProperties) throws CoreException {
+		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project", 1);
+		final TieGTProjectCreator createMoflonProject = new TieGTProjectCreator(project, pluginProperties,
+				new TieGTNature());
+		ResourcesPlugin.getWorkspace().run(createMoflonProject, subMon.split(1));
+	}
 
-	   /**
-	    * Stores the default Ecore file in the proper location
-	    * @param monitor the progress monitor
-	    * @param project the project being created currently
-	    * @throws CoreException if storing the file fails
-	    */
-	   protected void generateDefaultFiles(final IProgressMonitor monitor, final IProject project) throws CoreException
-	   {
-	      final SubMonitor subMon = SubMonitor.convert(monitor, "Creating default files", 1);
-	      final String projectName = project.getName();
-	      final String packageName = MoflonUtil.lastSegmentOf(projectName);
-	      final URI projectUri = MoflonGenModelBuilder.determineProjectUriBasedOnPreferences(project);
-	      final URI packageUri = URI.createURI(projectUri.toString() + MoflonConventions.getDefaultPathToEcoreFileInProject(projectName));
-	      final String defaultEcoreFile = DefaultEPackageContentGenerator.generateDefaultEPackageForProject(projectName, packageName, packageUri.toString());
-	      WorkspaceHelper.addFile(project, MoflonConventions.getDefaultPathToEcoreFileInProject(projectName), defaultEcoreFile, subMon.split(1));
-	   }
+	/**
+	 * Stores the default Ecore file in the proper location
+	 * 
+	 * @param monitor
+	 *            the progress monitor
+	 * @param project
+	 *            the project being created currently
+	 * @throws CoreException
+	 *             if storing the file fails
+	 */
+	protected void generateDefaultFiles(final IProgressMonitor monitor, final IProject project) throws CoreException {
+		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating default files", 1);
+		final String projectName = project.getName();
+		final String packageName = MoflonUtil.lastSegmentOf(projectName);
+		final URI projectUri = MoflonGenModelBuilder.determineProjectUriBasedOnPreferences(project);
+		final URI packageUri = URI
+				.createURI(projectUri.toString() + MoflonConventions.getDefaultPathToEcoreFileInProject(projectName));
+		final String defaultEcoreFile = DefaultEPackageContentGenerator.generateDefaultEPackageForProject(projectName,
+				packageName, packageUri.toString());
+		WorkspaceHelper.addFile(project, MoflonConventions.getDefaultPathToEcoreFileInProject(projectName),
+				defaultEcoreFile, subMon.split(1));
+	}
 
-	   /**
-	    * Adds the given project to the selected working set (if exists)
-	    * @param project the project being creatd
-	    */
-	   private void addToWorkingSet(final IProject project)
-	   {
-	      final IWorkingSet[] recentWorkingSet = WorkingSetUtilities.getSelectedWorkingSet(getSelection(), getActivePart());
-	      if (recentWorkingSet.length != 0)
-	      {
-	         WorkingSetUtilities.addProjectToWorkingSet(project, recentWorkingSet[0]);
-	      }
-	   }
+	/**
+	 * Adds the given project to the selected working set (if exists)
+	 * 
+	 * @param project
+	 *            the project being creatd
+	 */
+	private void addToWorkingSet(final IProject project) {
+		final IWorkingSet[] recentWorkingSet = WorkingSetUtilities.getSelectedWorkingSet(getSelection(),
+				getActivePart());
+		if (recentWorkingSet.length != 0) {
+			WorkingSetUtilities.addProjectToWorkingSet(project, recentWorkingSet[0]);
+		}
+	}
 
 }

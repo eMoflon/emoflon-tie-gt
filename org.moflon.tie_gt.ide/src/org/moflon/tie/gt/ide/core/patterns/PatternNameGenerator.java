@@ -75,6 +75,7 @@ public class PatternNameGenerator {
 
 	/**
 	 * Configures the {@link PatternType} being currently transformed
+	 * 
 	 * @param patternType
 	 */
 	public void setPatternType(final PatternType patternType) {

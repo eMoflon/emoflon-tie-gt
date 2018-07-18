@@ -8,5 +8,5 @@ public class NewMoflonTieGtProjectInfoPage extends AbstractMoflonProjectInfoPage
 		super("NewMoflonTieGTProjectInfo", "New Moflon TIE-GT Project",
 				"This wizard creates a new project for metamodelling with eMoflon.");
 	}
-	
+
 }

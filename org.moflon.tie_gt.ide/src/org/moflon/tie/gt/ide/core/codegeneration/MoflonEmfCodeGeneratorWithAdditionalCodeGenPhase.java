@@ -76,7 +76,7 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 			final EPackage ePackage = (EPackage) resource.getContents().get(0);
-			//TODO@rkluge: Switch to DEMOCLES_ATTRIBUTES
+			// TODO@rkluge: Switch to DEMOCLES_ATTRIBUTES
 			final String engineID = SDMCodeGeneratorIds.DEMOCLES.getLiteral();
 			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
@@ -89,7 +89,8 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 				return Status.CANCEL_STATUS;
 			}
 
-			//TODO@rkluge: Only serves to initialize the template configuration and search plan builders
+			// TODO@rkluge: Only serves to initialize the template configuration and search
+			// plan builders
 			// See for instance org.moflon.compiler.sdm.democles.DefaultValidatorConfig
 			final ITask validator = methodBodyHandler.createValidator(ePackage);
 			final StatusHolder validationStatusHolder = new StatusHolder();
@@ -129,12 +130,11 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 				return validationStatus;
 			}
 
-
 			// (2.1) Perform additional code generation phase
 			final IStatus weaverStatus;
 			if (this.additionalCodeGenerationPhase != null) {
-				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(), methodBodyHandler,
-						subMon.split(10));
+				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
+						methodBodyHandler, subMon.split(10));
 
 				if (subMon.isCanceled()) {
 					return Status.CANCEL_STATUS;
@@ -147,7 +147,6 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 				weaverStatus = Status.OK_STATUS;
 				subMon.worked(10);
 			}
-
 
 			// Build or load GenModel
 			final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(),
@@ -200,10 +199,10 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 		}
 	}
 
-	@Deprecated //TODO@rkluge Hack to avoid inheritance problems with getGenModel
+	@Deprecated // TODO@rkluge Hack to avoid inheritance problems with getGenModel
 	public Descriptor createCodeGenerationEngine(final MoflonCodeGenerator codeGenerator, final Resource resource) {
-		final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(
-				getResourceSet(), getPreferencesStorage());
+		final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(getResourceSet(),
+				getPreferencesStorage());
 		final TemplateConfigurationProvider templateConfig = defaultCodeGeneratorConfig
 				.createTemplateConfiguration(this.genModel);
 		return new DemoclesGeneratorAdapterFactory(templateConfig, codeGenerator.getInjectorManager());

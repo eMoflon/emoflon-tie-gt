@@ -64,7 +64,9 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		this.project = project;
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
-		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()), preferencesStorage);
+		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(
+				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
+				preferencesStorage);
 		// TODO:
 		// final Map<String, PatternMatcher> patternMatcherConfiguration =
 		// methodBodyHandler.getPatternMatcherConfiguration();
@@ -169,7 +171,8 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		return Status.OK_STATUS;
 	}
 
-	private IStatus processMCFResources(EditorToControlFlowTransformation helper, final Resource schemaResource) throws IOException {
+	private IStatus processMCFResources(EditorToControlFlowTransformation helper, final Resource schemaResource)
+			throws IOException {
 		final GraphTransformationControlFlowFile mCF = GraphTransformationControlFlowFile.class
 				.cast(schemaResource.getContents().get(0));
 		if (mCF.getImports().size() > 0) {
