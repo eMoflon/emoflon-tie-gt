@@ -187,13 +187,13 @@ public class EditorToControlFlowTransformation {
 
 	private AdapterResource attachInRegisteredAdapter(final EObject attachedObject, final EObject container,
 			ResourceSet resourceSet, String fileExtension) {
-		final AdapterResource controlFlowResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(container,
+		final AdapterResource adapterResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(container,
 				fileExtension);
-		if (controlFlowResource.getResourceSet() == null) {
-			resourceSet.getResources().add(controlFlowResource);
+		if (adapterResource.getResourceSet() == null) {
+			resourceSet.getResources().add(adapterResource);
 		}
-		controlFlowResource.getContents().add(attachedObject);
-		return controlFlowResource;
+		adapterResource.getContents().add(attachedObject);
+		return adapterResource;
 	}
 
 	private void createParameterVariables(EOperation eOperation, Scope rootscope) {
@@ -272,9 +272,9 @@ public class EditorToControlFlowTransformation {
 		returnstmt.setMainAction(emptyReturnAction);
 	}
 
-	private void createCFVariableFromObjectVariable(final Scope rootscope, final ObjectVariableStatement stmt,
-			EPackage ePackage) {
-		final EClassifier editorObjectVariableType = stmt.getEType();
+	private void createCFVariableFromObjectVariable(final Scope rootscope, final ObjectVariableStatement statement,
+			final EPackage ePackage) {
+		final EClassifier editorObjectVariableType = statement.getEType();
 		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage);
 		if (properCfVariableType == null)
 			throw new IllegalArgumentException(
@@ -283,7 +283,7 @@ public class EditorToControlFlowTransformation {
 
 		final CFVariable cfVariable = DEMOCLES_CF_FACTORY.createCFVariable();
 		cfVariable.setScope(rootscope);
-		cfVariable.setName(stmt.getName());
+		cfVariable.setName(statement.getName());
 		cfVariable.setType(properCfVariableType);
 		cfVariable.setLocal(false);
 		rootscope.getVariables().add(cfVariable);
@@ -293,9 +293,9 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private EClassifier lookupTypeInEcoreFile(EClassifier eType, EPackage ePackage) {
+	private EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage) {
 		// TODO@rkluge: This is a dumb strategy that only looks up classifiers in the
 		// top-level package
-		return ePackage.getEClassifier(eType.getName());
+		return ePackage.getEClassifier(statementEType.getName());
 	}
 }
