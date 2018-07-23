@@ -2,6 +2,7 @@ package org.moflon.tie.gt.ide.core.runtime.utilities;
 
 import java.util.Optional;
 
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
@@ -40,6 +41,15 @@ public class ContextController {
 			return contextEReferenceMonad.get();
 		else
 			return ref;
+	}
+	
+	public EAttribute getEAttributeContext(EAttribute attr, EClass contextEclass) {
+		Optional<EAttribute> contextEAttributeMonad = contextEclass.getEAllAttributes().stream()
+				.filter(attribute -> attribute.getName().equals(attr.getName())).findFirst();
+		if (contextEAttributeMonad.isPresent())
+			return contextEAttributeMonad.get();
+		else
+			return attr;
 	}
 
 	public ResourceSet getResourceSet() {

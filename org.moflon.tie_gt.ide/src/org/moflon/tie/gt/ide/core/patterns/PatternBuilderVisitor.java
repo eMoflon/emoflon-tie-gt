@@ -6,18 +6,29 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeExpression;
+import org.emoflon.ibex.gt.editor.gT.EditorEnumExpression;
+import org.emoflon.ibex.gt.editor.gT.EditorExpression;
+import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
+import org.emoflon.ibex.gt.editor.gT.EditorParameterExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorRelation;
+import org.gervarro.democles.specification.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
+import org.gervarro.democles.specification.emf.constraint.relational.Equal;
+import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
+import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.sdm.runtime.democles.DemoclesFactory;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
@@ -45,7 +56,7 @@ public class PatternBuilderVisitor {
 			}
 		}
 	};
-
+	RelationalConstraintFactory relationalConstraintsHelper= RelationalConstraintFactory.eINSTANCE;
 	DemoclesFactory democlesHelper = DemoclesFactory.eINSTANCE;
 	EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
 	SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
@@ -85,17 +96,78 @@ public class PatternBuilderVisitor {
 			// TODO: do green stuff?
 		}
 
-		node.getAttributes().forEach(attribute -> visit(attribute));
+		node.getAttributes().forEach(attribute -> visit(attribute,generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0),node));
 		node.getReferences().forEach(reference -> visit(reference,
 				generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0), node));
 	}
 
-	void visit(EditorAttribute attribute) {
-		if (attribute.getRelation() != EditorRelation.ASSIGNMENT) {
-			// TODO: do black stuff
-		} else {
+	void visit(EditorAttribute editorAttribute,PatternBody patternBody,EditorNode source) {
+		Attribute emfAttribute= emfHelper.createAttribute();
+		emfAttribute.setEModelElement(this.contextController.getEAttributeContext(editorAttribute.getAttribute(), source.getType()));
+		ConstraintParameter from = patternHelper.createConstraintParameter();
+		from.setReference(nodeToVariableLUT.get(source));
+		ConstraintParameter tmpAttrVal = patternHelper.createConstraintParameter();
+		//TODO:Create temporary EMFVariable (which cases?)
+		//tmpAttrVal.setReference();
+		emfAttribute.getParameters().add(from);
+		emfAttribute.getParameters().add(tmpAttrVal);
+		patternBody.getConstraints().add(emfAttribute);
+		if (editorAttribute.getRelation() != EditorRelation.ASSIGNMENT) {
+			RelationalConstraint relConstraint = createRelationalConstraint(editorAttribute);
+			if(relConstraint==null)
+				return;
+			//TODO: add Constraint parameters
+			EditorExpression expr=editorAttribute.getValue();
+			if(expr instanceof EditorAttributeExpression) {
+				//TODO:implement
+			}
+			if(expr instanceof EditorLiteralExpression) {
+				//TODO:implement
+			}
+			if(expr instanceof EditorEnumExpression) {
+				//TODO:implement
+			}
+			if(expr instanceof EditorParameterExpression) {
+				//TODO:implement
+			}
+			relConstraint.getParameters().add(tmpAttrVal);
+			ConstraintParameter to=patternHelper.createConstraintParameter();
+			//TODO:Create temporary Variable for Constant value?
+			//to.setReference();
+			relConstraint.getParameters().add(to);
+			patternBody.getConstraints().add(relConstraint);
+			}
+		else {
 			// TODO: do green stuff
 		}
+	}
+
+	private RelationalConstraint createRelationalConstraint(EditorAttribute attribute) {
+		RelationalConstraint relConstraint;
+		switch(attribute.getRelation()) {
+		case EQUAL:
+			relConstraint=relationalConstraintsHelper.createEqual();
+			break;
+		case GREATER:
+			relConstraint=relationalConstraintsHelper.createLarger();
+			break;
+		case SMALLER:
+			relConstraint=relationalConstraintsHelper.createSmaller();
+			break;
+		case GREATER_OR_EQUAL:
+			relConstraint=relationalConstraintsHelper.createLargerOrEqual();
+			break;
+		case SMALLER_OR_EQUAL:
+			relConstraint=relationalConstraintsHelper.createSmallerOrEqual();
+			break;
+		case UNEQUAL:
+			relConstraint=relationalConstraintsHelper.createUnequal();
+			break;
+		default:
+			System.out.println("Unsupported EditorRelation: "+ attribute.getRelation());
+			return null;
+		}
+		return relConstraint;
 	}
 
 	void visit(EditorReference editorReference, PatternBody patternBody, EditorNode source) {
