@@ -3,6 +3,7 @@ package org.moflon.tie.gt.ide.core.patterns;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
@@ -106,10 +107,8 @@ public class EditorToControlFlowTransformation {
 
 								PatternInvocation patternInvocation = createPatternInvocation(rootscope, cfNode,
 										editorPattern, democlesPattern);
-								patternStmt.getParameters().forEach(param -> {
-									bindConstructedVariablesFromParameter(rootscope, democlesPattern, patternInvocation,
-											param);
-								});
+								bindConstructedVariablesFromParameter(rootscope, democlesPattern, patternInvocation,
+											patternStmt.getParameters());
 
 								createAndSaveSearchPlan(patternInvocation, democlesPattern, patternType,
 										tranformationStatus);
@@ -219,21 +218,26 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void bindConstructedVariablesFromParameter(Scope currentScope, Pattern democlesPattern,
-			PatternInvocation invocation, CalledPatternParameter controlFlowParameter) {
-		final ObjectVariableStatement ovStatement = (ObjectVariableStatement) controlFlowParameter.getObject();
-		final CFVariable from = findCfVariableByName(currentScope, ovStatement);
-		final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
-		varRef.setFrom(from);
-		final Variable to = findPatternVariableByName(democlesPattern, controlFlowParameter);
-		varRef.setTo(to);
-		varRef.setInvocation(invocation);
-		if (from.getConstructor() == null)
-			from.setConstructor(invocation);
+			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters) {
+		democlesPattern.getSymbolicParameters().forEach(var -> {
+			final ObjectVariableStatement ovStatement = findOVariableByParameterName(var,calledPatternParameters);
+			if(ovStatement==null)
+				return;
+			final CFVariable from = findCfVariableByName(currentScope, ovStatement);
+			final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
+			varRef.setFrom(from);
+			varRef.setTo(var);
+			varRef.setInvocation(invocation);
+			if (from.getConstructor() == null)
+				from.setConstructor(invocation);
+		});
 	}
 
-	private Variable findPatternVariableByName(Pattern democlesPattern, CalledPatternParameter param) {
-		return democlesPattern.getSymbolicParameters().stream()
-				.filter(emfVar -> param.getParameter().getName().equals(emfVar.getName())).findFirst().get();
+	private ObjectVariableStatement findOVariableByParameterName(Variable symbolicParameter, EList<CalledPatternParameter> patternParameter) {
+		Optional<CalledPatternParameter> objVariable =patternParameter.stream().filter(patternParam -> patternParam.getParameter().getName().contentEquals(symbolicParameter.getName())).findAny();
+		if(objVariable.isPresent())
+			return (ObjectVariableStatement)objVariable.get().getObject();
+		else return null;
 	}
 
 	private CFVariable findCfVariableByName(Scope currentScope, ObjectVariableStatement ovStatement) {

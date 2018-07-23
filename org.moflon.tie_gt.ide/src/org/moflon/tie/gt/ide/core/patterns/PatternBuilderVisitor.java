@@ -99,17 +99,18 @@ public class PatternBuilderVisitor {
 	}
 
 	void visit(EditorReference editorReference, PatternBody patternBody, EditorNode source) {
-		if (editorReference.getOperator() == EditorOperator.CONTEXT) {
+		if (editorReference.getOperator() == EditorOperator.CONTEXT || editorReference.getOperator()==EditorOperator.DELETE) {
 			// TODO: do black stuff
 			Reference ref = emfHelper.createReference();
 			ref.setEModelElement(
-					this.contextController.getEReferenceContext(editorReference.getType(), source.getType().eClass()));
+					this.contextController.getEReferenceContext(editorReference.getType(), source.getType()));
 			ConstraintParameter from = patternHelper.createConstraintParameter();
 			from.setReference(this.nodeToVariableLUT.get(source));
 			ConstraintParameter to = patternHelper.createConstraintParameter();
 			to.setReference(this.nodeToVariableLUT.get(editorReference.getTarget()));
-			ref.getParameters().add(to);
 			ref.getParameters().add(from);
+			ref.getParameters().add(to);
+			patternBody.getConstraints().add(ref);
 		} else {
 			// TODO: do green stuff?
 		}
