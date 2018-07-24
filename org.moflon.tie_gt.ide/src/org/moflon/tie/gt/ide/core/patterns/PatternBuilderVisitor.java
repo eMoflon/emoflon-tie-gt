@@ -2,7 +2,9 @@ package org.moflon.tie.gt.ide.core.patterns;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
@@ -16,7 +18,9 @@ import org.emoflon.ibex.gt.editor.gT.EditorParameterExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorRelation;
+import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
 import org.gervarro.democles.specification.Constraint;
+import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
@@ -107,8 +111,12 @@ public class PatternBuilderVisitor {
 		ConstraintParameter from = patternHelper.createConstraintParameter();
 		from.setReference(nodeToVariableLUT.get(source));
 		ConstraintParameter tmpAttrVal = patternHelper.createConstraintParameter();
+		EMFVariable tmpAttrVar= emfHelper.createEMFVariable();
+		patternBody.getLocalVariables().add(tmpAttrVar);
+		tmpAttrVar.setName(getNameForTemporaryAttributeVariable(editorAttribute, source));
+		tmpAttrVar.setEClassifier(emfAttribute.getEModelElement().getEType());
 		//TODO:Create temporary EMFVariable (which cases?)
-		//tmpAttrVal.setReference();
+		tmpAttrVal.setReference(tmpAttrVar);
 		emfAttribute.getParameters().add(from);
 		emfAttribute.getParameters().add(tmpAttrVal);
 		patternBody.getConstraints().add(emfAttribute);
@@ -116,13 +124,28 @@ public class PatternBuilderVisitor {
 			RelationalConstraint relConstraint = createRelationalConstraint(editorAttribute);
 			if(relConstraint==null)
 				return;
-			//TODO: add Constraint parameters
+			ConstraintParameter to=patternHelper.createConstraintParameter();
 			EditorExpression expr=editorAttribute.getValue();
 			if(expr instanceof EditorAttributeExpression) {
 				//TODO:implement
 			}
 			if(expr instanceof EditorLiteralExpression) {
-				//TODO:implement
+				EditorLiteralExpression literalExpr=(EditorLiteralExpression)expr;
+				Constant constant=patternHelper.createConstant();
+				Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(editorAttribute.getAttribute().getEAttributeType(), literalExpr);
+				if(value.isPresent()) {
+					Object valueObject=value.get();
+					if(valueObject instanceof Integer) {
+						Integer integerValue=(Integer)valueObject;
+						constant.setValue(integerValue);
+					}
+				}
+					else {
+						constant.setValue(literalExpr.getValue());
+					}
+					
+				patternBody.getConstants().add(constant);
+				to.setReference(constant);
 			}
 			if(expr instanceof EditorEnumExpression) {
 				//TODO:implement
@@ -130,16 +153,19 @@ public class PatternBuilderVisitor {
 			if(expr instanceof EditorParameterExpression) {
 				//TODO:implement
 			}
-			relConstraint.getParameters().add(tmpAttrVal);
-			ConstraintParameter to=patternHelper.createConstraintParameter();
-			//TODO:Create temporary Variable for Constant value?
-			//to.setReference();
+			ConstraintParameter tmpAttrValCopy= patternHelper.createConstraintParameter();
+			tmpAttrValCopy.setReference(tmpAttrVar);
+			relConstraint.getParameters().add(tmpAttrValCopy);
 			relConstraint.getParameters().add(to);
 			patternBody.getConstraints().add(relConstraint);
 			}
 		else {
 			// TODO: do green stuff
 		}
+	}
+
+	private String getNameForTemporaryAttributeVariable(EditorAttribute editorAttribute, EditorNode source) {
+		return source.getName()+"_"+editorAttribute.getAttribute().getName();
 	}
 
 	private RelationalConstraint createRelationalConstraint(EditorAttribute attribute) {
