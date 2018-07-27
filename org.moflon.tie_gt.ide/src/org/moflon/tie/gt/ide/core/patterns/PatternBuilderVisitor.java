@@ -135,14 +135,7 @@ public class PatternBuilderVisitor {
 				Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(editorAttribute.getAttribute().getEAttributeType(), literalExpr);
 				if(value.isPresent()) {
 					Object valueObject=value.get();
-					if(valueObject instanceof Integer) {
-						Integer integerValue=(Integer)valueObject;
-						constant.setValue(integerValue);
-					}
-					if(valueObject instanceof String) {
-						String stringValue=(String)valueObject;
-						constant.setValue(stringValue);
-					}
+					setConstantValueWithAdjustedType(constant, valueObject);
 				}
 					else {
 						constant.setValue(literalExpr.getValue());
@@ -165,6 +158,29 @@ public class PatternBuilderVisitor {
 			}
 		else {
 			// TODO: do green stuff
+		}
+	}
+
+	private void setConstantValueWithAdjustedType(Constant constant, Object valueObject) {
+		if(valueObject instanceof Integer) {
+			Integer integerValue=(Integer)valueObject;
+			constant.setValue(integerValue);
+		}
+		if(valueObject instanceof String) {
+			String stringValue=(String)valueObject;
+			constant.setValue(stringValue);
+		}
+		if(valueObject instanceof Boolean) {
+			Boolean boolValue=(Boolean)valueObject;
+			constant.setValue(boolValue);
+		}
+		if(valueObject instanceof Float) {
+			Float floatValue=(Float)valueObject;
+			constant.setValue(floatValue);
+		}
+		if(valueObject instanceof Double) {
+			Double doubleValue=(Double)valueObject;
+			constant.setValue(doubleValue);
 		}
 	}
 
