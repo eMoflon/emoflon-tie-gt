@@ -139,6 +139,10 @@ public class PatternBuilderVisitor {
 						Integer integerValue=(Integer)valueObject;
 						constant.setValue(integerValue);
 					}
+					if(valueObject instanceof String) {
+						String stringValue=(String)valueObject;
+						constant.setValue(stringValue);
+					}
 				}
 					else {
 						constant.setValue(literalExpr.getValue());
