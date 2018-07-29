@@ -14,6 +14,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
+import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorParameterExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
@@ -66,12 +67,14 @@ public class PatternBuilderVisitor {
 	SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
 	Map<PatternType, Pattern> generatedDemoclesPatterns;
 	Map<EditorNode, EMFVariable> nodeToVariableLUT;
+	Map<EditorParameter,EMFVariable> paramToVariableLUT;
 	PatternNameGenerator patternNameGenerator;
 	ContextController contextController;
 
 	public PatternBuilderVisitor(EPackage contextEPackage, ResourceSet resourceSet) {
 		this.generatedDemoclesPatterns = new HashMap<PatternBuilderVisitor.PatternType, Pattern>();
 		this.nodeToVariableLUT = new HashMap<EditorNode, EMFVariable>();
+		this.paramToVariableLUT= new HashMap<EditorParameter, EMFVariable>();
 		this.contextController = new ContextController();
 		this.contextController.setEPackage(contextEPackage);
 		this.contextController.setResourceSet(resourceSet);
@@ -83,8 +86,19 @@ public class PatternBuilderVisitor {
 		this.generatedDemoclesPatterns.put(PatternType.BLACK_PATTERN, blackPattern);
 		PatternBody body = patternHelper.createPatternBody();
 		body.setHeader(blackPattern);
+		pattern.getParameters().forEach(param ->{
+			createEMFVariableFromEditorParameter(blackPattern, param);
+		});
 		pattern.getNodes().forEach(n -> visit(n));
 		return generatedDemoclesPatterns;
+	}
+
+	private void createEMFVariableFromEditorParameter(Pattern blackPattern, EditorParameter param) {
+		EMFVariable emfParam=emfHelper.createEMFVariable();
+		emfParam.setName(param.getName());
+		emfParam.setEClassifier(contextController.getTypeContext(param.getType()));
+		blackPattern.getSymbolicParameters().add(emfParam);
+		this.paramToVariableLUT.put(param,emfParam);
 	}
 
 	void visit(EditorNode node) {
@@ -132,7 +146,8 @@ public class PatternBuilderVisitor {
 			if(expr instanceof EditorLiteralExpression) {
 				EditorLiteralExpression literalExpr=(EditorLiteralExpression)expr;
 				Constant constant=patternHelper.createConstant();
-				Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(editorAttribute.getAttribute().getEAttributeType(), literalExpr);
+				//Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(editorAttribute.getAttribute().getEAttributeType(), literalExpr);
+				Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(contextController.getEAttributeContext(editorAttribute.getAttribute(), contextController.getTypeContext(source.getType())).getEAttributeType(), literalExpr);
 				if(value.isPresent()) {
 					Object valueObject=value.get();
 					setConstantValueWithAdjustedType(constant, valueObject);
@@ -145,9 +160,12 @@ public class PatternBuilderVisitor {
 				to.setReference(constant);
 			}
 			if(expr instanceof EditorEnumExpression) {
+				EditorEnumExpression eEnumExpression =(EditorEnumExpression) expr;
 				//TODO:implement
 			}
 			if(expr instanceof EditorParameterExpression) {
+				EditorParameterExpression eParamExpression =(EditorParameterExpression) expr;
+				to.setReference(this.paramToVariableLUT.get(eParamExpression.getParameter()));
 				//TODO:implement
 			}
 			ConstraintParameter tmpAttrValCopy= patternHelper.createConstraintParameter();
@@ -172,15 +190,15 @@ public class PatternBuilderVisitor {
 		}
 		if(valueObject instanceof Boolean) {
 			Boolean boolValue=(Boolean)valueObject;
-			constant.setValue(boolValue);
-		}
-		if(valueObject instanceof Float) {
-			Float floatValue=(Float)valueObject;
-			constant.setValue(floatValue);
+			constant.setValue(boolValue.booleanValue());
 		}
 		if(valueObject instanceof Double) {
 			Double doubleValue=(Double)valueObject;
-			constant.setValue(doubleValue);
+			constant.setValue(doubleValue.doubleValue());
+		}
+		if(valueObject instanceof Float) {
+			Float floatValue=(Float)valueObject;
+			constant.setValue(floatValue.floatValue());
 		}
 	}
 

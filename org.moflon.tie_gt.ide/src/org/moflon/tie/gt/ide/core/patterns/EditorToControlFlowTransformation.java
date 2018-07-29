@@ -14,8 +14,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EParameter;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.emoflon.ibex.gt.editor.gT.EditorNode;
+import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Pattern;
@@ -28,10 +31,12 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternPara
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;
@@ -44,6 +49,7 @@ import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
+import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class EditorToControlFlowTransformation {
 
@@ -51,6 +57,7 @@ public class EditorToControlFlowTransformation {
 	private static final String THIS_VARIABLE_NAME = "this";
 	private static final Action THIS_VARIABLE_DUMMY_ACTION = DEMOCLES_CF_FACTORY.createAction();
 	private final PatternMatcherConfiguration patternMatcherConfiguration;
+	private EPackage ecorePackage;
 
 	public EditorToControlFlowTransformation(PatternMatcherConfiguration patternMatcherConfiguration,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -61,6 +68,9 @@ public class EditorToControlFlowTransformation {
 			final ResourceSet resourceSet) {
 		final MultiStatus tranformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Control flow construction failed.", null);
+		//TODO:is there a better way?
+		Resource ecoreRes=(Resource)resourceSet.getResources().get(1);
+		this.ecorePackage=(EPackage)ecoreRes.getContents().get(0);
 		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
 		final PatternNameGenerator patternNameGenerator = new PatternNameGenerator();
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
@@ -78,7 +88,9 @@ public class EditorToControlFlowTransformation {
 					patternNameGenerator.setEOperation(eOperation);
 
 					final Scope rootscope = createRootScopeForEOperation(eOperation);
-
+					/*editorEOperation.getEParameters().forEach( methodparam -> {
+						createCFVariableFromMethodParameter(ePackage, rootscope, methodparam);
+					});*/
 					Statement currentStatement = editorEOperation.getStartStatement();
 					int cfNodeId = 0;
 					CFNode previousCFNode = null;
@@ -139,6 +151,21 @@ public class EditorToControlFlowTransformation {
 		return tranformationStatus;
 	}
 
+	private void createCFVariableFromMethodParameter(final EPackage ePackage, final Scope rootscope,
+			EParameter methodparam) {
+		CFVariable methodParameterCF=DEMOCLES_CF_FACTORY.createCFVariable();
+		methodParameterCF.setScope(rootscope);
+		methodParameterCF.setName(methodparam.getName());
+		final EClassifier properCfVariableType = lookupTypeInEcoreFile(methodparam.getEType(), ePackage);
+		if (properCfVariableType == null)
+			throw new IllegalArgumentException(
+					String.format("Cannot translate the type %s (from the editor) to an EClassifier in %s",
+							methodparam.getEType(), ePackage));
+		methodParameterCF.setType(properCfVariableType);
+		methodParameterCF.setLocal(false);
+		rootscope.getVariables().add(methodParameterCF);
+	}
+
 	private Scope createRootScopeForEOperation(final EOperation eOperation) {
 		final Scope rootscope = DEMOCLES_CF_FACTORY.createScope();
 		createParameterVariables(eOperation, rootscope);
@@ -196,6 +223,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void createParameterVariables(EOperation eOperation, Scope rootscope) {
+		//TODO: implement by name matching from parameters(ECore EOp, GT EOp)
 		for (final EParameter eParameter : eOperation.getEParameters()) {
 			final CFVariable parameter = DEMOCLES_CF_FACTORY.createCFVariable();
 			rootscope.getVariables().add(parameter);
@@ -220,10 +248,7 @@ public class EditorToControlFlowTransformation {
 	private void bindConstructedVariablesFromParameter(Scope currentScope, Pattern democlesPattern,
 			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
-			final ObjectVariableStatement ovStatement = findOVariableByParameterName(var,calledPatternParameters);
-			if(ovStatement==null)
-				return;
-			final CFVariable from = findCfVariableByName(currentScope, ovStatement);
+			final CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
 			final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
 			varRef.setFrom(from);
 			varRef.setTo(var);
@@ -233,16 +258,40 @@ public class EditorToControlFlowTransformation {
 		});
 	}
 
-	private ObjectVariableStatement findOVariableByParameterName(Variable symbolicParameter, EList<CalledPatternParameter> patternParameter) {
-		Optional<CalledPatternParameter> objVariable =patternParameter.stream().filter(patternParam -> patternParam.getParameter().getName().contentEquals(symbolicParameter.getName())).findAny();
-		if(objVariable.isPresent())
-			return (ObjectVariableStatement)objVariable.get().getObject();
+	private TypedElement findPatternCallVariableByParameterName(Variable symbolicParameter, EList<CalledPatternParameter> patternParameter) {
+		Optional<CalledPatternParameter> objVariable =patternParameter.stream().filter(patternParam -> {
+			EObject paramType=patternParam.getParameter();
+			if(paramType instanceof EditorNode) {
+				EditorNode edNode=(EditorNode)paramType;
+				return edNode.getName().contentEquals(symbolicParameter.getName());
+			}
+			else{
+				EditorParameter edParam=(EditorParameter)paramType;
+				return edParam.getName().contentEquals(symbolicParameter.getName());
+			}
+		}).findAny();
+		if(objVariable.isPresent()) {
+			TypedElement resultObject= objVariable.get().getObject();
+			return resultObject;
+			}
 		else return null;
 	}
 
-	private CFVariable findCfVariableByName(Scope currentScope, ObjectVariableStatement ovStatement) {
-		return currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovStatement.getName()))
-				.findFirst().get();
+	private CFVariable findCfVariableByName(Scope currentScope, Variable symbolicParam,EList<CalledPatternParameter> patternParameters) {
+		final TypedElement typedElement = findPatternCallVariableByParameterName(symbolicParam,patternParameters);
+		if(typedElement instanceof MethodParameter) {
+			MethodParameter methodParameter = (MethodParameter)typedElement;
+			return currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(methodParameter.getName()))
+					.findFirst().get();
+		}
+		if(typedElement instanceof ObjectVariableStatement) {
+			ObjectVariableStatement ovstmt=(ObjectVariableStatement)typedElement;
+			return currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
+					.findFirst().get();
+		}
+		//In any other case (most probably typedElement==null)
+		return null;
+		
 	}
 
 	private PatternInvocation createPatternInvocation(Scope rootscope, CFNode cfNode, EditorPattern pattern,
@@ -298,8 +347,10 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage) {
-		// TODO@rkluge: This is a dumb strategy that only looks up classifiers in the
-		// top-level package
-		return ePackage.getEClassifier(statementEType.getName());
+		EClassifier properEClassifierFromEPackage=ePackage.getEClassifier(statementEType.getName());
+		if(properEClassifierFromEPackage!=null)
+			return properEClassifierFromEPackage;
+		else 
+			return this.ecorePackage.getEClassifier(statementEType.getName());
 	}
 }
