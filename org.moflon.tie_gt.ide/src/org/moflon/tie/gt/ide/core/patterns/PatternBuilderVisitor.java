@@ -4,7 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
+import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
@@ -20,7 +22,9 @@ import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorRelation;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
+import org.emoflon.ibex.gt.editor.utils.GTEditorPatternUtils;
 import org.gervarro.democles.specification.Constraint;
+import org.gervarro.democles.specification.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
@@ -129,7 +133,6 @@ public class PatternBuilderVisitor {
 		patternBody.getLocalVariables().add(tmpAttrVar);
 		tmpAttrVar.setName(getNameForTemporaryAttributeVariable(editorAttribute, source));
 		tmpAttrVar.setEClassifier(emfAttribute.getEModelElement().getEType());
-		//TODO:Create temporary EMFVariable (which cases?)
 		tmpAttrVal.setReference(tmpAttrVar);
 		emfAttribute.getParameters().add(from);
 		emfAttribute.getParameters().add(tmpAttrVal);
@@ -144,29 +147,14 @@ public class PatternBuilderVisitor {
 				//TODO:implement
 			}
 			if(expr instanceof EditorLiteralExpression) {
-				EditorLiteralExpression literalExpr=(EditorLiteralExpression)expr;
-				Constant constant=patternHelper.createConstant();
-				//Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(editorAttribute.getAttribute().getEAttributeType(), literalExpr);
-				Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(contextController.getEAttributeContext(editorAttribute.getAttribute(), contextController.getTypeContext(source.getType())).getEAttributeType(), literalExpr);
-				if(value.isPresent()) {
-					Object valueObject=value.get();
-					setConstantValueWithAdjustedType(constant, valueObject);
-				}
-					else {
-						constant.setValue(literalExpr.getValue());
-					}
-					
-				patternBody.getConstants().add(constant);
-				to.setReference(constant);
+				createAndBindConstant(editorAttribute, patternBody, source, to, (EditorLiteralExpression)expr);
 			}
 			if(expr instanceof EditorEnumExpression) {
-				EditorEnumExpression eEnumExpression =(EditorEnumExpression) expr;
-				//TODO:implement
+				createAndBindConstantForEnum(patternBody, to, (EditorEnumExpression)expr);
 			}
 			if(expr instanceof EditorParameterExpression) {
 				EditorParameterExpression eParamExpression =(EditorParameterExpression) expr;
 				to.setReference(this.paramToVariableLUT.get(eParamExpression.getParameter()));
-				//TODO:implement
 			}
 			ConstraintParameter tmpAttrValCopy= patternHelper.createConstraintParameter();
 			tmpAttrValCopy.setReference(tmpAttrVar);
@@ -177,6 +165,31 @@ public class PatternBuilderVisitor {
 		else {
 			// TODO: do green stuff
 		}
+	}
+
+	private void createAndBindConstant(EditorAttribute editorAttribute, PatternBody patternBody, EditorNode source,
+			ConstraintParameter to, EditorLiteralExpression literalExpr) {
+		Constant constant=patternHelper.createConstant();
+		//Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(editorAttribute.getAttribute().getEAttributeType(), literalExpr);
+		Optional<Object> value=GTEditorAttributeUtils.convertLiteralValueToObject(contextController.getEAttributeContext(editorAttribute.getAttribute(), contextController.getTypeContext(source.getType())).getEAttributeType(), literalExpr);
+		if(value.isPresent()) {
+			Object valueObject=value.get();
+			setConstantValueWithAdjustedType(constant, valueObject);
+		}
+			else {
+				constant.setValue(literalExpr.getValue());
+			}
+			
+		patternBody.getConstants().add(constant);
+		to.setReference(constant);
+	}
+
+	private void createAndBindConstantForEnum(PatternBody patternBody, ConstraintParameter to, EditorEnumExpression eEnumExpression) {
+		EEnumLiteral literal=eEnumExpression.getLiteral();
+		Constant enumLiteralConstant=patternHelper.createConstant();
+		enumLiteralConstant.setValue(literal);
+		patternBody.getConstants().add(enumLiteralConstant);
+		to.setReference(enumLiteralConstant);
 	}
 
 	private void setConstantValueWithAdjustedType(Constant constant, Object valueObject) {
