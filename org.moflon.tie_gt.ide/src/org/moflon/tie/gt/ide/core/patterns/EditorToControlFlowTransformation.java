@@ -50,7 +50,6 @@ import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
-import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class EditorToControlFlowTransformation {
 
@@ -116,7 +115,12 @@ public class EditorToControlFlowTransformation {
 										correspondingEClass, resourceSet, patternType.getSuffix());
 
 								// TODO@rkluge: Just for debugging
-								saveResourceQuiely(adapterResource);
+								try{
+									saveResourceQuiely(adapterResource);
+								}
+								catch(RuntimeException exception){
+									System.out.println("CaughtRuntimeException: "+exception);
+								}
 
 								PatternInvocation patternInvocation = createPatternInvocation(rootscope, cfNode,
 										editorPattern, democlesPattern);
