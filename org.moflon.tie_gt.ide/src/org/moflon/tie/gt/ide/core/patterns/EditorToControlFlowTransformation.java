@@ -37,6 +37,7 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableSta
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
+import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;
@@ -87,7 +88,7 @@ public class EditorToControlFlowTransformation {
 										editorEOperation, correspondingEClass));
 					patternNameGenerator.setEOperation(eOperation);
 
-					final Scope rootscope = createRootScopeForEOperation(eOperation);
+					final Scope rootscope = createRootScopeForEOperation(eOperation,editorEOperation);
 					/*editorEOperation.getEParameters().forEach( methodparam -> {
 						createCFVariableFromMethodParameter(ePackage, rootscope, methodparam);
 					});*/
@@ -138,7 +139,7 @@ public class EditorToControlFlowTransformation {
 					}
 
 					createReturnStatement(rootscope, previousCFNode, cfNodeId);
-					rootscope.getVariables().stream().filter(variable -> THIS_VARIABLE_NAME.equals(variable.getName()))
+					rootscope.getVariables().stream().filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 							.forEach(thisVariable -> thisVariable.setConstructor(null));
 
 					final AdapterResource adapterResource = attachInRegisteredAdapter(rootscope, eOperation,
@@ -151,24 +152,9 @@ public class EditorToControlFlowTransformation {
 		return tranformationStatus;
 	}
 
-	private void createCFVariableFromMethodParameter(final EPackage ePackage, final Scope rootscope,
-			EParameter methodparam) {
-		CFVariable methodParameterCF=DEMOCLES_CF_FACTORY.createCFVariable();
-		methodParameterCF.setScope(rootscope);
-		methodParameterCF.setName(methodparam.getName());
-		final EClassifier properCfVariableType = lookupTypeInEcoreFile(methodparam.getEType(), ePackage);
-		if (properCfVariableType == null)
-			throw new IllegalArgumentException(
-					String.format("Cannot translate the type %s (from the editor) to an EClassifier in %s",
-							methodparam.getEType(), ePackage));
-		methodParameterCF.setType(properCfVariableType);
-		methodParameterCF.setLocal(false);
-		rootscope.getVariables().add(methodParameterCF);
-	}
-
-	private Scope createRootScopeForEOperation(final EOperation eOperation) {
+	private Scope createRootScopeForEOperation(final EOperation eOperation,final MethodDec editorEOp) {
 		final Scope rootscope = DEMOCLES_CF_FACTORY.createScope();
-		createParameterVariables(eOperation, rootscope);
+		createAndCheckParameterVariables(eOperation,editorEOp, rootscope);
 		return rootscope;
 	}
 
@@ -190,7 +176,7 @@ public class EditorToControlFlowTransformation {
 		final boolean isMultipleMatch = false;
 
 		// TODO@rkluge: Comment in to display error markers in Eclipse.
-		// final ValidationReport report =
+		 final ValidationReport report =
 		patternMatcher.generateSearchPlan(democlesPattern, adornment, isMultipleMatch);
 		// for (final ErrorMessage message : report.getErrorMessages()) {
 		// tranformationStatus.add(ValidationStatus.createValidationStatus(message));
@@ -222,14 +208,29 @@ public class EditorToControlFlowTransformation {
 		return adapterResource;
 	}
 
-	private void createParameterVariables(EOperation eOperation, Scope rootscope) {
-		//TODO: implement by name matching from parameters(ECore EOp, GT EOp)
+	private void createAndCheckParameterVariables(EOperation eOperation, MethodDec editorEOp, Scope rootscope) {
+		if(eOperation.getEParameters().size()!=editorEOp.getEParameters().size()) {
+			throw new IllegalArgumentException(
+					String.format("Number of parameters given in Controlflow does not match that of Method declaration in .ecore for method %s",
+							eOperation));
+		}
+		for(int i=0; i<editorEOp.getEParameters().size();i++) {
+			EParameter editorEParam = editorEOp.getEParameters().get(i);
+			EParameter ecoreEParam = eOperation.getEParameters().get(i);
+			if(!(editorEParam.getName().equals(ecoreEParam.getName()))) {
+				throw new IllegalArgumentException(
+						String.format("Parameter name or position given in Controlflow does not match that of Method declaration in .ecore for method %s",
+								eOperation));
+			}
+		}
+		//After everything is matched accordingly we can create a new controlflow Variable
 		for (final EParameter eParameter : eOperation.getEParameters()) {
 			final CFVariable parameter = DEMOCLES_CF_FACTORY.createCFVariable();
 			rootscope.getVariables().add(parameter);
 			parameter.setName(eParameter.getName());
 			parameter.setType(eParameter.getEType());
 			parameter.setLocal(false);
+			parameter.setConstructor(THIS_VARIABLE_DUMMY_ACTION);
 		}
 	}
 
