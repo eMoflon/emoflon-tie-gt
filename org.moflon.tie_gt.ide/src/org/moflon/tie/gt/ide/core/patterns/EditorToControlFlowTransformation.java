@@ -23,6 +23,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
+import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
@@ -37,6 +38,7 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableSta
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
+import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
 import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 import org.moflon.sdm.runtime.democles.Action;
@@ -68,9 +70,9 @@ public class EditorToControlFlowTransformation {
 			final ResourceSet resourceSet) {
 		final MultiStatus tranformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Control flow construction failed.", null);
-		//TODO:is there a better way?
-		Resource ecoreRes=(Resource)resourceSet.getResources().get(1);
-		this.ecorePackage=(EPackage)ecoreRes.getContents().get(0);
+		// TODO:is there a better way?
+		Resource ecoreRes = (Resource) resourceSet.getResources().get(1);
+		this.ecorePackage = (EPackage) ecoreRes.getContents().get(0);
 		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
 		final PatternNameGenerator patternNameGenerator = new PatternNameGenerator();
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
@@ -87,10 +89,11 @@ public class EditorToControlFlowTransformation {
 										editorEOperation, correspondingEClass));
 					patternNameGenerator.setEOperation(eOperation);
 
-					final Scope rootscope = createRootScopeForEOperation(eOperation,editorEOperation);
-					/*editorEOperation.getEParameters().forEach( methodparam -> {
-						createCFVariableFromMethodParameter(ePackage, rootscope, methodparam);
-					});*/
+					final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
+					/*
+					 * editorEOperation.getEParameters().forEach( methodparam -> {
+					 * createCFVariableFromMethodParameter(ePackage, rootscope, methodparam); });
+					 */
 					Statement currentStatement = editorEOperation.getStartStatement();
 					int cfNodeId = 0;
 					CFNode previousCFNode = null;
@@ -115,17 +118,16 @@ public class EditorToControlFlowTransformation {
 										correspondingEClass, resourceSet, patternType.getSuffix());
 
 								// TODO@rkluge: Just for debugging
-								try{
+								try {
 									saveResourceQuiely(adapterResource);
-								}
-								catch(RuntimeException exception){
-									System.out.println("CaughtRuntimeException: "+exception);
+								} catch (RuntimeException exception) {
+									System.out.println("CaughtRuntimeException: " + exception);
 								}
 
 								PatternInvocation patternInvocation = createPatternInvocation(rootscope, cfNode,
 										editorPattern, democlesPattern);
 								bindConstructedVariablesFromParameter(rootscope, democlesPattern, patternInvocation,
-											patternStmt.getParameters());
+										patternStmt.getParameters());
 
 								createAndSaveSearchPlan(patternInvocation, democlesPattern, patternType,
 										tranformationStatus);
@@ -143,7 +145,8 @@ public class EditorToControlFlowTransformation {
 					}
 
 					createReturnStatement(rootscope, previousCFNode, cfNodeId);
-					rootscope.getVariables().stream().filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
+					rootscope.getVariables().stream()
+							.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 							.forEach(thisVariable -> thisVariable.setConstructor(null));
 
 					final AdapterResource adapterResource = attachInRegisteredAdapter(rootscope, eOperation,
@@ -156,9 +159,9 @@ public class EditorToControlFlowTransformation {
 		return tranformationStatus;
 	}
 
-	private Scope createRootScopeForEOperation(final EOperation eOperation,final MethodDec editorEOp) {
+	private Scope createRootScopeForEOperation(final EOperation eOperation, final MethodDec editorEOp) {
 		final Scope rootscope = DEMOCLES_CF_FACTORY.createScope();
-		createAndCheckParameterVariables(eOperation,editorEOp, rootscope);
+		createAndCheckParameterVariables(eOperation, editorEOp, rootscope);
 		return rootscope;
 	}
 
@@ -179,12 +182,10 @@ public class EditorToControlFlowTransformation {
 		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
 		final boolean isMultipleMatch = false;
 
-		// TODO@rkluge: Comment in to display error markers in Eclipse.
-		 final ValidationReport report =
-		patternMatcher.generateSearchPlan(democlesPattern, adornment, isMultipleMatch);
-		// for (final ErrorMessage message : report.getErrorMessages()) {
-		// tranformationStatus.add(ValidationStatus.createValidationStatus(message));
-		// }
+		final ValidationReport report = patternMatcher.generateSearchPlan(democlesPattern, adornment, isMultipleMatch);
+		for (final ErrorMessage message : report.getErrorMessages()) {
+			tranformationStatus.add(ValidationStatus.createValidationStatus(message));
+		}
 	}
 
 	private EOperation findEOperation(final EClass correspondingEClass, MethodDec methodDeclaration) {
@@ -213,21 +214,22 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void createAndCheckParameterVariables(EOperation eOperation, MethodDec editorEOp, Scope rootscope) {
-		if(eOperation.getEParameters().size()!=editorEOp.getEParameters().size()) {
-			throw new IllegalArgumentException(
-					String.format("Number of parameters given in Controlflow does not match that of Method declaration in .ecore for method %s",
-							eOperation));
+		if (eOperation.getEParameters().size() != editorEOp.getEParameters().size()) {
+			throw new IllegalArgumentException(String.format(
+					"Number of parameters given in Controlflow does not match that of Method declaration in .ecore for method %s",
+					eOperation));
 		}
-		for(int i=0; i<editorEOp.getEParameters().size();i++) {
+		for (int i = 0; i < editorEOp.getEParameters().size(); i++) {
 			EParameter editorEParam = editorEOp.getEParameters().get(i);
 			EParameter ecoreEParam = eOperation.getEParameters().get(i);
-			if(!(editorEParam.getName().equals(ecoreEParam.getName()))) {
-				throw new IllegalArgumentException(
-						String.format("Parameter name or position given in Controlflow does not match that of Method declaration in .ecore for method %s",
-								eOperation));
+			if (!(editorEParam.getName().equals(ecoreEParam.getName()))) {
+				throw new IllegalArgumentException(String.format(
+						"Parameter name or position given in Controlflow does not match that of Method declaration in .ecore for method %s",
+						eOperation));
 			}
 		}
-		//After everything is matched accordingly we can create a new controlflow Variable
+		// After everything is matched accordingly we can create a new controlflow
+		// Variable
 		for (final EParameter eParameter : eOperation.getEParameters()) {
 			final CFVariable parameter = DEMOCLES_CF_FACTORY.createCFVariable();
 			rootscope.getVariables().add(parameter);
@@ -263,40 +265,41 @@ public class EditorToControlFlowTransformation {
 		});
 	}
 
-	private TypedElement findPatternCallVariableByParameterName(Variable symbolicParameter, EList<CalledPatternParameter> patternParameter) {
-		Optional<CalledPatternParameter> objVariable =patternParameter.stream().filter(patternParam -> {
-			EObject paramType=patternParam.getParameter();
-			if(paramType instanceof EditorNode) {
-				EditorNode edNode=(EditorNode)paramType;
+	private TypedElement findPatternCallVariableByParameterName(Variable symbolicParameter,
+			EList<CalledPatternParameter> patternParameter) {
+		Optional<CalledPatternParameter> objVariable = patternParameter.stream().filter(patternParam -> {
+			EObject paramType = patternParam.getParameter();
+			if (paramType instanceof EditorNode) {
+				EditorNode edNode = (EditorNode) paramType;
 				return edNode.getName().contentEquals(symbolicParameter.getName());
-			}
-			else{
-				EditorParameter edParam=(EditorParameter)paramType;
+			} else {
+				EditorParameter edParam = (EditorParameter) paramType;
 				return edParam.getName().contentEquals(symbolicParameter.getName());
 			}
 		}).findAny();
-		if(objVariable.isPresent()) {
-			TypedElement resultObject= objVariable.get().getObject();
+		if (objVariable.isPresent()) {
+			TypedElement resultObject = objVariable.get().getObject();
 			return resultObject;
-			}
-		else return null;
+		} else
+			return null;
 	}
 
-	private CFVariable findCfVariableByName(Scope currentScope, Variable symbolicParam,EList<CalledPatternParameter> patternParameters) {
-		final TypedElement typedElement = findPatternCallVariableByParameterName(symbolicParam,patternParameters);
-		if(typedElement instanceof MethodParameter) {
-			MethodParameter methodParameter = (MethodParameter)typedElement;
-			return currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(methodParameter.getName()))
-					.findFirst().get();
+	private CFVariable findCfVariableByName(Scope currentScope, Variable symbolicParam,
+			EList<CalledPatternParameter> patternParameters) {
+		final TypedElement typedElement = findPatternCallVariableByParameterName(symbolicParam, patternParameters);
+		if (typedElement instanceof MethodParameter) {
+			MethodParameter methodParameter = (MethodParameter) typedElement;
+			return currentScope.getVariables().stream()
+					.filter(cfVar -> cfVar.getName().equals(methodParameter.getName())).findFirst().get();
 		}
-		if(typedElement instanceof ObjectVariableStatement) {
-			ObjectVariableStatement ovstmt=(ObjectVariableStatement)typedElement;
+		if (typedElement instanceof ObjectVariableStatement) {
+			ObjectVariableStatement ovstmt = (ObjectVariableStatement) typedElement;
 			return currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
 					.findFirst().get();
 		}
-		//In any other case (most probably typedElement==null)
+		// In any other case (most probably typedElement==null)
 		return null;
-		
+
 	}
 
 	private PatternInvocation createPatternInvocation(Scope rootscope, CFNode cfNode, EditorPattern pattern,
@@ -352,10 +355,10 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage) {
-		EClassifier properEClassifierFromEPackage=ePackage.getEClassifier(statementEType.getName());
-		if(properEClassifierFromEPackage!=null)
+		EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
+		if (properEClassifierFromEPackage != null)
 			return properEClassifierFromEPackage;
-		else 
+		else
 			return this.ecorePackage.getEClassifier(statementEType.getName());
 	}
 }
