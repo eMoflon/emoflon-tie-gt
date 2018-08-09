@@ -71,7 +71,6 @@ public class EditorToControlFlowTransformation {
 		//TODO:is there a better way?
 		Resource ecoreRes=(Resource)resourceSet.getResources().get(1);
 		this.ecorePackage=(EPackage)ecoreRes.getContents().get(0);
-		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
 		final PatternNameGenerator patternNameGenerator = new PatternNameGenerator();
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
 			// TODO@rkluge: Could cause problems when we have to search in multiple
@@ -102,6 +101,7 @@ public class EditorToControlFlowTransformation {
 							patternNameGenerator.setCFNode(cfNode);
 
 							final EditorPattern editorPattern = patternStmt.getPatternReference().getPattern();
+							final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
 							patternNameGenerator.setPatternDefinition(editorPattern);
 							final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
 							for (final PatternType patternType : PatternType.values()) {

@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EEnumLiteral;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
@@ -30,6 +31,7 @@ import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
+import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
@@ -68,15 +70,15 @@ public class PatternBuilderVisitor {
 	EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
 	SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
 	Map<PatternType, Pattern> generatedDemoclesPatterns;
-	Map<EditorParameter,EMFVariable> paramToVariableLUT;
-	Map<PatternType,Map<String,EMFVariable> > emfVariableLUT;
+	Map<PatternType,Map<EObject,EMFVariable> > emfVariableLUT;
+	Map<PatternType,Map<EditorAttribute,Attribute>> attributeLUT;
 	PatternNameGenerator patternNameGenerator;
 	ContextController contextController;
 
 	public PatternBuilderVisitor(EPackage contextEPackage, ResourceSet resourceSet) {
 		this.generatedDemoclesPatterns = new HashMap<PatternBuilderVisitor.PatternType, Pattern>();
-		this.paramToVariableLUT= new HashMap<EditorParameter, EMFVariable>();
-		this.emfVariableLUT=new HashMap<PatternType,Map<String, EMFVariable>>();
+		this.emfVariableLUT=new HashMap<PatternType,Map<EObject, EMFVariable>>();
+		this.attributeLUT=new HashMap<PatternType,Map<EditorAttribute, Attribute>>();
 		this.contextController = new ContextController();
 		this.contextController.setEPackage(contextEPackage);
 		this.contextController.setResourceSet(resourceSet);
@@ -85,7 +87,6 @@ public class PatternBuilderVisitor {
 	public Map<PatternType, Pattern> visit(EditorPattern pattern) {
 		// TODO: make this dynamic
 		//TODO: reset map for each pattern kind(or try without?)
-		createPattern(pattern,PatternType.BLACK_PATTERN);
 		pattern.getNodes().forEach(n -> visit(n,pattern));
 		return generatedDemoclesPatterns;
 	}
@@ -93,51 +94,77 @@ public class PatternBuilderVisitor {
 	private void createPattern(EditorPattern pattern, PatternType patternType) {
 		Pattern democlesPattern = patternHelper.createPattern();
 		this.generatedDemoclesPatterns.put(patternType, democlesPattern);
+		this.emfVariableLUT.put(patternType, new HashMap<EObject, EMFVariable>());
+		this.attributeLUT.put(patternType, new HashMap<EditorAttribute, Attribute>());
 		PatternBody body = patternHelper.createPatternBody();
 		body.setHeader(democlesPattern);
 		pattern.getParameters().forEach(param ->{
-			createEMFVariableFromEditorParameter(democlesPattern, param);
+			createEMFVariableFromEditorParameter(patternType, param);
 		});
 	}
 
-	private void createEMFVariableFromEditorParameter(Pattern blackPattern, EditorParameter param) {
+	private void createEMFVariableFromEditorParameter(PatternType type, EditorParameter param) {
 		//TODO:checkBack
-		EMFVariable emfParam=getOrCreateEMFVariableCached(param.getName(), null,PatternType.BLACK_PATTERN);
-		emfParam.setEClassifier(contextController.getTypeContext(param.getType()));
-		blackPattern.getSymbolicParameters().add(emfParam);
-		this.paramToVariableLUT.put(param,emfParam);
+		if(this.emfVariableLUT.get(type).containsKey(param)) {
+			return;
+		}
+		else {
+			EMFVariable emfParam= getOrCreateEMFVariableCached(param, null,type);
+			emfParam.setEClassifier(contextController.getTypeContext(param.getType()));
+			this.emfVariableLUT.get(type).put(param, emfParam);
+			this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(emfParam);
+		}
 	}
 
 	void visit(EditorNode node,EditorPattern editorPattern) {
-		if (node.getOperator() == EditorOperator.CONTEXT || node.getOperator() == EditorOperator.DELETE) {
-			//TODO:duplicate for delete with RED_PATTERN?
-			EMFVariable var = getOrCreateEMFVariableCached(node.getName(), null,PatternType.BLACK_PATTERN);
-			generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getSymbolicParameters().add(var);
-			var.setEClassifier(contextController.getTypeContext(node.getType()));
-			if(node.getOperator() == EditorOperator.DELETE) {
-				if(!this.generatedDemoclesPatterns.containsKey(PatternType.RED_PATTERN))
-				{
-					createPattern(editorPattern, PatternType.RED_PATTERN);
-					EMFVariable redVar = getOrCreateEMFVariableCached(node.getName(), null,PatternType.RED_PATTERN);
-					generatedDemoclesPatterns.get(PatternType.RED_PATTERN).getSymbolicParameters().add(redVar);
-					redVar.setEClassifier(contextController.getTypeContext(node.getType()));
-				}
-			}
-		} else {
-			// TODO: do green stuff?
+		List<PatternType> patternTypes=new ArrayList<PatternBuilderVisitor.PatternType>();
+		if (node.getOperator() == EditorOperator.CONTEXT) {
+			patternTypes=Arrays.asList(PatternType.BLACK_PATTERN);
+		} 
+		if(node.getOperator()==EditorOperator.DELETE) {
+				patternTypes=Arrays.asList(PatternType.BLACK_PATTERN,PatternType.RED_PATTERN);
 		}
-
+		if(node.getOperator()==EditorOperator.CREATE) {
+				patternTypes=Arrays.asList(PatternType.GREEN_PATTERN);
+		}
+		for(PatternType type:patternTypes ) {
+			if(!this.generatedDemoclesPatterns.containsKey(type)) {
+				createPattern(editorPattern, type);
+			}
+			if(!this.emfVariableLUT.get(type).containsKey(node)) {
+				EMFVariable var = getOrCreateEMFVariableCached(node, null,type);
+				generatedDemoclesPatterns.get(type).getSymbolicParameters().add(var);
+				var.setEClassifier(contextController.getTypeContext(node.getType()));	
+			}
+		}
 		node.getAttributes().forEach(attribute -> visit(attribute,node,editorPattern));
 		node.getReferences().forEach(reference -> visit(reference, node,editorPattern));
 	}
 
 	void visit(EditorAttribute editorAttribute,EditorNode source,EditorPattern pattern) {
+		PatternType type;
 		if (editorAttribute.getRelation() != EditorRelation.ASSIGNMENT) {
-			PatternBody patternBody=this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0);
+			type=PatternType.BLACK_PATTERN;
+		}
+		else {
+			type=PatternType.GREEN_PATTERN;
+		} 
+			if(!this.generatedDemoclesPatterns.containsKey(type)) {
+				createPattern(pattern, type);
+			}
+			PatternBody patternBody=this.generatedDemoclesPatterns.get(type).getBodies().get(0);
+			if(!this.emfVariableLUT.get(type).containsKey(editorAttribute)) {
+				
+			}
 			Attribute emfAttribute=lookupOrCreateAttribute(patternBody, this.contextController.getEAttributeContext(editorAttribute.getAttribute(), source.getType()));
 			if(emfAttribute.getParameters().isEmpty()) {
 				ConstraintParameter from = patternHelper.createConstraintParameter();
-				from.setReference(getOrCreateEMFVariableCached(source.getName(), null,PatternType.BLACK_PATTERN));
+				if(!this.emfVariableLUT.get(type).containsKey(source)) {
+					EMFVariable newNodeVariable= getOrCreateEMFVariableCached(source, null,type);
+					newNodeVariable.setEClassifier(contextController.getTypeContext(source.getType()));
+					this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(newNodeVariable);
+				}
+				from.setReference(this.emfVariableLUT.get(type).get(source));
 				emfAttribute.getParameters().add(from);
 				patternBody.getConstraints().add(emfAttribute);
 			}
@@ -150,14 +177,20 @@ public class PatternBuilderVisitor {
 				EditorAttributeExpression attributeExpr = (EditorAttributeExpression) expr;
 				Attribute attributeReference=lookupOrCreateAttribute(patternBody,contextController.getEAttributeContext(attributeExpr.getAttribute(), contextController.getTypeContext(attributeExpr.getNode().getType())));
 				if(attributeReference.getParameters().isEmpty()) {
-					EMFVariable attribute = getOrCreateEMFVariableCached(attributeExpr.getAttribute().getName(), attributeExpr.getNode(),PatternType.BLACK_PATTERN);
-					if(attribute.getEClassifier()==null) {
-						attribute.setEClassifier(contextController.getTypeContext(attributeExpr.getAttribute().getEType()));
-						patternBody.getLocalVariables().add(attribute);
+					if(!this.emfVariableLUT.get(type).containsKey(attributeExpr.getAttribute())){
+						EMFVariable newAttribute= getOrCreateEMFVariableCached(attributeExpr.getAttribute(), attributeExpr.getNode(),type);
+						newAttribute.setEClassifier(contextController.getTypeContext(attributeExpr.getAttribute().getEType()));
+						patternBody.getLocalVariables().add(newAttribute);
 					}
+					EMFVariable attribute = (EMFVariable) this.emfVariableLUT.get(type).get((attributeExpr.getAttribute()));
 					patternBody.getConstraints().add(attributeReference);
 					ConstraintParameter fromNode = patternHelper.createConstraintParameter();
-					fromNode.setReference(getOrCreateEMFVariableCached(attributeExpr.getNode().getName(), null,PatternType.BLACK_PATTERN));
+					if(!this.emfVariableLUT.get(type).containsKey(attributeExpr.getNode())) {
+						EMFVariable newEmfVar= getOrCreateEMFVariableCached(attributeExpr.getNode(), null,type);
+						newEmfVar.setEClassifier(contextController.getTypeContext(attributeExpr.getNode().getType()));
+						this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(newEmfVar);
+					}
+					fromNode.setReference(this.emfVariableLUT.get(type).get(attributeExpr.getNode()));
 					attributeReference.getParameters().add(fromNode);
 					ConstraintParameter toAttribute= patternHelper.createConstraintParameter();
 					toAttribute.setReference(attribute);
@@ -173,23 +206,22 @@ public class PatternBuilderVisitor {
 			}
 			if(expr instanceof EditorParameterExpression) {
 				EditorParameterExpression eParamExpression =(EditorParameterExpression) expr;
-				to.setReference(this.paramToVariableLUT.get(eParamExpression.getParameter()));
+				to.setReference(this.emfVariableLUT.get(type).get(eParamExpression.getParameter()));
 			}
 			ConstraintParameter tmpAttrVal = patternHelper.createConstraintParameter();
-			EMFVariable tmpAttrVar=getOrCreateEMFVariableCached(editorAttribute.getAttribute().getName(), source,PatternType.BLACK_PATTERN);
-			patternBody.getLocalVariables().add(tmpAttrVar);
-			tmpAttrVar.setEClassifier(contextController.getTypeContext(emfAttribute.getEModelElement().getEType()));
-			tmpAttrVal.setReference(tmpAttrVar);
-			emfAttribute.getParameters().add(tmpAttrVal);
+			if(!this.emfVariableLUT.get(type).containsKey(editorAttribute.getAttribute())) {
+				EMFVariable tmpAttrVar= getOrCreateEMFVariableCached(editorAttribute.getAttribute(), source,type);
+				patternBody.getLocalVariables().add(tmpAttrVar);
+				tmpAttrVar.setEClassifier(contextController.getTypeContext(emfAttribute.getEModelElement().getEType()));
+			}
+			tmpAttrVal.setReference(this.emfVariableLUT.get(type).get(editorAttribute.getAttribute()));
+			if(emfAttribute.getParameters().size()<2)
+				emfAttribute.getParameters().add(tmpAttrVal);
 			ConstraintParameter tmpAttrValCopy= patternHelper.createConstraintParameter();
-			tmpAttrValCopy.setReference(tmpAttrVar);
+			tmpAttrValCopy.setReference(this.emfVariableLUT.get(type).get(editorAttribute.getAttribute()));
 			relConstraint.getParameters().add(tmpAttrValCopy);
 			relConstraint.getParameters().add(to);
 			patternBody.getConstraints().add(relConstraint);
-			}
-		else {
-			// TODO: do green stuff
-		}
 	}
 
 	private Attribute lookupOrCreateAttribute(PatternBody patternBody, EAttribute eAttribute) {
@@ -307,23 +339,52 @@ public class PatternBuilderVisitor {
 			ref.setEModelElement(
 					this.contextController.getEReferenceContext(editorReference.getType(), source.getType()));
 			ConstraintParameter from = patternHelper.createConstraintParameter();
-			from.setReference(getOrCreateEMFVariableCached(source.getName(), null,type));
+			if(this.emfVariableLUT.get(type).containsKey(source))
+				from.setReference(this.emfVariableLUT.get(type).get(source));
+			else {
+				//TODO: this should currently not occur, but keep an eye on local Variables for Nodes
+				EMFVariable newVariable=getOrCreateEMFVariableCached(source, null, type);
+				newVariable.setEClassifier(contextController.getTypeContext(source.getType()));
+				patternBody.getHeader().getSymbolicParameters().add(newVariable);
+				from.setReference(newVariable);
+			}
 			ConstraintParameter to = patternHelper.createConstraintParameter();
-			to.setReference(this.getOrCreateEMFVariableCached(editorReference.getTarget().getName(), null,type));
+			if(this.emfVariableLUT.get(type).containsKey(editorReference.getTarget()))
+				to.setReference(this.emfVariableLUT.get(type).get(editorReference.getTarget()));
+			else {
+				//TODO: this should currently not occur, but keep an eye on local Variables for Nodes
+				EMFVariable newVariable=getOrCreateEMFVariableCached(editorReference.getTarget(), null, type);
+				newVariable.setEClassifier(contextController.getTypeContext(editorReference.getTarget().getType()));
+				patternBody.getHeader().getSymbolicParameters().add(newVariable);
+				to.setReference(newVariable);
+			}
 			ref.getParameters().add(from);
 			ref.getParameters().add(to);
 			patternBody.getConstraints().add(ref);
 		}
 	}
 	
-	EMFVariable getOrCreateEMFVariableCached(String name,EditorNode parent,PatternType patternType){
+	EMFVariable getOrCreateEMFVariableCached(EObject obj,EditorNode parent,PatternType patternType){
+		String name=null;
+		if(obj instanceof EditorNode) {
+			name=((EditorNode) obj).getName();
+		}
+		if(obj instanceof EditorParameter) {
+			name=((EditorParameter)obj).getName();
+		}
+		if(obj instanceof EAttribute) {
+			name=((EAttribute)obj).getName();
+		}
+		if(name==null) {
+			throw new RuntimeException("Type "+obj.getClass()+" is not supported for this operation");
+		}
 		String nameInLut=parent==null?name:parent.getName()+"_"+name;
-		if(this.emfVariableLUT.get(patternType).containsKey(nameInLut))
-			return this.emfVariableLUT.get(patternType).get(nameInLut);
+		if(this.emfVariableLUT.get(patternType).containsKey(obj))
+			return this.emfVariableLUT.get(patternType).get(obj);
 		else {
 			EMFVariable newVariable = emfHelper.createEMFVariable();
 			newVariable.setName(nameInLut);
-			this.emfVariableLUT.get(patternType).put(nameInLut, newVariable);
+			this.emfVariableLUT.get(patternType).put(obj, newVariable);
 			return newVariable;
 		}
 	}
