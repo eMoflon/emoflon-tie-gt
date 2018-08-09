@@ -1,7 +1,10 @@
 package org.moflon.tie.gt.ide.core.patterns;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -104,9 +107,11 @@ public class EditorToControlFlowTransformation {
 							patternNameGenerator.setCFNode(cfNode);
 
 							final EditorPattern editorPattern = patternStmt.getPatternReference().getPattern();
-							final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
+							final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage,
+									resourceSet);
 							patternNameGenerator.setPatternDefinition(editorPattern);
 							final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
+							Map<PatternType,PatternInvocation> invocations=new HashMap<PatternBuilderVisitor.PatternType, PatternInvocation>();
 							for (final PatternType patternType : PatternType.values()) {
 								final Pattern democlesPattern = patterns.get(patternType);
 								if (democlesPattern == null)
@@ -134,7 +139,9 @@ public class EditorToControlFlowTransformation {
 								if (tranformationStatus.matches(IStatus.ERROR)) {
 									return tranformationStatus;
 								}
+								invocations.put(patternType, patternInvocation);
 							}
+							chainPatternInvocations(invocations,cfNode);
 							previousCFNode = cfNode;
 							++cfNodeId;
 						} else if (aNextStatement instanceof ObjectVariableStatement) {
@@ -302,24 +309,28 @@ public class EditorToControlFlowTransformation {
 
 	}
 
+	private void chainPatternInvocations(Map<PatternType,PatternInvocation> invocationsByPatternType,CFNode cfNode){
+		final List<PatternType> invocationOrder= Arrays.asList(PatternType.BLACK_PATTERN,PatternType.RED_PATTERN,PatternType.GREEN_PATTERN);
+		PatternInvocation previous=null;
+		for(PatternType t:invocationOrder) {
+			PatternInvocation current=invocationsByPatternType.get(t);
+			if(current==null)
+				continue;
+			if(previous==null)
+				cfNode.setMainAction(current);
+			else {
+				previous.setNext(current);
+				current.setPrev(previous);
+			}
+			previous=current;
+		}
+	}
+	
 	private PatternInvocation createPatternInvocation(Scope rootscope, CFNode cfNode, EditorPattern pattern,
 			Pattern blackPattern) {
 		RegularPatternInvocation patternInvocation = DEMOCLES_CF_FACTORY.createRegularPatternInvocation();
 		patternInvocation.setCfNode(cfNode);
 		patternInvocation.setPattern(blackPattern);
-		// TODO@rkluge: Appears not to have any effect currently
-		// Create Variable References
-		// rootscope.getVariables().forEach(cfVar -> {
-		// Optional<Variable> target = blackPattern.getSymbolicParameters().stream()
-		// .filter(emfVar -> emfVar.getName().equals(cfVar.getName())).findFirst();
-		// if (!target.isPresent())
-		// return;
-		// VariableReference reference = democlesHelper.createVariableReference();
-		// reference.setTo(target.get());
-		// reference.setFrom(cfVar);
-		// reference.setInvocation(patternInvocation);
-		// });
-		cfNode.setMainAction(patternInvocation);
 		return patternInvocation;
 	}
 
