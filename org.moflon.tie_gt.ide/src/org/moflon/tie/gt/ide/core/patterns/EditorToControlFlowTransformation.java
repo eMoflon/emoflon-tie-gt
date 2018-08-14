@@ -263,6 +263,8 @@ public class EditorToControlFlowTransformation {
 			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
 			final CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
+			if (from == null)
+				throw new IllegalArgumentException(String.format("Cannot find pattern invocation parameter for symbolic parameter %s of pattern %s in parameter list %s", var, democlesPattern, calledPatternParameters));
 			final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
 			varRef.setFrom(from);
 			varRef.setTo(var);
@@ -279,9 +281,11 @@ public class EditorToControlFlowTransformation {
 			if (paramType instanceof EditorNode) {
 				EditorNode edNode = (EditorNode) paramType;
 				return edNode.getName().contentEquals(symbolicParameter.getName());
-			} else {
+			} else if (paramType instanceof EditorParameter) {
 				EditorParameter edParam = (EditorParameter) paramType;
 				return edParam.getName().contentEquals(symbolicParameter.getName());
+			} else {
+				return false;
 			}
 		}).findAny();
 		if (objVariable.isPresent()) {
@@ -325,7 +329,7 @@ public class EditorToControlFlowTransformation {
 			previous=current;
 		}
 	}
-	
+
 	private PatternInvocation createPatternInvocation(Scope rootscope, CFNode cfNode, EditorPattern pattern,
 			Pattern blackPattern) {
 		RegularPatternInvocation patternInvocation = DEMOCLES_CF_FACTORY.createRegularPatternInvocation();
