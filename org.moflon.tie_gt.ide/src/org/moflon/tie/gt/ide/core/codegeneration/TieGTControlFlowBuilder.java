@@ -112,7 +112,35 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource.getName().equals("bin"))
 						return false;
+					
+					if (isGTFile(resource)) {
+						final Resource schemaResource = (Resource) getResourceSet().createResource(
+								URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(),
+										false));
+						try {
+							schemaResource.load(null);
+						} catch (final IOException e) {
+							throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+									"Problems while loading MOSL-GT specification", e));
+						}
+					}
+					return true;
+				}
+				
+				private boolean isGTFile(IResource resource) {
+					final IFile file = resource.getAdapter(IFile.class);
+					return resource != null && resource.exists() && file != null
+							&& "gt".equals(file.getFileExtension());
+				}
 
+			});
+			getProject().accept(new IResourceVisitor() {
+
+				@Override
+				public boolean visit(IResource resource) throws CoreException {
+					if (resource.getName().equals("bin"))
+						return false;
+					
 					if (isMOSLCFFile(resource)) {
 						final Resource schemaResource = (Resource) getResourceSet().createResource(
 								URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(),
@@ -132,7 +160,6 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 					return resource != null && resource.exists() && file != null
 							&& MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
 				}
-
 			});
 			EcoreUtil.resolveAll(this.getResourceSet());
 		} catch (final CoreException e) {
