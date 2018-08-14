@@ -71,6 +71,7 @@ public class EditorToControlFlowTransformation {
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile mCF,
 			final ResourceSet resourceSet) {
+		EcoreUtil.resolveAll(resourceSet);
 		final MultiStatus tranformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Control flow construction failed.", null);
 		// TODO:is there a better way?
@@ -80,7 +81,11 @@ public class EditorToControlFlowTransformation {
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
 			// TODO@rkluge: Could cause problems when we have to search in multiple
 			// EPackages
-			final EClass correspondingEClass = (EClass) ePackage.getEClassifier(editorEClass.getName().getName());
+			final String name = editorEClass.getName().getName();
+			if (name == null) {
+				throw new IllegalStateException("Cannot resolve proxy: " + editorEClass.getName());
+			}
+			final EClass correspondingEClass = (EClass) ePackage.getEClassifier(name);
 			patternNameGenerator.setEClass(correspondingEClass);
 			for (final MethodDec editorEOperation : editorEClass.getOperations()) {
 				if (editorEOperation.getStartStatement() != null) {

@@ -112,7 +112,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource.getName().equals("bin"))
 						return false;
-					
+
 					if (isGTFile(resource)) {
 						final Resource schemaResource = (Resource) getResourceSet().createResource(
 								URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(),
@@ -126,7 +126,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 					}
 					return true;
 				}
-				
+
 				private boolean isGTFile(IResource resource) {
 					final IFile file = resource.getAdapter(IFile.class);
 					return resource != null && resource.exists() && file != null
@@ -140,11 +140,11 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 				public boolean visit(IResource resource) throws CoreException {
 					if (resource.getName().equals("bin"))
 						return false;
-					
+
 					if (isMOSLCFFile(resource)) {
-						final Resource schemaResource = (Resource) getResourceSet().createResource(
+						final Resource schemaResource = (Resource) getResourceSet().getResource(
 								URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(),
-										false));
+										false), true);
 						try {
 							schemaResource.load(null);
 						} catch (final IOException e) {
