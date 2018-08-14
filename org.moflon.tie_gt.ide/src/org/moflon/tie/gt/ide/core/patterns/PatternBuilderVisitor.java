@@ -31,7 +31,6 @@ import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
-import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
