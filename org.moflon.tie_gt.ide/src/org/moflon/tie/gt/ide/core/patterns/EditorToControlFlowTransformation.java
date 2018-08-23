@@ -24,8 +24,12 @@ import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.specification.emf.Constraint;
+import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
+import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
@@ -102,7 +106,7 @@ public class EditorToControlFlowTransformation {
 					 * createCFVariableFromMethodParameter(ePackage, rootscope, methodparam); });
 					 */
 					Statement currentStatement = editorEOperation.getStartStatement();
-					int cfNodeId = 0;
+					int cfNodeId = 1;
 					CFNode previousCFNode = null;
 					while (currentStatement instanceof NextStatement) {
 						final NextStatement aNextStatement = (NextStatement) currentStatement;
@@ -124,6 +128,12 @@ public class EditorToControlFlowTransformation {
 								patternNameGenerator.setPatternType(patternType);
 								democlesPattern.setName(patternNameGenerator.generateName());
 
+								democlesPattern.getBodies().get(0).getConstraints().stream().filter(constr -> constr instanceof PatternInvocationConstraint).forEach(constr -> {
+									Pattern invokedPattern=((PatternInvocationConstraint)constr).getInvokedPattern();
+									invokedPattern.setName(patternNameGenerator.generateName(true,((PatternInvocationConstraint)constr).isPositive()));
+									createAndSaveSearchPlanForApplicationConditions(resourceSet, tranformationStatus,
+											correspondingEClass, patternType, constr, invokedPattern,democlesPattern);
+									});
 								final AdapterResource adapterResource = attachInRegisteredAdapter(democlesPattern,
 										correspondingEClass, resourceSet, patternType.getSuffix());
 
@@ -169,6 +179,42 @@ public class EditorToControlFlowTransformation {
 			}
 		}
 		return tranformationStatus;
+	}
+
+	private void createAndSaveSearchPlanForApplicationConditions(final ResourceSet resourceSet,
+			final MultiStatus tranformationStatus, final EClass correspondingEClass, final PatternType patternType,
+			Constraint constr, Pattern invokedPattern,Pattern invokatingPattern) {
+		final AdapterResource adapterResource = attachInRegisteredAdapter(invokedPattern,
+			correspondingEClass, resourceSet, PatternType.BLACK_PATTERN.getSuffix());
+		try {
+			saveResourceQuiely(adapterResource);
+		} catch (RuntimeException exception) {
+			System.out.println("CaughtRuntimeException: " + exception);
+		}
+		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
+		final Adornment adornment=calculateAdornmentForApplicationCondition(((PatternInvocationConstraint)constr).getParameters(),invokatingPattern.getSymbolicParameters());
+		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
+		final boolean isMultipleMatch = false;
+
+		final ValidationReport report = patternMatcher.generateSearchPlan(invokedPattern, adornment, isMultipleMatch);
+		for (final ErrorMessage message : report.getErrorMessages()) {
+			tranformationStatus.add(ValidationStatus.createValidationStatus(message));
+		}
+	}
+
+	private Adornment calculateAdornmentForApplicationCondition(EList<ConstraintParameter> constraintParams,
+			EList<Variable> symbolicParametersInvokatingPattern) {
+		final Adornment adornment = new Adornment(constraintParams.size());
+		int i = 0;
+		for (final ConstraintParameter param : constraintParams) {
+			if(symbolicParametersInvokatingPattern.stream().noneMatch(symbolicparam -> ((EMFVariable)param.getReference()).getName().equals(symbolicparam.getName())))
+				adornment.set(i, 2);
+			else
+				adornment.set(i, 0);
+			i++;
+		}
+		return adornment;
+		
 	}
 
 	private Scope createRootScopeForEOperation(final EOperation eOperation, final MethodDec editorEOp) {

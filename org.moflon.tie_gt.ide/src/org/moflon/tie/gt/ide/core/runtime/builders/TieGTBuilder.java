@@ -133,6 +133,12 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			final PatternResourceFactory blackFactory = new PatternResourceFactory(
 					DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
 			resourceSet.getAdapterFactories().add(blackFactory);
+			final PatternResourceFactory redFactory = new PatternResourceFactory(
+					DemoclesMethodBodyHandler.RED_FILE_EXTENSION);
+			resourceSet.getAdapterFactories().add(redFactory);
+			final PatternResourceFactory greenFactory = new PatternResourceFactory(
+					DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION);
+			resourceSet.getAdapterFactories().add(greenFactory);
 			final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
 					DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
 			resourceSet.getAdapterFactories().add(cfFactory);
