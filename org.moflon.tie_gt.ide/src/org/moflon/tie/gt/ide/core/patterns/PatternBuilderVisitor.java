@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
@@ -28,6 +29,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorParameterExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorRelation;
+import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.Constraint;
@@ -36,6 +38,7 @@ import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
+import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
@@ -79,8 +82,10 @@ public class PatternBuilderVisitor {
 	Map<PatternType, Map<EditorAttribute, Attribute>> attributeLUT;
 	PatternNameGenerator patternNameGenerator;
 	ContextController contextController;
+	ResourceSet resourceSet;
 
 	public PatternBuilderVisitor(EPackage contextEPackage, ResourceSet resourceSet) {
+		this.resourceSet = resourceSet;
 		this.generatedDemoclesPatterns = new HashMap<PatternBuilderVisitor.PatternType, Pattern>();
 		this.emfVariableLUT = new HashMap<PatternType, Map<EObject, EMFVariable>>();
 		this.attributeLUT = new HashMap<PatternType, Map<EditorAttribute, Attribute>>();
@@ -93,39 +98,96 @@ public class PatternBuilderVisitor {
 		// TODO: make this dynamic
 		// TODO: reset map for each pattern kind(or try without?)
 		pattern.getNodes().forEach(n -> visit(n, pattern));
-		pattern.getConditions().forEach(condition -> visit(condition,pattern));
+		pattern.getConditions().forEach(condition -> visit(condition, pattern));
 		return generatedDemoclesPatterns;
 	}
 
 	private void visit(EditorCondition condition, EditorPattern pattern) {
-		condition.getConditions().forEach(partialCondition -> {
-			if(partialCondition instanceof EditorConditionReference) {
-				EditorConditionReference simpleCond=(EditorConditionReference) partialCondition;
-				visit(simpleCond.getCondition(),pattern);
+		// TODO: create problem marker if condition.getConditions()>1
+		// TODO: @rkluge you are possibly a lot quicker than me here. Just insert after
+		// the if statment
+		if (condition.getConditions().size() > 1) {
+			// Resource res=((EditorPatternImpl)pattern).eResource();
+			// URI resolvedFile = CommonPlugin.resolve(res.getURI());
+			// IFile f = ResourcesPlugin.getWorkspace().getRoot().getFile(new
+			// Path(resolvedFile.toFileString()));
+			// try {
+			// ProblemMarkerUtil.createProblemMarker(f,"Chaining of Multiple Application
+			// Conditions of varying type is not supported", Severity.ERROR.getValue(),
+			// pattern.getName());
+			// } catch (CoreException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
+			// }
+			// throw new RuntimeException("multipleConditions");
+			;
+		}
+		//We only take the first one here as we do not accept AND connections
+		EditorSimpleCondition partialCondition = condition.getConditions().get(0);
+		if (partialCondition instanceof EditorConditionReference) {
+			EditorConditionReference simpleCond = (EditorConditionReference) partialCondition;
+			visit(simpleCond.getCondition(), pattern);
+		} else {
+			EditorApplicationCondition simpleCond = (EditorApplicationCondition) partialCondition;
+			EditorPattern applicationCondition = simpleCond.getPattern();
+			EditorApplicationConditionType type = simpleCond.getType();
+			// TODO:obtain pattern
+			Pattern newInvokedPattern = buildApplicationConditionPattern(applicationCondition);
+			createPatternInvocation(type, newInvokedPattern);
+		}
+	}
+
+	private Pattern buildApplicationConditionPattern(EditorPattern applicationCondition) {
+		// Store the current state to restore it after constraint has been processed
+		Map<PatternType, Pattern> patternCache = this.generatedDemoclesPatterns;
+		this.generatedDemoclesPatterns = new HashMap<PatternType, Pattern>();
+		Map<PatternType, Map<EObject, EMFVariable>> variableCache = this.emfVariableLUT;
+		this.emfVariableLUT = new HashMap<PatternType, Map<EObject, EMFVariable>>();
+		Map<PatternType, Map<EditorAttribute, Attribute>> attributeCache = this.attributeLUT;
+		this.attributeLUT = new HashMap<PatternType, Map<EditorAttribute, Attribute>>();
+		visit(applicationCondition);
+		Pattern newInvokedPattern = this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN);
+		// Restore lookup tables
+		this.generatedDemoclesPatterns = patternCache;
+		this.emfVariableLUT = variableCache;
+		this.attributeLUT = attributeCache;
+		return newInvokedPattern;
+	}
+
+	private void createPatternInvocation(EditorApplicationConditionType type, Pattern newInvokedPattern) {
+		PatternInvocationConstraint invocationConstraint = patternHelper.createPatternInvocationConstraint();
+		EList<Variable> symbolicParamsInvoker = this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN)
+				.getSymbolicParameters();
+		invocationConstraint.setPositive(type == EditorApplicationConditionType.POSITIVE ? true : false);
+		invocationConstraint.setInvokedPattern(newInvokedPattern);
+		createConstraintParameters(newInvokedPattern, invocationConstraint, symbolicParamsInvoker);
+		this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0).getConstraints()
+				.add(invocationConstraint);
+	}
+
+	private void createConstraintParameters(Pattern newInvokedPattern,
+			PatternInvocationConstraint invocationConstraintNegative, EList<Variable> symbolicParamsInvoker) {
+		List<Variable> symbolicParametersToMove = new ArrayList<Variable>();
+		newInvokedPattern.getSymbolicParameters().forEach(symbolicParam -> {
+			Optional<Variable> match = symbolicParamsInvoker.stream().filter(candidate -> {
+				return candidate.getName().equals(symbolicParam.getName());
+			}).findAny();
+			if (match.isPresent()) {
+				ConstraintParameter constraintParameter = patternHelper.createConstraintParameter();
+				constraintParameter.setReference(match.get());
+				invocationConstraintNegative.getParameters().add(constraintParameter);
 			} else {
-				EditorApplicationCondition simpleCond=(EditorApplicationCondition) partialCondition;
-				EditorPattern applicationCondition=simpleCond.getPattern();
-				EditorApplicationConditionType type=simpleCond.getType();
-				//TODO:obtain pattern
-				Pattern newInvokedPattern=null;
-				switch(type) {
-					case POSITIVE:
-						PatternInvocationConstraint invocationConstraint=patternHelper.createPatternInvocationConstraint();
-						invocationConstraint.setPositive(true);
-						invocationConstraint.setInvokedPattern(newInvokedPattern);
-						this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0).getConstraints().add(invocationConstraint);
-						break;
-					case NEGATIVE:
-						//TODO: make this more sufficient
-						PatternInvocationConstraint invocationConstraintNegative=patternHelper.createPatternInvocationConstraint();
-						invocationConstraintNegative.setPositive(false);
-						invocationConstraintNegative.setInvokedPattern(newInvokedPattern);
-						this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0).getConstraints().add(invocationConstraintNegative);
-						break;
-				}
+				symbolicParametersToMove.add(symbolicParam);
 			}
 
 		});
+		symbolicParametersToMove
+				.forEach(symbolicParam -> moveSymbolicParameterToLocalVariable(symbolicParam, newInvokedPattern));
+	}
+
+	private void moveSymbolicParameterToLocalVariable(Variable symbolicParam, Pattern newInvokedPattern) {
+		newInvokedPattern.getSymbolicParameters().remove(symbolicParam);
+		newInvokedPattern.getBodies().get(0).getLocalVariables().add(symbolicParam);
 	}
 
 	private void createPattern(EditorPattern pattern, PatternType patternType) {
@@ -136,13 +198,14 @@ public class PatternBuilderVisitor {
 		PatternBody body = patternHelper.createPatternBody();
 		body.setHeader(democlesPattern);
 		pattern.getParameters().forEach(param -> {
-			;createEMFVariableFromEditorParameter(patternType, param);
+			;
+			createEMFVariableFromEditorParameter(patternType, param);
 		});
 	}
 
 	private void createEMFVariableFromEditorParameter(PatternType type, EditorParameter param) {
 		// TODO:checkBack
-		if(type!=PatternType.BLACK_PATTERN)
+		if (type != PatternType.BLACK_PATTERN)
 			return;
 		if (this.emfVariableLUT.get(type).containsKey(param)) {
 			return;
