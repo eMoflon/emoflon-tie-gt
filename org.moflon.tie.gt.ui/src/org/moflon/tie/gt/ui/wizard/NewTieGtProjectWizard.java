@@ -19,7 +19,7 @@ import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.codegen.MoflonGenModelBuilder;
-import org.moflon.emf.ui.wizard.DefaultContentGenerator;
+import org.moflon.emf.ui.wizard.DefaultEPackageContentGenerator;
 import org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature;
 
 public class NewTieGtProjectWizard extends AbstractMoflonWizard {
@@ -107,7 +107,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 		final URI projectUri = MoflonGenModelBuilder.determineProjectUriBasedOnPreferences(project);
 		final URI packageUri = URI
 				.createURI(projectUri.toString() + MoflonConventions.getDefaultPathToEcoreFileInProject(projectName));
-		final String defaultEcoreFile = DefaultContentGenerator.generateDefaultEPackageForProject(projectName,
+		final String defaultEcoreFile = DefaultEPackageContentGenerator.generateDefaultEPackageForProject(projectName,
 				packageName, packageUri.toString());
 		WorkspaceHelper.addFile(project, MoflonConventions.getDefaultPathToEcoreFileInProject(projectName),
 				defaultEcoreFile, subMon.split(1));
