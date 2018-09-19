@@ -32,6 +32,7 @@ import org.moflon.core.preferences.EMoflonPreferencesActivator;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.ClasspathUtil;
 import org.moflon.core.utilities.ErrorReporter;
+import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
@@ -52,7 +53,8 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	 * This builder gets triggered whenever any ecore file in /models changes
 	 */
 	public TieGTBuilder() {
-		super(new AntPatternCondition(new String[] { "model/*.ecore" }));
+		super(new AntPatternCondition(
+				new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" }));
 	}
 
 	/**
@@ -99,74 +101,81 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	@Override
 	protected void processResource(final IResource ecoreResource, final int kind, Map<String, String> args,
 			final IProgressMonitor monitor) {
-		if (WorkspaceHelper.isEcoreFile(ecoreResource)) {
-			final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
-			final MultiStatus emfBuilderStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
-					"Problems during EMF code generation", null);
-			try {
-				final SubMonitor subMon = SubMonitor.convert(monitor,
-						"Generating code for project " + getProject().getName(), 13);
+		// if (WorkspaceHelper.isEcoreFile(ecoreResource)) {
+		final IFile ecoreFile = getProject()
+				.getFile(MoflonConventions.getDefaultPathToEcoreFileInProject(getProject().getName()));
+//		final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
+		final MultiStatus emfBuilderStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+				"Problems during EMF code generation", null);
+		try {
+			final SubMonitor subMon = SubMonitor.convert(monitor,
+					"Generating code for project " + getProject().getName(), 13);
 
-				final IProject project = getProject();
-				createFoldersIfNecessary(project, subMon.split(1));
-				ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getGenFolder(getProject()));
-				ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getInjectionFolder(getProject()));
+			final IProject project = getProject();
+			createFoldersIfNecessary(project, subMon.split(1));
+			ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getGenFolder(getProject()));
+			ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getInjectionFolder(getProject()));
 
-				// Compute project dependencies
-				final IBuildConfiguration[] referencedBuildConfigs = project
-						.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
-				for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
-					addTriggerProject(referencedConfig.getProject());
-				}
-
-				// Remove markers and delete generated code
-				deleteProblemMarkers();
-				removeGeneratedCode(project);
-
-				// Build
-				// final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
-				final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
-				final PatternResourceFactory blackFactory = new PatternResourceFactory(
-						DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
-				resourceSet.getAdapterFactories().add(blackFactory);
-				final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
-						DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
-				resourceSet.getAdapterFactories().add(cfFactory);
-				eMoflonEMFUtil.installCrossReferencers(resourceSet);
-				subMon.worked(1);
-				EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
-						.getPreferencesStorage();
-				final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask = new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(
-						ecoreFile, resourceSet, preferencesStorage);
-				final TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder(
-						preferencesStorage);
-				codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);
-				final IStatus status = codeGenerationTask.run(subMon.split(1));
-				subMon.worked(3);
-				emfBuilderStatus.add(status);
-
-				if (!emfBuilderStatus.isOK())
-					return;
-
-				// TODO: fix this when MoflonEmfCodeGenerator is fixed
-				final GenModel genModel = codeGenerationTask.getGenModelDummy();
-				if (genModel == null) {
-					emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-							String.format("No GenModel found for '%s'", getProject())));
-				} else {
-					ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
-
-					PluginXmlUpdater.updatePluginXml(project, genModel, subMon.split(1));
-				}
-				ResourcesPlugin.getWorkspace().checkpoint(false);
-
-			} catch (final CoreException e) {
-				emfBuilderStatus.add(new Status(e.getStatus().getSeverity(), WorkspaceHelper.getPluginId(getClass()),
-						e.getMessage(), e));
-			} finally {
-				handleErrorsInEclipse(emfBuilderStatus, ecoreFile);
+			// Compute project dependencies
+			final IBuildConfiguration[] referencedBuildConfigs = project
+					.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
+			for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
+				addTriggerProject(referencedConfig.getProject());
 			}
+
+			// Remove markers and delete generated code
+			deleteProblemMarkers();
+			removeGeneratedCode(project);
+
+			// Build
+			// final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
+			final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
+			final PatternResourceFactory blackFactory = new PatternResourceFactory(
+					DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
+			resourceSet.getAdapterFactories().add(blackFactory);
+			final PatternResourceFactory redFactory = new PatternResourceFactory(
+					DemoclesMethodBodyHandler.RED_FILE_EXTENSION);
+			resourceSet.getAdapterFactories().add(redFactory);
+			final PatternResourceFactory greenFactory = new PatternResourceFactory(
+					DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION);
+			resourceSet.getAdapterFactories().add(greenFactory);
+			final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
+					DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
+			resourceSet.getAdapterFactories().add(cfFactory);
+			eMoflonEMFUtil.installCrossReferencers(resourceSet);
+			subMon.worked(1);
+			EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
+					.getPreferencesStorage();
+			final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask = new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(
+					ecoreFile, resourceSet, preferencesStorage);
+			final TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder(preferencesStorage);
+			codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);
+			final IStatus status = codeGenerationTask.run(subMon.split(1));
+			subMon.worked(3);
+			emfBuilderStatus.add(status);
+
+			if (!emfBuilderStatus.isOK())
+				return;
+
+			// TODO: fix this when MoflonEmfCodeGenerator is fixed
+			final GenModel genModel = codeGenerationTask.getGenModelDummy();
+			if (genModel == null) {
+				emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+						String.format("No GenModel found for '%s'", getProject())));
+			} else {
+				ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
+
+				PluginXmlUpdater.updatePluginXml(project, genModel, subMon.split(1));
+			}
+			ResourcesPlugin.getWorkspace().checkpoint(false);
+
+		} catch (final CoreException e) {
+			emfBuilderStatus.add(new Status(e.getStatus().getSeverity(), WorkspaceHelper.getPluginId(getClass()),
+					e.getMessage(), e));
+		} finally {
+			handleErrorsInEclipse(emfBuilderStatus, ecoreFile);
 		}
+		// }
 	}
 
 	@Override

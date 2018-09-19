@@ -24,7 +24,10 @@ import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.specification.emf.Constraint;
+import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
+import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.codegen.eclipse.ValidationStatus;
@@ -72,6 +75,7 @@ public class EditorToControlFlowTransformation {
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile mCF,
 			final ResourceSet resourceSet) {
+		EcoreUtil.resolveAll(resourceSet);
 		final MultiStatus tranformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Control flow construction failed.", null);
 		// TODO:is there a better way?
@@ -81,7 +85,11 @@ public class EditorToControlFlowTransformation {
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
 			// TODO@rkluge: Could cause problems when we have to search in multiple
 			// EPackages
-			final EClass correspondingEClass = (EClass) ePackage.getEClassifier(editorEClass.getName().getName());
+			final String name = editorEClass.getName().getName();
+			if (name == null) {
+				throw new IllegalStateException("Cannot resolve proxy: " + editorEClass.getName());
+			}
+			final EClass correspondingEClass = (EClass) ePackage.getEClassifier(name);
 			patternNameGenerator.setEClass(correspondingEClass);
 			for (final MethodDec editorEOperation : editorEClass.getOperations()) {
 				if (editorEOperation.getStartStatement() != null) {
@@ -98,7 +106,7 @@ public class EditorToControlFlowTransformation {
 					 * createCFVariableFromMethodParameter(ePackage, rootscope, methodparam); });
 					 */
 					Statement currentStatement = editorEOperation.getStartStatement();
-					int cfNodeId = 0;
+					int cfNodeId = 1;
 					CFNode previousCFNode = null;
 					while (currentStatement instanceof NextStatement) {
 						final NextStatement aNextStatement = (NextStatement) currentStatement;
@@ -120,6 +128,12 @@ public class EditorToControlFlowTransformation {
 								patternNameGenerator.setPatternType(patternType);
 								democlesPattern.setName(patternNameGenerator.generateName());
 
+								democlesPattern.getBodies().get(0).getConstraints().stream().filter(constr -> constr instanceof PatternInvocationConstraint).forEach(constr -> {
+									Pattern invokedPattern=((PatternInvocationConstraint)constr).getInvokedPattern();
+									invokedPattern.setName(patternNameGenerator.generateName(true,((PatternInvocationConstraint)constr).isPositive()));
+									createAndSaveSearchPlanForApplicationConditions(resourceSet, tranformationStatus,
+											correspondingEClass, patternType, constr, invokedPattern,democlesPattern);
+									});
 								final AdapterResource adapterResource = attachInRegisteredAdapter(democlesPattern,
 										correspondingEClass, resourceSet, patternType.getSuffix());
 
@@ -165,6 +179,42 @@ public class EditorToControlFlowTransformation {
 			}
 		}
 		return tranformationStatus;
+	}
+
+	private void createAndSaveSearchPlanForApplicationConditions(final ResourceSet resourceSet,
+			final MultiStatus tranformationStatus, final EClass correspondingEClass, final PatternType patternType,
+			Constraint constr, Pattern invokedPattern,Pattern invokatingPattern) {
+		final AdapterResource adapterResource = attachInRegisteredAdapter(invokedPattern,
+			correspondingEClass, resourceSet, PatternType.BLACK_PATTERN.getSuffix());
+		try {
+			saveResourceQuiely(adapterResource);
+		} catch (RuntimeException exception) {
+			System.out.println("CaughtRuntimeException: " + exception);
+		}
+		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
+		final Adornment adornment=calculateAdornmentForApplicationCondition(((PatternInvocationConstraint)constr).getParameters(),invokatingPattern.getSymbolicParameters());
+		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
+		final boolean isMultipleMatch = false;
+
+		final ValidationReport report = patternMatcher.generateSearchPlan(invokedPattern, adornment, isMultipleMatch);
+		for (final ErrorMessage message : report.getErrorMessages()) {
+			tranformationStatus.add(ValidationStatus.createValidationStatus(message));
+		}
+	}
+
+	private Adornment calculateAdornmentForApplicationCondition(EList<ConstraintParameter> constraintParams,
+			EList<Variable> symbolicParametersInvokatingPattern) {
+		final Adornment adornment = new Adornment(constraintParams.size());
+		int i = 0;
+		for (final ConstraintParameter param : constraintParams) {
+			if(symbolicParametersInvokatingPattern.stream().noneMatch(symbolicparam -> ((EMFVariable)param.getReference()).getName().equals(symbolicparam.getName())))
+				adornment.set(i, 2);
+			else
+				adornment.set(i, 0);
+			i++;
+		}
+		return adornment;
+		
 	}
 
 	private Scope createRootScopeForEOperation(final EOperation eOperation, final MethodDec editorEOp) {
@@ -299,9 +349,11 @@ public class EditorToControlFlowTransformation {
 			if (paramType instanceof EditorNode) {
 				EditorNode edNode = (EditorNode) paramType;
 				return edNode.getName().contentEquals(symbolicParameter.getName());
-			} else {
+			} else if (paramType instanceof EditorParameter) {
 				EditorParameter edParam = (EditorParameter) paramType;
 				return edParam.getName().contentEquals(symbolicParameter.getName());
+			} else {
+				return false;
 			}
 		}).findAny();
 		if (objVariable.isPresent()) {
@@ -345,7 +397,7 @@ public class EditorToControlFlowTransformation {
 			previous=current;
 		}
 	}
-	
+
 	private PatternInvocation createPatternInvocation(Scope rootscope, CFNode cfNode, EditorPattern pattern,
 			Pattern blackPattern) {
 		RegularPatternInvocation patternInvocation = DEMOCLES_CF_FACTORY.createRegularPatternInvocation();

@@ -27,12 +27,20 @@ public class PatternNameGenerator {
 	private CFNode cfNode;
 
 	private PatternType patternType;
-
+	
 	public String generateName() {
+		return generateName(false,true);
+	}
+
+	public String generateName(boolean isAC,boolean isPositive) {
 		final String descriptiveName = (this.patternDefinition.getName() != null
 				? this.patternDefinition.getName().trim()
 				: "").replaceAll("\\s+", "");
-		return String.format("pattern_%s_%d_%d_%s_%s", this.eContainingClass.getName(), this.eOperationIndex,
+		if(isAC)
+			return String.format("pattern_%s_%d_%d_%s_%s_"+(isPositive?"p":"n")+"ac", this.eContainingClass.getName(), this.eOperationIndex,
+					this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
+		else
+			return String.format("pattern_%s_%d_%d_%s_%s", this.eContainingClass.getName(), this.eOperationIndex,
 				this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
 	}
 
