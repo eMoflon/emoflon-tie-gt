@@ -26,6 +26,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
@@ -262,7 +263,10 @@ public class EditorToControlFlowTransformation {
 	private void bindConstructedVariablesFromParameter(Scope currentScope, Pattern democlesPattern,
 			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
-			final CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
+			CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
+			if(from==null) {
+				from = createTemporaryCFVariable(currentScope, var);
+			}
 			final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
 			varRef.setFrom(from);
 			varRef.setTo(var);
@@ -270,6 +274,22 @@ public class EditorToControlFlowTransformation {
 			if (from.getConstructor() == null)
 				from.setConstructor(invocation);
 		});
+	}
+
+	private CFVariable createTemporaryCFVariable(Scope currentScope, Variable var) {
+		CFVariable temp= DEMOCLES_CF_FACTORY.createCFVariable();
+		temp.setName(var.getName());
+		final EClassifier editorObjectVariableType = ((EMFVariable)var).getEClassifier();
+		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, this.ecorePackage);
+		if (properCfVariableType == null)
+			throw new IllegalArgumentException(
+					String.format("Cannot translate the type %s (from the editor) to an EClassifier in %s",
+							editorObjectVariableType, this.ecorePackage));
+
+		temp.setType(editorObjectVariableType);
+		temp.setScope(currentScope);
+		temp.setLocal(false);
+		return temp;
 	}
 
 	private TypedElement findPatternCallVariableByParameterName(Variable symbolicParameter,
