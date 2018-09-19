@@ -36,6 +36,7 @@ import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
@@ -147,7 +148,7 @@ public class EditorToControlFlowTransformation {
 								PatternInvocation patternInvocation = createPatternInvocation(rootscope, cfNode,
 										editorPattern, democlesPattern);
 								bindConstructedVariablesFromParameter(rootscope, democlesPattern, patternInvocation,
-										patternStmt.getParameters());
+										patternStmt.getParameters(),ePackage);
 
 								createAndSaveSearchPlan(patternInvocation, democlesPattern, patternType,
 										tranformationStatus);
@@ -311,11 +312,11 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void bindConstructedVariablesFromParameter(Scope currentScope, Pattern democlesPattern,
-			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters) {
+			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters,EPackage epackage) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
 			CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
 			if(from==null) {
-				from = createTemporaryCFVariable(currentScope, var);
+				from = createTemporaryCFVariable(currentScope, var,epackage);
 			}
 			final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
 			varRef.setFrom(from);
@@ -326,35 +327,28 @@ public class EditorToControlFlowTransformation {
 		});
 	}
 
-	private CFVariable createTemporaryCFVariable(Scope currentScope, Variable var) {
+	private CFVariable createTemporaryCFVariable(Scope currentScope, Variable var,EPackage epackage) {
 		CFVariable temp= DEMOCLES_CF_FACTORY.createCFVariable();
-		temp.setName(var.getName());
+		temp.setName("temp_"+var.getName());
 		final EClassifier editorObjectVariableType = ((EMFVariable)var).getEClassifier();
-		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, this.ecorePackage);
+		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, epackage);
 		if (properCfVariableType == null)
 			throw new IllegalArgumentException(
 					String.format("Cannot translate the type %s (from the editor) to an EClassifier in %s",
-							editorObjectVariableType, this.ecorePackage));
+							editorObjectVariableType, epackage));
 
 		temp.setType(editorObjectVariableType);
 		temp.setScope(currentScope);
 		temp.setLocal(false);
+		currentScope.getVariables().add(temp);
 		return temp;
 	}
 
 	private TypedElement findPatternCallVariableByParameterName(Variable symbolicParameter,
 			EList<CalledPatternParameter> patternParameter) {
 		Optional<CalledPatternParameter> objVariable = patternParameter.stream().filter(patternParam -> {
-			EObject paramType = patternParam.getParameter();
-			if (paramType instanceof EditorNode) {
-				EditorNode edNode = (EditorNode) paramType;
-				return edNode.getName().contentEquals(symbolicParameter.getName());
-			} else if (paramType instanceof EditorParameter) {
-				EditorParameter edParam = (EditorParameter) paramType;
-				return edParam.getName().contentEquals(symbolicParameter.getName());
-			} else {
-				return false;
-			}
+			CalledPatternParameterName parameterName = patternParam.getParameter();
+			return parameterName.getName().contentEquals(symbolicParameter.getName());
 		}).findAny();
 		if (objVariable.isPresent()) {
 			TypedElement resultObject = objVariable.get().getObject();
