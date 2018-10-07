@@ -106,10 +106,6 @@ public class EditorToControlFlowTransformation {
 					patternNameGenerator.setEOperation(eOperation);
 
 					final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
-					/*
-					 * editorEOperation.getEParameters().forEach( methodparam -> {
-					 * createCFVariableFromMethodParameter(ePackage, rootscope, methodparam); });
-					 */
 					Statement currentStatement = editorEOperation.getStartStatement();
 					int cfNodeId = 1;
 					visitStatement(currentStatement,patternNameGenerator,rootscope,cfNodeId,resourceSet,ePackage,correspondingEClass,tranformationStatus,null);
@@ -127,23 +123,23 @@ public class EditorToControlFlowTransformation {
 		return tranformationStatus;
 	}
 
-	private MultiStatus visitStatement(Statement currentStatement, PatternNameGenerator patternNameGenerator, Scope rootscope, int cfNodeId, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
+	private MultiStatus visitStatement(Statement currentStatement, PatternNameGenerator patternNameGenerator, Scope scope, int cfNodeId, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
 		while (currentStatement instanceof NextStatement) {
 			final NextStatement aNextStatement = (NextStatement) currentStatement;
 			if(aNextStatement instanceof ObjectVariableStatement) {
-				MultiStatus returnStatus=visitStatement((ObjectVariableStatement)currentStatement,rootscope,  ePackage,transformationStatus);
+				MultiStatus returnStatus=visitStatement((ObjectVariableStatement)currentStatement,scope,  ePackage,transformationStatus);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 				}
 			else if(aNextStatement instanceof ConditionStatement) {
-				MultiStatus returnStatus=visitStatement((ConditionStatement)currentStatement,patternNameGenerator, rootscope,  cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
+				MultiStatus returnStatus=visitStatement((ConditionStatement)currentStatement,patternNameGenerator, scope,  cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			}
 			else if(aNextStatement instanceof PatternStatement) {
-				MultiStatus returnStatus=visitStatement((PatternStatement)currentStatement,patternNameGenerator, rootscope,  cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
+				MultiStatus returnStatus=visitStatement((PatternStatement)currentStatement,patternNameGenerator, scope,  cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
@@ -151,7 +147,7 @@ public class EditorToControlFlowTransformation {
 			currentStatement=aNextStatement.getNext();
 		}
 		if(currentStatement instanceof ReturnStatement) {
-			createReturnStatement(rootscope, previousCFNode, cfNodeId);
+			createReturnStatement(scope, previousCFNode, cfNodeId);
 		}
 		return transformationStatus;
 	}
@@ -176,14 +172,14 @@ public class EditorToControlFlowTransformation {
 		for(Statement stmt: statements) {
 			//TODO:DEBUG
 			Scope nextScope=DemoclesFactory.eINSTANCE.createScope();
-			nextScope.setPreviousScope(scope);
-			result = visitStatement(stmt, patternNameGenerator, nextScope, cfNodeId, resourceSet, ePackage, correspondingEClass, result, previousCFNode);
+			nextScope.setParent(ifStmtDemocles);
+			result = visitStatement(stmt, patternNameGenerator, nextScope, cfNodeId, resourceSet, ePackage, correspondingEClass, result, null);
 			if (result.matches(IStatus.ERROR)) {
 				return result;
 			}
 		}
 		//Continue with next statement after if
-		result = visitStatement(ifStatement.getNext(), patternNameGenerator, scope, cfNodeId, resourceSet, ePackage, correspondingEClass, result, previousCFNode);
+		result = visitStatement(ifStatement.getNext(), patternNameGenerator, scope, cfNodeId, resourceSet, ePackage, correspondingEClass, result, ifStmtDemocles);
 		return result;
 	}
 	
@@ -421,13 +417,29 @@ public class EditorToControlFlowTransformation {
 		final TypedElement typedElement = findPatternCallVariableByParameterName(symbolicParam, patternParameters);
 		if (typedElement instanceof MethodParameter) {
 			MethodParameter methodParameter = (MethodParameter) typedElement;
-			return currentScope.getVariables().stream()
-					.filter(cfVar -> cfVar.getName().equals(methodParameter.getName())).findFirst().get();
+			Scope searchedScope=currentScope;
+			while(searchedScope != null) {
+				Optional<CFVariable> candidate=currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(methodParameter.getName()))
+				.findFirst();
+				if(candidate.isPresent())
+					return candidate.get();
+				if(searchedScope.getParent()!=null)
+					searchedScope=searchedScope.getParent().getScope();
+				else break;
+			}
 		}
 		if (typedElement instanceof ObjectVariableStatement) {
 			ObjectVariableStatement ovstmt = (ObjectVariableStatement) typedElement;
-			return currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
-					.findFirst().get();
+			Scope searchedScope=currentScope;
+			while(searchedScope != null) {
+				Optional<CFVariable> candidate=currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
+				.findFirst();
+				if(candidate.isPresent())
+					return candidate.get();
+				if(searchedScope.getParent()!=null)
+					searchedScope=searchedScope.getParent().getScope();
+				else break;
+			}
 		}
 		// In any other case (most probably typedElement==null)
 		return null;
