@@ -160,19 +160,17 @@ public class EditorToControlFlowTransformation {
 	}
 	
 	private MultiStatus visitStatement(ConditionStatement ifStatement, PatternNameGenerator patternNameGenerator, Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
-		//TODO:implement
 		MultiStatus result=transformationStatus;
 		IfStatement ifStmtDemocles=DemoclesFactory.eINSTANCE.createIfStatement();
 		ifStmtDemocles.setPrev(previousCFNode);
 		ifStmtDemocles.setScope(scope);
 		ifStmtDemocles.setId(this.cfNodeIDcounter++);
-		//TODO:this is the main action
 		Condition cond=ifStatement.getCond();
 		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope,  resourceSet, ePackage, correspondingEClass, transformationStatus, cond.getParameters(), ifStmtDemocles);
 		//Transform if and else branch
 		List<Statement> statements= Arrays.asList(ifStatement.getThenStartStatement(),ifStatement.getElseStartStatement());
 		for(Statement stmt: statements) {
-			//TODO:DEBUG
+			//TODO: test variable binding in then clause
 			Scope nextScope=DemoclesFactory.eINSTANCE.createScope();
 			nextScope.setParent(ifStmtDemocles);
 			result = visitStatement(stmt, patternNameGenerator, nextScope,  resourceSet, ePackage, correspondingEClass, result, null);
