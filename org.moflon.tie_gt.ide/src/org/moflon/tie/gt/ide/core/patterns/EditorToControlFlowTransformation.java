@@ -72,6 +72,7 @@ public class EditorToControlFlowTransformation {
 	private static final Action THIS_VARIABLE_DUMMY_ACTION = DEMOCLES_CF_FACTORY.createAction();
 	private final PatternMatcherConfiguration patternMatcherConfiguration;
 	private EPackage ecorePackage;
+	private int cfNodeIDcounter;
 
 	public EditorToControlFlowTransformation(PatternMatcherConfiguration patternMatcherConfiguration,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -107,8 +108,8 @@ public class EditorToControlFlowTransformation {
 
 					final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
 					Statement currentStatement = editorEOperation.getStartStatement();
-					int cfNodeId = 1;
-					visitStatement(currentStatement,patternNameGenerator,rootscope,cfNodeId,resourceSet,ePackage,correspondingEClass,tranformationStatus,null);
+					this.cfNodeIDcounter = 1;
+					visitStatement(currentStatement,patternNameGenerator,rootscope,resourceSet,ePackage,correspondingEClass,tranformationStatus,null);
 					rootscope.getVariables().stream()
 							.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 							.forEach(thisVariable -> thisVariable.setConstructor(null));
@@ -123,7 +124,7 @@ public class EditorToControlFlowTransformation {
 		return tranformationStatus;
 	}
 
-	private MultiStatus visitStatement(Statement currentStatement, PatternNameGenerator patternNameGenerator, Scope scope, int cfNodeId, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
+	private MultiStatus visitStatement(Statement currentStatement, PatternNameGenerator patternNameGenerator, Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
 		while (currentStatement instanceof NextStatement) {
 			final NextStatement aNextStatement = (NextStatement) currentStatement;
 			if(aNextStatement instanceof ObjectVariableStatement) {
@@ -133,13 +134,13 @@ public class EditorToControlFlowTransformation {
 				}
 				}
 			else if(aNextStatement instanceof ConditionStatement) {
-				MultiStatus returnStatus=visitStatement((ConditionStatement)currentStatement,patternNameGenerator, scope,  cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
+				MultiStatus returnStatus=visitStatement((ConditionStatement)currentStatement,patternNameGenerator, scope,   resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			}
 			else if(aNextStatement instanceof PatternStatement) {
-				MultiStatus returnStatus=visitStatement((PatternStatement)currentStatement,patternNameGenerator, scope,  cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
+				MultiStatus returnStatus=visitStatement((PatternStatement)currentStatement,patternNameGenerator, scope,   resourceSet, ePackage, correspondingEClass, transformationStatus,previousCFNode);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
@@ -147,7 +148,7 @@ public class EditorToControlFlowTransformation {
 			currentStatement=aNextStatement.getNext();
 		}
 		if(currentStatement instanceof ReturnStatement) {
-			createReturnStatement(scope, previousCFNode, cfNodeId);
+			createReturnStatement(scope, previousCFNode);
 		}
 		return transformationStatus;
 	}
@@ -158,41 +159,42 @@ public class EditorToControlFlowTransformation {
 		return transformationStatus;
 	}
 	
-	private MultiStatus visitStatement(ConditionStatement ifStatement, PatternNameGenerator patternNameGenerator, Scope scope, int cfNodeId, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
+	private MultiStatus visitStatement(ConditionStatement ifStatement, PatternNameGenerator patternNameGenerator, Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
 		//TODO:implement
 		MultiStatus result=transformationStatus;
 		IfStatement ifStmtDemocles=DemoclesFactory.eINSTANCE.createIfStatement();
 		ifStmtDemocles.setPrev(previousCFNode);
 		ifStmtDemocles.setScope(scope);
+		ifStmtDemocles.setId(this.cfNodeIDcounter++);
 		//TODO:this is the main action
 		Condition cond=ifStatement.getCond();
-		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, cfNodeId, resourceSet, ePackage, correspondingEClass, transformationStatus, cond.getParameters(), ifStmtDemocles);
+		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope,  resourceSet, ePackage, correspondingEClass, transformationStatus, cond.getParameters(), ifStmtDemocles);
 		//Transform if and else branch
 		List<Statement> statements= Arrays.asList(ifStatement.getThenStartStatement(),ifStatement.getElseStartStatement());
 		for(Statement stmt: statements) {
 			//TODO:DEBUG
 			Scope nextScope=DemoclesFactory.eINSTANCE.createScope();
 			nextScope.setParent(ifStmtDemocles);
-			result = visitStatement(stmt, patternNameGenerator, nextScope, cfNodeId, resourceSet, ePackage, correspondingEClass, result, null);
+			result = visitStatement(stmt, patternNameGenerator, nextScope,  resourceSet, ePackage, correspondingEClass, result, null);
 			if (result.matches(IStatus.ERROR)) {
 				return result;
 			}
 		}
 		//Continue with next statement after if
-		result = visitStatement(ifStatement.getNext(), patternNameGenerator, scope, cfNodeId, resourceSet, ePackage, correspondingEClass, result, ifStmtDemocles);
+		result = visitStatement(ifStatement.getNext(), patternNameGenerator, scope,  resourceSet, ePackage, correspondingEClass, result, ifStmtDemocles);
 		return result;
 	}
 	
-	private MultiStatus visitStatement(PatternStatement patternStatement, PatternNameGenerator patternNameGenerator, Scope rootscope, int cfNodeId, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
-		final CFNode cfNode = createCFNode(rootscope, cfNodeId, previousCFNode);
+	private MultiStatus visitStatement(PatternStatement patternStatement, PatternNameGenerator patternNameGenerator, Scope rootscope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass, MultiStatus transformationStatus,CFNode previousCFNode) {
+		final CFNode cfNode = createCFNode(rootscope,  previousCFNode);
 		patternNameGenerator.setCFNode(cfNode);
 		final EditorPattern editorPattern = patternStatement.getPatternReference().getPattern();
-		return invokePattern(editorPattern, patternNameGenerator, rootscope, cfNodeId, resourceSet, ePackage,
+		return invokePattern(editorPattern, patternNameGenerator, rootscope,  resourceSet, ePackage,
 				correspondingEClass, transformationStatus, patternStatement.getParameters(),cfNode);
 	}
 
 	private MultiStatus invokePattern(EditorPattern editorPattern, PatternNameGenerator patternNameGenerator,
-			Scope rootscope, int cfNodeId, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
+			Scope rootscope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
 			MultiStatus transformationStatus, EList<CalledPatternParameter> calledParameters,CFNode invokingCFNode) {
 		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage,
 				resourceSet);
@@ -235,7 +237,6 @@ public class EditorToControlFlowTransformation {
 			invocations.put(patternType, patternInvocation);
 		}
 		chainPatternInvocations(invocations,invokingCFNode);
-		++cfNodeId;
 		return transformationStatus;
 	}
 	
@@ -281,9 +282,9 @@ public class EditorToControlFlowTransformation {
 		return rootscope;
 	}
 
-	private CFNode createCFNode(final Scope scope, final int cfNodeId, final CFNode previousCFNode) {
+	private CFNode createCFNode(final Scope scope, final CFNode previousCFNode) {
 		final CFNode cfNode = DEMOCLES_CF_FACTORY.createCFNode();
-		cfNode.setId(cfNodeId);
+		cfNode.setId(this.cfNodeIDcounter++);
 		cfNode.setScope(scope);
 		cfNode.setPrev(previousCFNode);
 		return cfNode;
@@ -419,7 +420,7 @@ public class EditorToControlFlowTransformation {
 			MethodParameter methodParameter = (MethodParameter) typedElement;
 			Scope searchedScope=currentScope;
 			while(searchedScope != null) {
-				Optional<CFVariable> candidate=currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(methodParameter.getName()))
+				Optional<CFVariable> candidate=searchedScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(methodParameter.getName()))
 				.findFirst();
 				if(candidate.isPresent())
 					return candidate.get();
@@ -433,6 +434,19 @@ public class EditorToControlFlowTransformation {
 			Scope searchedScope=currentScope;
 			while(searchedScope != null) {
 				Optional<CFVariable> candidate=currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
+				.findFirst();
+				if(candidate.isPresent())
+					return candidate.get();
+				if(searchedScope.getParent()!=null)
+					searchedScope=searchedScope.getParent().getScope();
+				else break;
+			}
+		}
+		if(typedElement==null) {
+			//Check for existing temporary CFVariables
+			Scope searchedScope=currentScope;
+			while(searchedScope != null) {
+				Optional<CFVariable> candidate=currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals("temp_"+symbolicParam.getName()))
 				.findFirst();
 				if(candidate.isPresent())
 					return candidate.get();
@@ -471,9 +485,9 @@ public class EditorToControlFlowTransformation {
 		return patternInvocation;
 	}
 
-	private void createReturnStatement(Scope rootscope, CFNode currentCFNode, int cfID) {
+	private void createReturnStatement(Scope rootscope, CFNode currentCFNode) {
 		ReturnStatement returnstmt = DEMOCLES_CF_FACTORY.createReturnStatement();
-		returnstmt.setId(cfID);
+		returnstmt.setId(this.cfNodeIDcounter++);
 		if(currentCFNode!=null)
 			returnstmt.setPrev(currentCFNode);
 		returnstmt.setScope(rootscope);
