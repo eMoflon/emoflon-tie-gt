@@ -491,7 +491,7 @@ public class EditorToControlFlowTransformation {
 			ObjectVariableStatement ovstmt = (ObjectVariableStatement) typedElement;
 			Scope searchedScope=currentScope;
 			while(searchedScope != null) {
-				Optional<CFVariable> candidate=currentScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
+				Optional<CFVariable> candidate=searchedScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals(ovstmt.getName()))
 				.findFirst();
 				if(candidate.isPresent())
 					return candidate.get();
@@ -504,7 +504,7 @@ public class EditorToControlFlowTransformation {
 			//Check for existing temporary CFVariables
 			Scope searchedScope=currentScope;
 			while(searchedScope != null) {
-				Optional<CFVariable> candidate=searchedScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals("temp_"+symbolicParam.getName()))
+				Optional<CFVariable> candidate=searchedScope.getVariables().stream().filter(cfVar -> cfVar.getName().equals("temp_"+symbolicParam.getName())||cfVar.getName().equals(symbolicParam.getName()))
 				.findFirst();
 				if(candidate.isPresent()) {
 					return candidate.get();
