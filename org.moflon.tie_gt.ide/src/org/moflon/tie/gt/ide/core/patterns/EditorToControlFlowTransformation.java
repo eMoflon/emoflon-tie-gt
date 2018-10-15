@@ -283,7 +283,9 @@ public class EditorToControlFlowTransformation {
 		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
 		createdVariables.forEach(cfVar -> {
 			scope.getVariables().remove(cfVar);
+			//TODO:verify that this still applies
 			cfVar.setConstructor(null);
+			doLoopDemocles.getMainAction().getConstructedVariables().remove(cfVar);
 			nextScope.getVariables().add(cfVar);
 		});
 		createdVariables.clear();
@@ -419,7 +421,7 @@ public class EditorToControlFlowTransformation {
 	private void createAndSaveSearchPlan(final PatternInvocation patternInvocation, final Pattern democlesPattern,
 			final PatternType patternType, final MultiStatus tranformationStatus) {
 		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
-		final Adornment adornment = calculateAdornment(patternInvocation);
+		final Adornment adornment = calculateAdornment(patternInvocation,patternType);
 		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
 		final boolean isMultipleMatch = false;
 
@@ -481,13 +483,20 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private Adornment calculateAdornment(final PatternInvocation invocation) {
+	private Adornment calculateAdornment(final PatternInvocation invocation,final PatternType patternType) {
+		//TODO: red patterns should never contain free adornments
 		final EList<VariableReference> parameters = invocation.getParameters();
 		final Adornment adornment = new Adornment(parameters.size());
 		int i = 0;
 		for (final VariableReference variableRef : parameters) {
-			final int value = variableRef.isFree() ? Adornment.FREE : Adornment.BOUND;
-			adornment.set(i, value);
+			//if(patternType!=PatternType.RED_PATTERN) {
+				final int value = variableRef.isFree() ? Adornment.FREE : Adornment.BOUND;
+				adornment.set(i, value);
+			//}
+			//else {
+			//	final int value = Adornment.BOUND;
+			//	adornment.set(i, value);
+			//}
 			i++;
 		}
 		return adornment;
