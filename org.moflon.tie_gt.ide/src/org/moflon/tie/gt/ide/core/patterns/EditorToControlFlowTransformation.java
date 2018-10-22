@@ -276,11 +276,17 @@ public class EditorToControlFlowTransformation {
 		Condition cond = doLoopStatement.getCond();
 		patternNameGenerator.setCFNode(doLoopDemocles);
 		List<CFVariable> createdVariables = new ArrayList<CFVariable>();
+		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
+		nextScope.setParent(doLoopDemocles);
+		result = visitStatement(doLoopStatement.getLoopStartStatement(), patternNameGenerator, nextScope, resourceSet,
+				ePackage, correspondingEClass, result, null);
+		if (result.matches(IStatus.ERROR)) {
+			return result;
+		}
 		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, resourceSet, ePackage,
 				correspondingEClass, transformationStatus, cond.getParameters(), doLoopDemocles, createdVariables);
 		// Transform loop body
 		// TODO: test variable binding in while clause
-		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
 		createdVariables.forEach(cfVar -> {
 			scope.getVariables().remove(cfVar);
 			//TODO:verify that this still applies
@@ -289,12 +295,6 @@ public class EditorToControlFlowTransformation {
 			nextScope.getVariables().add(cfVar);
 		});
 		createdVariables.clear();
-		nextScope.setParent(doLoopDemocles);
-		result = visitStatement(doLoopStatement.getLoopStartStatement(), patternNameGenerator, nextScope, resourceSet,
-				ePackage, correspondingEClass, result, null);
-		if (result.matches(IStatus.ERROR)) {
-			return result;
-		}
 		// Continue with next statement after if
 		result = visitStatement(doLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
 				correspondingEClass, result, doLoopDemocles);
@@ -589,6 +589,10 @@ public class EditorToControlFlowTransformation {
 		if (typedElement == null) {
 			// Check for existing temporary CFVariables
 			Scope searchedScope = currentScope;
+			//If we are in a Tail Controlled Loop check contents of body
+			if(currentScope.getParent()instanceof TailControlledLoop) {
+				searchedScope=currentScope.getContents().get(0).getScope();
+			}
 			while (searchedScope != null) {
 				Optional<CFVariable> candidate = searchedScope.getVariables().stream()
 						.filter(cfVar -> cfVar.getName().equals("temp_" + symbolicParam.getName())
