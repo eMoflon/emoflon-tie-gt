@@ -283,18 +283,20 @@ public class EditorToControlFlowTransformation {
 		if (result.matches(IStatus.ERROR)) {
 			return result;
 		}
-		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, resourceSet, ePackage,
+		//TODO:downgrade non parameter variables
+		EditorPattern conditionPattern=cond.getPatternReference().getPattern();
+		invokePattern(conditionPattern, patternNameGenerator, scope, resourceSet, ePackage,
 				correspondingEClass, transformationStatus, cond.getParameters(), doLoopDemocles, createdVariables);
 		// Transform loop body
 		// TODO: test variable binding in while clause
-		createdVariables.forEach(cfVar -> {
+		/*createdVariables.forEach(cfVar -> {
 			scope.getVariables().remove(cfVar);
 			//TODO:verify that this still applies
 			cfVar.setConstructor(null);
 			doLoopDemocles.getMainAction().getConstructedVariables().remove(cfVar);
 			nextScope.getVariables().add(cfVar);
 		});
-		createdVariables.clear();
+		createdVariables.clear();*/
 		// Continue with next statement after if
 		result = visitStatement(doLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
 				correspondingEClass, result, doLoopDemocles);
@@ -312,7 +314,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private MultiStatus invokePattern(EditorPattern editorPattern, PatternNameGenerator patternNameGenerator,
-			Scope rootscope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
+			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
 			MultiStatus transformationStatus, EList<CalledPatternParameter> calledParameters, CFNode invokingCFNode,
 			List<CFVariable> createdVariables) {
 		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
@@ -343,10 +345,9 @@ public class EditorToControlFlowTransformation {
 			} catch (RuntimeException exception) {
 				System.out.println("CaughtRuntimeException: " + exception);
 			}
-
-			PatternInvocation patternInvocation = createPatternInvocation(rootscope, invokingCFNode, editorPattern,
+			PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
 					democlesPattern);
-			bindConstructedVariablesFromParameter(rootscope, democlesPattern, patternInvocation, calledParameters,
+			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
 					ePackage, createdVariables);
 
 			createAndSaveSearchPlan(patternInvocation, democlesPattern, patternType, transformationStatus);
@@ -506,7 +507,7 @@ public class EditorToControlFlowTransformation {
 			PatternInvocation invocation, EList<CalledPatternParameter> calledPatternParameters, EPackage epackage,
 			List<CFVariable> createdVariables) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
-			CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters, createdVariables);
+			CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
 			if (from == null) {
 				from = createTemporaryCFVariable(currentScope, var, epackage);
 				createdVariables.add(from);
@@ -551,7 +552,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private CFVariable findCfVariableByName(Scope currentScope, Variable symbolicParam,
-			EList<CalledPatternParameter> patternParameters, List<CFVariable> createdVariables) {
+			EList<CalledPatternParameter> patternParameters) {
 		final TypedElement typedElement = findPatternCallVariableByParameterName(symbolicParam, patternParameters);
 		if (typedElement instanceof MethodParameter) {
 			MethodParameter methodParameter = (MethodParameter) typedElement;
@@ -561,7 +562,7 @@ public class EditorToControlFlowTransformation {
 						.filter(cfVar -> cfVar.getName().equals(methodParameter.getName())).findFirst();
 				if (candidate.isPresent())
 					return candidate.get();
-				if (searchedScope.getParent() != null/* &&!(searchedScope.getParent()instanceof TailControlledLoop) */)
+				if (searchedScope.getParent() != null)
 					searchedScope = searchedScope.getParent().getScope();
 				else
 					break;
@@ -570,17 +571,24 @@ public class EditorToControlFlowTransformation {
 		if (typedElement instanceof ObjectVariableStatement) {
 			ObjectVariableStatement ovstmt = (ObjectVariableStatement) typedElement;
 			Scope searchedScope = currentScope;
+			Optional<CFNode> tclCandidate=currentScope.getContents().stream().filter(node ->node instanceof TailControlledLoop).findFirst();
+			if(tclCandidate.isPresent()) {
+				TailControlledLoop tcl=(TailControlledLoop)tclCandidate.get();
+				//If we are in a tail controlled loop 
+				searchedScope=tcl.getScopes().get(0);
+			}
 			while (searchedScope != null) {
 				Optional<CFVariable> candidate = searchedScope.getVariables().stream()
 						.filter(cfVar -> cfVar.getName().equals(ovstmt.getName())).findFirst();
 				if (candidate.isPresent()) {
-					if (!(candidate.get().getName().contentEquals(THIS_VARIABLE_NAME))) {
-						createdVariables.add(candidate.get());
+					//If we did an upwars traversal and are in the scope of a tailcontrolled loop and the variable in question is not the this variable, downgrade it
+					if((!searchedScope.equals(currentScope))&&(searchedScope.getContents().get(0)instanceof TailControlledLoop)&&(!ovstmt.getName().contentEquals(THIS_VARIABLE_NAME))) {
+						searchedScope.getVariables().remove(candidate.get());
+						currentScope.getVariables().add(candidate.get());
 					}
 					return candidate.get();
 				}
-				//TODO:prevent accessing scope of parent for tail controlled loops
-				if (searchedScope.getParent() != null &&(!(searchedScope.getParent()instanceof TailControlledLoop)||ovstmt.getName().contentEquals(this.THIS_VARIABLE_NAME)))
+				if (searchedScope.getParent() != null )
 					searchedScope = searchedScope.getParent().getScope();
 				else
 					break;
@@ -598,7 +606,7 @@ public class EditorToControlFlowTransformation {
 						.filter(cfVar -> cfVar.getName().equals("temp_" + symbolicParam.getName())
 								|| cfVar.getName().equals(symbolicParam.getName()))
 						.findFirst();
-				if (candidate.isPresent()/* &&!(searchedScope.getParent()instanceof TailControlledLoop) */) {
+				if (candidate.isPresent()) {
 					return candidate.get();
 				}
 				if (searchedScope.getParent() != null)
