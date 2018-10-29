@@ -277,7 +277,6 @@ public class EditorToControlFlowTransformation {
 		MultiStatus result = transformationStatus;
 		//TODO@rkluge: errorstatus as we do not support forloops
 		//result.add(new Status(IStatus.ERROR, pluginId, message));
-		System.out.println("Foreach is not supported");
 		ForEach forLoopDemocles = DemoclesFactory.eINSTANCE.createForEach();
 		forLoopDemocles.setPrev(previousCFNode);
 		forLoopDemocles.setScope(scope);
@@ -473,8 +472,9 @@ public class EditorToControlFlowTransformation {
 		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
 		final Adornment adornment = calculateAdornment(patternInvocation,patternType);
 		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
-		final boolean isMultipleMatch = false;
-
+		boolean isMultipleMatch=false;
+		if(patternInvocation.getCfNode()instanceof ForEach)
+			isMultipleMatch = true;
 		final ValidationReport report = patternMatcher.generateSearchPlan(democlesPattern, adornment, isMultipleMatch);
 		for (final ErrorMessage message : report.getErrorMessages()) {
 			tranformationStatus.add(ValidationStatus.createValidationStatus(message));
@@ -696,7 +696,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void createReturnStatement(Scope rootscope, CFNode currentCFNode) {
-		ReturnStatement returnstmt = DEMOCLES_CF_FACTORY.createReturnStatement();
+		org.moflon.sdm.runtime.democles.ReturnStatement returnstmt =  DEMOCLES_CF_FACTORY.createReturnStatement();
 		returnstmt.setId(this.cfNodeIDcounter++);
 		if (currentCFNode != null)
 			returnstmt.setPrev(currentCFNode);
