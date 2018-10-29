@@ -27,7 +27,9 @@ import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
+import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
@@ -65,6 +67,7 @@ import org.moflon.sdm.runtime.democles.Loop;
 import org.moflon.sdm.runtime.democles.PatternInvocation;
 import org.moflon.sdm.runtime.democles.RegularPatternInvocation;
 import org.moflon.sdm.runtime.democles.Scope;
+import org.moflon.sdm.runtime.democles.SingleResultPatternInvocation;
 import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
@@ -181,12 +184,70 @@ public class EditorToControlFlowTransformation {
 			}
 			currentStatement = aNextStatement.getNext();
 		}
+		if (currentStatement instanceof ReturnStatement) {
+			MultiStatus returnStatus = visitStatement((ReturnStatement) currentStatement, patternNameGenerator,
+					scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+			if (returnStatus.matches(IStatus.ERROR)) {
+				return returnStatus;
+			}
+		}
 		return transformationStatus;
 	}
 
 	private MultiStatus visitStatement(ObjectVariableStatement oVarStatement, Scope scope, EPackage ePackage,
 			MultiStatus transformationStatus) {
 		createCFVariableFromObjectVariable(scope, oVarStatement, ePackage);
+		return transformationStatus;
+	}
+	
+	private MultiStatus visitStatement(ReturnStatement returnStmt, PatternNameGenerator patternNameGenerator,Scope scope,ResourceSet resourceSet, EPackage ePackage,EClass correspondingEClass,
+			MultiStatus transformationStatus,CFNode currentCFNode) {
+		org.moflon.sdm.runtime.democles.ReturnStatement returnStmtDemocles = DEMOCLES_CF_FACTORY.createReturnStatement();
+		returnStmtDemocles.setId(this.cfNodeIDcounter++);
+		if (currentCFNode != null)
+			returnStmtDemocles.setPrev(currentCFNode);
+		returnStmtDemocles.setScope(scope);
+		ObjectVariableStatement returnObject=returnStmt.getReturnObject();
+		if(returnObject==null) {
+			Action emptyReturnAction = DEMOCLES_CF_FACTORY.createAction();
+			emptyReturnAction.setCfNode(returnStmtDemocles);
+			returnStmtDemocles.setMainAction(emptyReturnAction);
+		}
+		else {
+			SingleResultPatternInvocation resPatternInvocation=DEMOCLES_CF_FACTORY.createSingleResultPatternInvocation();
+			resPatternInvocation.setCfNode(returnStmtDemocles);
+			returnStmtDemocles.setMainAction(resPatternInvocation);
+			resPatternInvocation.setReturnType(lookupTypeInEcoreFile(returnObject.getEType(), ePackage));
+			Optional<CFVariable> returnVariableCandidate = scope.getVariables().stream().filter(cfVar -> returnObject.getName().contentEquals(cfVar.getName())).findFirst();
+			if(returnVariableCandidate.isPresent()) {
+				CFVariable cfReturnVariable=returnVariableCandidate.get();
+				CFVariable tempCFReturnVariable = DEMOCLES_CF_FACTORY.createCFVariable();
+				tempCFReturnVariable.setConstructor(resPatternInvocation);
+				tempCFReturnVariable.setName("ret_"+cfReturnVariable.getName());
+				tempCFReturnVariable.setScope(scope);
+				tempCFReturnVariable.setType(cfReturnVariable.getType());
+				PatternInvocationConstraint constraint = SpecificationFactory.eINSTANCE.createPatternInvocationConstraint();
+				Pattern pattern= PatternBuilderVisitor.createExpressionPattern(cfReturnVariable);
+				patternNameGenerator.setPatternType(PatternType.EXPRESSION_PATTERN);
+				patternNameGenerator.setPatternDefinition(null);
+				pattern.setName(patternNameGenerator.generateName());
+				Variable source = pattern.getSymbolicParameters().get(0);
+				Variable target =pattern.getSymbolicParameters().get(1);
+				final VariableReference varRefSource = DEMOCLES_CF_FACTORY.createVariableReference();
+				varRefSource.setFrom(cfReturnVariable);
+				varRefSource.setTo(source);
+				varRefSource.setInvocation(resPatternInvocation);
+				final VariableReference varRefTarget = DEMOCLES_CF_FACTORY.createVariableReference();
+				varRefTarget.setFrom(tempCFReturnVariable);
+				varRefTarget.setTo(target);
+				varRefTarget.setInvocation(resPatternInvocation);
+				constraint.setInvokedPattern(pattern);
+				createAndSaveSearchPlan(resPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN, transformationStatus);
+			}
+			else {
+				//TODO@rkluge: error status, can not resolve variable to be returned
+			}
+		}
 		return transformationStatus;
 	}
 
@@ -693,17 +754,6 @@ public class EditorToControlFlowTransformation {
 		patternInvocation.setCfNode(cfNode);
 		patternInvocation.setPattern(blackPattern);
 		return patternInvocation;
-	}
-
-	private void createReturnStatement(Scope rootscope, CFNode currentCFNode) {
-		org.moflon.sdm.runtime.democles.ReturnStatement returnstmt =  DEMOCLES_CF_FACTORY.createReturnStatement();
-		returnstmt.setId(this.cfNodeIDcounter++);
-		if (currentCFNode != null)
-			returnstmt.setPrev(currentCFNode);
-		returnstmt.setScope(rootscope);
-		Action emptyReturnAction = DEMOCLES_CF_FACTORY.createAction();
-		emptyReturnAction.setCfNode(returnstmt);
-		returnstmt.setMainAction(emptyReturnAction);
 	}
 
 	private void createCFVariableFromObjectVariable(final Scope rootscope, final ObjectVariableStatement statement,
