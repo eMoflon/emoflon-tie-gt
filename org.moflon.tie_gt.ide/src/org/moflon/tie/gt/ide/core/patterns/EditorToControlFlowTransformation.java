@@ -21,8 +21,6 @@ import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.emoflon.ibex.gt.editor.gT.EditorNode;
-import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Constraint;
@@ -42,12 +40,14 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Condition;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ConditionStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.DoLoopStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ForLoopStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStatement;
@@ -58,12 +58,12 @@ import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.sdm.runtime.democles.DemoclesFactory;
+import org.moflon.sdm.runtime.democles.ForEach;
 import org.moflon.sdm.runtime.democles.HeadControlledLoop;
 import org.moflon.sdm.runtime.democles.IfStatement;
 import org.moflon.sdm.runtime.democles.Loop;
 import org.moflon.sdm.runtime.democles.PatternInvocation;
 import org.moflon.sdm.runtime.democles.RegularPatternInvocation;
-import org.moflon.sdm.runtime.democles.ReturnStatement;
 import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
@@ -153,13 +153,26 @@ public class EditorToControlFlowTransformation {
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
+			} 
+			else if (aNextStatement instanceof ForLoopStatement) {
+				MultiStatus returnStatus = visitStatement((ForLoopStatement) currentStatement, patternNameGenerator,
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+				if (returnStatus.matches(IStatus.ERROR)) {
+					return returnStatus;
+				}
 			} else if (aNextStatement instanceof DoLoopStatement) {
 				MultiStatus returnStatus = visitStatement((DoLoopStatement) currentStatement, patternNameGenerator,
 						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
-			} else if (aNextStatement instanceof PatternStatement) {
+			} else if (aNextStatement instanceof ReturnStatement) {
+				MultiStatus returnStatus = visitStatement((ReturnStatement) currentStatement, patternNameGenerator,
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+				if (returnStatus.matches(IStatus.ERROR)) {
+					return returnStatus;
+				}
+			}else if (aNextStatement instanceof PatternStatement) {
 				MultiStatus returnStatus = visitStatement((PatternStatement) currentStatement, patternNameGenerator,
 						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
 				if (returnStatus.matches(IStatus.ERROR)) {
@@ -167,9 +180,6 @@ public class EditorToControlFlowTransformation {
 				}
 			}
 			currentStatement = aNextStatement.getNext();
-		}
-		if (currentStatement instanceof ReturnStatement) {
-			createReturnStatement(scope, previousCFNode);
 		}
 		return transformationStatus;
 	}
@@ -258,6 +268,45 @@ public class EditorToControlFlowTransformation {
 		// Continue with next statement after if
 		result = visitStatement(whileLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
 				correspondingEClass, result, whileLoopDemocles);
+		return result;
+	}
+	
+	private MultiStatus visitStatement(ForLoopStatement forLoopStatement, PatternNameGenerator patternNameGenerator,
+			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
+			MultiStatus transformationStatus, CFNode previousCFNode) {
+		MultiStatus result = transformationStatus;
+		//TODO@rkluge: errorstatus as we do not support forloops
+		//result.add(new Status(IStatus.ERROR, pluginId, message));
+		System.out.println("Foreach is not supported");
+		ForEach forLoopDemocles = DemoclesFactory.eINSTANCE.createForEach();
+		forLoopDemocles.setPrev(previousCFNode);
+		forLoopDemocles.setScope(scope);
+		// TODO: recheck loop along
+		// TODO:check header
+		// whileLoopDemocles.setHeader(null);
+		forLoopDemocles.setId(this.cfNodeIDcounter++);
+		Condition cond = forLoopStatement.getCond();
+		patternNameGenerator.setCFNode(forLoopDemocles);
+		List<CFVariable> createdVariables = new ArrayList<CFVariable>();
+		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, resourceSet, ePackage,
+				correspondingEClass, transformationStatus, cond.getParameters(), forLoopDemocles, createdVariables);
+		// Transform loop body
+		// TODO: test variable binding in then clause
+		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
+		createdVariables.forEach(cfVar -> {
+			scope.getVariables().remove(cfVar);
+			nextScope.getVariables().add(cfVar);
+		});
+		createdVariables.clear();
+		nextScope.setParent(forLoopDemocles);
+		result = visitStatement(forLoopStatement.getLoopStartStatement(), patternNameGenerator, nextScope,
+				resourceSet, ePackage, correspondingEClass, result, null);
+		if (result.matches(IStatus.ERROR)) {
+			return result;
+		}
+		// Continue with next statement after if
+		result = visitStatement(forLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
+				correspondingEClass, result, forLoopDemocles);
 		return result;
 	}
 
