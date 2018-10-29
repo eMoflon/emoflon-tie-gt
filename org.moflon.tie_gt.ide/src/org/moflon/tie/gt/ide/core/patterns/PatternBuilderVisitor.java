@@ -58,6 +58,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
+import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
@@ -435,6 +436,9 @@ public class PatternBuilderVisitor {
 			break;
 		case UNEQUAL:
 			relConstraint = relationalConstraintsHelper.createUnequal();
+			break;
+		case ASSIGNMENT:
+			relConstraint=relationalConstraintsHelper.createEqual();
 			break;
 		default:
 			System.out.println("Unsupported EditorRelation: " + attribute.getRelation());
