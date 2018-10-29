@@ -65,6 +65,7 @@ import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.core.utilities.ProblemMarkerUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.sdm.compiler.democles.validation.result.Severity;
+import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.sdm.runtime.democles.DemoclesFactory;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
@@ -92,10 +93,10 @@ public class PatternBuilderVisitor {
 		}
 	};
 
-	RelationalConstraintFactory relationalConstraintsHelper = RelationalConstraintFactory.eINSTANCE;
+	static RelationalConstraintFactory relationalConstraintsHelper = RelationalConstraintFactory.eINSTANCE;
 	DemoclesFactory democlesHelper = DemoclesFactory.eINSTANCE;
-	EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
-	SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
+	static EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
+	static SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
 	Map<PatternType, Pattern> generatedDemoclesPatterns;
 	Map<PatternType, Map<EObject, EMFVariable>> emfVariableLUT;
 	Map<PatternType, Map<EditorAttribute, Attribute>> attributeLUT;
@@ -517,6 +518,32 @@ public class PatternBuilderVisitor {
 			this.emfVariableLUT.get(patternType).put(obj, newVariable);
 			return newVariable;
 		}
+	}
+	
+	static Pattern createExpressionPattern(CFVariable returnVariable) {
+		//createPattern
+		Pattern exprPattern = patternHelper.createPattern();
+		PatternBody body = patternHelper.createPatternBody();
+		body.setHeader(exprPattern);
+		//create EMFVariables
+		EMFVariable target = emfHelper.createEMFVariable();
+		target.setName("_result");
+		target.setEClassifier(returnVariable.getType());
+		EMFVariable source= emfHelper.createEMFVariable();
+		source.setName(returnVariable.getName());
+		source.setEClassifier(returnVariable.getType());
+		exprPattern.getSymbolicParameters().add(source);
+		exprPattern.getSymbolicParameters().add(target);
+		//create EqualConstraint
+		Equal equal=relationalConstraintsHelper.createEqual();
+		ConstraintParameter sourceConstr = patternHelper.createConstraintParameter();
+		sourceConstr.setReference(source);
+		ConstraintParameter targetConstr = patternHelper.createConstraintParameter();
+		targetConstr.setReference(target);
+		equal.getParameters().add(sourceConstr);
+		equal.getParameters().add(targetConstr);
+		body.getConstraints().add(equal);
+		return exprPattern;
 	}
 
 }
