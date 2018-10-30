@@ -33,7 +33,7 @@ public class PatternNameGenerator {
 	}
 
 	public String generateName(boolean isAC,boolean isPositive) {
-		final String descriptiveName = (this.patternDefinition.getName() != null
+		final String descriptiveName = (this.patternDefinition!=null&&this.patternDefinition.getName() != null
 				? this.patternDefinition.getName().trim()
 				: "").replaceAll("\\s+", "");
 		if(isAC)
