@@ -540,8 +540,8 @@ public class PatternBuilderVisitor {
 		sourceConstr.setReference(source);
 		ConstraintParameter targetConstr = patternHelper.createConstraintParameter();
 		targetConstr.setReference(target);
-		equal.getParameters().add(sourceConstr);
 		equal.getParameters().add(targetConstr);
+		equal.getParameters().add(sourceConstr);
 		body.getConstraints().add(equal);
 		return exprPattern;
 	}

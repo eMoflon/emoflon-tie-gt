@@ -81,6 +81,7 @@ public class EditorToControlFlowTransformation {
 	private final PatternMatcherConfiguration patternMatcherConfiguration;
 	private EPackage ecorePackage;
 	private int cfNodeIDcounter;
+	private CFNode lastCFNode;
 
 	public EditorToControlFlowTransformation(PatternMatcherConfiguration patternMatcherConfiguration,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -242,6 +243,16 @@ public class EditorToControlFlowTransformation {
 				varRefTarget.setTo(target);
 				varRefTarget.setInvocation(resPatternInvocation);
 				constraint.setInvokedPattern(pattern);
+				resPatternInvocation.setPattern(pattern);
+				final AdapterResource adapterResource = attachInRegisteredAdapter(pattern, correspondingEClass,
+						resourceSet, PatternType.EXPRESSION_PATTERN.getSuffix());
+
+				// TODO@rkluge: Just for debugging
+				try {
+					saveResourceQuiely(adapterResource);
+				} catch (RuntimeException exception) {
+					System.out.println("CaughtRuntimeException: " + exception);
+				}
 				createAndSaveSearchPlan(resPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN, transformationStatus);
 			}
 			else {
@@ -256,7 +267,8 @@ public class EditorToControlFlowTransformation {
 			MultiStatus transformationStatus, CFNode previousCFNode) {
 		MultiStatus result = transformationStatus;
 		IfStatement ifStmtDemocles = DemoclesFactory.eINSTANCE.createIfStatement();
-		ifStmtDemocles.setPrev(previousCFNode);
+		ifStmtDemocles.setPrev(this.lastCFNode);
+		this.lastCFNode=ifStmtDemocles;
 		ifStmtDemocles.setScope(scope);
 		// TODO:check header
 		// ifStmtDemocles.setHeader(null);
@@ -300,7 +312,8 @@ public class EditorToControlFlowTransformation {
 			MultiStatus transformationStatus, CFNode previousCFNode) {
 		MultiStatus result = transformationStatus;
 		HeadControlledLoop whileLoopDemocles = DemoclesFactory.eINSTANCE.createHeadControlledLoop();
-		whileLoopDemocles.setPrev(previousCFNode);
+		whileLoopDemocles.setPrev(this.lastCFNode);
+		this.lastCFNode=whileLoopDemocles;
 		whileLoopDemocles.setScope(scope);
 		// TODO: recheck loop along
 		whileLoopDemocles.setLoopAlongTrue(true);
@@ -339,7 +352,8 @@ public class EditorToControlFlowTransformation {
 		//TODO@rkluge: errorstatus as we do not support forloops
 		//result.add(new Status(IStatus.ERROR, pluginId, message));
 		ForEach forLoopDemocles = DemoclesFactory.eINSTANCE.createForEach();
-		forLoopDemocles.setPrev(previousCFNode);
+		forLoopDemocles.setPrev(this.lastCFNode);
+		this.lastCFNode=forLoopDemocles;
 		forLoopDemocles.setScope(scope);
 		// TODO: recheck loop along
 		// TODO:check header
@@ -365,6 +379,7 @@ public class EditorToControlFlowTransformation {
 			return result;
 		}
 		// Continue with next statement after if
+		//TODO: Nextpointer: In linear order yes, what about recursive order? linear=this.lastCFNode
 		result = visitStatement(forLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
 				correspondingEClass, result, forLoopDemocles);
 		return result;
