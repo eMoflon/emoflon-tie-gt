@@ -524,7 +524,7 @@ public class PatternBuilderVisitor {
 		//createPattern
 		Pattern exprPattern = patternHelper.createPattern();
 		PatternBody body = patternHelper.createPatternBody();
-		body.setHeader(exprPattern);
+		exprPattern.getBodies().add(body);
 		//create EMFVariables
 		EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
@@ -532,8 +532,8 @@ public class PatternBuilderVisitor {
 		EMFVariable source= emfHelper.createEMFVariable();
 		source.setName(returnVariable.getName());
 		source.setEClassifier(returnVariable.getType());
-		exprPattern.getSymbolicParameters().add(source);
 		exprPattern.getSymbolicParameters().add(target);
+		exprPattern.getSymbolicParameters().add(source);
 		//create EqualConstraint
 		Equal equal=relationalConstraintsHelper.createEqual();
 		ConstraintParameter sourceConstr = patternHelper.createConstraintParameter();
