@@ -446,6 +446,56 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.setPatternDefinition(editorPattern);
 		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
 		Map<PatternType, PatternInvocation> invocations = new HashMap<PatternBuilderVisitor.PatternType, PatternInvocation>();
+		if(patterns.containsKey(PatternType.BINDING_AND_BLACK_PATTERN)) {
+				final Pattern democlesPattern = patterns.get(PatternType.BINDING_AND_BLACK_PATTERN);
+				patternNameGenerator.setPatternType(PatternType.BINDING_AND_BLACK_PATTERN);
+				democlesPattern.setName(patternNameGenerator.generateName());
+				/*Map<Pattern,PatternType> inverseMapForBindingAndBlack= new HashMap<Pattern, PatternBuilderVisitor.PatternType>();
+				inverseMapForBindingAndBlack.put(patterns.get(PatternType.BINDING_PATTERN), PatternType.BINDING_PATTERN);
+				inverseMapForBindingAndBlack.put(patterns.get(PatternType.BLACK_PATTERN), PatternType.BLACK_PATTERN);
+				democlesPattern.getBodies().get(0).getConstraints().stream()
+						.filter(constr -> constr instanceof PatternInvocationConstraint).forEach(constr -> {
+							Pattern invokedPattern = ((PatternInvocationConstraint) constr).getInvokedPattern();
+							invokedPattern.setName(patternNameGenerator.generateName(true,
+									((PatternInvocationConstraint) constr).isPositive()));
+							if(inverseMapForBindingAndBlack.containsKey(invokedPattern)) {
+								PatternType patternType = inverseMapForBindingAndBlack.get(invokedPattern);
+								createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+										correspondingEClass, patternType, constr, invokedPattern, democlesPattern);
+							}
+							else {
+								//TODO: as it seems other invocations are not handled correctly in the presence of bindingPatterns in the old TIE so probably issue a warning here
+							}
+						});*/
+				AdapterResource adapterResource=attachInRegisteredAdapter(patterns.get(PatternType.BLACK_PATTERN), correspondingEClass,
+						resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+				adapterResource=attachInRegisteredAdapter(patterns.get(PatternType.BINDING_PATTERN), correspondingEClass,
+						resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+				adapterResource = attachInRegisteredAdapter(democlesPattern, correspondingEClass,
+						resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+
+				// TODO@rkluge: Just for debugging
+				try {
+					saveResourceQuiely(adapterResource);
+				} catch (RuntimeException exception) {
+					System.out.println("CaughtRuntimeException: " + exception);
+				}
+				PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
+						democlesPattern);
+				bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
+						ePackage, createdVariables);
+
+				createAndSaveSearchPlan(patternInvocation, patterns.get(PatternType.BLACK_PATTERN), PatternType.BLACK_PATTERN, transformationStatus);
+				createAndSaveSearchPlan(patternInvocation, patterns.get(PatternType.BINDING_PATTERN), PatternType.BINDING_PATTERN, transformationStatus);
+				createAndSaveSearchPlan(patternInvocation, democlesPattern, PatternType.BINDING_AND_BLACK_PATTERN, transformationStatus);
+				if (transformationStatus.matches(IStatus.ERROR)) {
+					return transformationStatus;
+				}
+				patterns.remove(PatternType.BLACK_PATTERN);
+				patterns.remove(PatternType.BINDING_PATTERN);
+				patterns.remove(PatternType.BINDING_AND_BLACK_PATTERN);
+				invocations.put(PatternType.BINDING_AND_BLACK_PATTERN, patternInvocation);
+		}
 		for (final PatternType patternType : PatternType.values()) {
 			final Pattern democlesPattern = patterns.get(patternType);
 			if (democlesPattern == null)
@@ -747,7 +797,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void chainPatternInvocations(Map<PatternType, PatternInvocation> invocationsByPatternType, CFNode cfNode) {
-		final List<PatternType> invocationOrder = Arrays.asList(PatternType.BLACK_PATTERN, PatternType.RED_PATTERN,
+		final List<PatternType> invocationOrder = Arrays.asList(PatternType.BINDING_AND_BLACK_PATTERN,PatternType.BLACK_PATTERN, PatternType.RED_PATTERN,
 				PatternType.GREEN_PATTERN);
 		PatternInvocation previous = null;
 		for (PatternType t : invocationOrder) {
