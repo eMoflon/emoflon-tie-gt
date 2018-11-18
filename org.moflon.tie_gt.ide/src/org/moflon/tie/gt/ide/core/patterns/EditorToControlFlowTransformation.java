@@ -446,10 +446,32 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.setPatternDefinition(editorPattern);
 		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
 		Map<PatternType, PatternInvocation> invocations = new HashMap<PatternBuilderVisitor.PatternType, PatternInvocation>();
-		if(patterns.containsKey(PatternType.BINDING_AND_BLACK_PATTERN)) {
-				final Pattern democlesPattern = patterns.get(PatternType.BINDING_AND_BLACK_PATTERN);
-				patternNameGenerator.setPatternType(PatternType.BINDING_AND_BLACK_PATTERN);
-				democlesPattern.setName(patternNameGenerator.generateName());
+		/*if(patterns.containsKey(PatternType.BINDING_AND_BLACK_PATTERN)) {
+				PatternType[] patternTypesFIFO= {PatternType.BLACK_PATTERN,PatternType.BINDING_PATTERN,PatternType.BINDING_AND_BLACK_PATTERN};
+				for(PatternType t:patternTypesFIFO) {
+					final Pattern democlesPattern = patterns.get(t);
+					patternNameGenerator.setPatternType(t);
+					democlesPattern.setName(patternNameGenerator.generateName());
+					AdapterResource adapterResource=attachInRegisteredAdapter(democlesPattern, correspondingEClass,
+							resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+					try {
+						saveResourceQuiely(adapterResource);
+					} catch (RuntimeException exception) {
+						System.out.println("CaughtRuntimeException: " + exception);
+					}
+					PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
+							democlesPattern);
+					bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
+							ePackage, createdVariables);
+
+					createAndSaveSearchPlan(patternInvocation, democlesPattern, t, transformationStatus);
+					if (transformationStatus.matches(IStatus.ERROR)) {
+						return transformationStatus;
+					}
+					patterns.remove(t);
+					invocations.put(PatternType.BINDING_AND_BLACK_PATTERN, patternInvocation);
+				}
+				
 				/*Map<Pattern,PatternType> inverseMapForBindingAndBlack= new HashMap<Pattern, PatternBuilderVisitor.PatternType>();
 				inverseMapForBindingAndBlack.put(patterns.get(PatternType.BINDING_PATTERN), PatternType.BINDING_PATTERN);
 				inverseMapForBindingAndBlack.put(patterns.get(PatternType.BLACK_PATTERN), PatternType.BLACK_PATTERN);
@@ -466,51 +488,63 @@ public class EditorToControlFlowTransformation {
 							else {
 								//TODO: as it seems other invocations are not handled correctly in the presence of bindingPatterns in the old TIE so probably issue a warning here
 							}
-						});*/
-				AdapterResource adapterResource=attachInRegisteredAdapter(patterns.get(PatternType.BLACK_PATTERN), correspondingEClass,
-						resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
-				adapterResource=attachInRegisteredAdapter(patterns.get(PatternType.BINDING_PATTERN), correspondingEClass,
-						resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
-				adapterResource = attachInRegisteredAdapter(democlesPattern, correspondingEClass,
-						resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+						});
 
-				// TODO@rkluge: Just for debugging
-				try {
-					saveResourceQuiely(adapterResource);
-				} catch (RuntimeException exception) {
-					System.out.println("CaughtRuntimeException: " + exception);
-				}
-				PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
-						democlesPattern);
-				bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
-						ePackage, createdVariables);
-
-				createAndSaveSearchPlan(patternInvocation, patterns.get(PatternType.BLACK_PATTERN), PatternType.BLACK_PATTERN, transformationStatus);
-				createAndSaveSearchPlan(patternInvocation, patterns.get(PatternType.BINDING_PATTERN), PatternType.BINDING_PATTERN, transformationStatus);
-				createAndSaveSearchPlan(patternInvocation, democlesPattern, PatternType.BINDING_AND_BLACK_PATTERN, transformationStatus);
-				if (transformationStatus.matches(IStatus.ERROR)) {
-					return transformationStatus;
-				}
-				patterns.remove(PatternType.BLACK_PATTERN);
-				patterns.remove(PatternType.BINDING_PATTERN);
-				patterns.remove(PatternType.BINDING_AND_BLACK_PATTERN);
-				invocations.put(PatternType.BINDING_AND_BLACK_PATTERN, patternInvocation);
-		}
-		for (final PatternType patternType : PatternType.values()) {
+				// TODO@rkluge: Just for debugging 
+		}*/
+		PatternType[] patternTypesArray= {PatternType.BINDING_AND_BLACK_PATTERN,PatternType.BLACK_PATTERN,PatternType.RED_PATTERN,PatternType.GREEN_PATTERN};
+		ArrayList<PatternType>patternTypesFIFO= new ArrayList<PatternBuilderVisitor.PatternType>();
+		patternTypesFIFO.add(PatternType.BINDING_AND_BLACK_PATTERN);
+		patternTypesFIFO.add(PatternType.BLACK_PATTERN);
+		patternTypesFIFO.add(PatternType.RED_PATTERN);
+		patternTypesFIFO.add(PatternType.GREEN_PATTERN);
+		boolean skipblack=false;
+		for (final PatternType patternType : patternTypesFIFO) {
 			final Pattern democlesPattern = patterns.get(patternType);
+			if(patternType==PatternType.BLACK_PATTERN&&skipblack)
+				continue;
 			if (democlesPattern == null)
 				continue;
 			patternNameGenerator.setPatternType(patternType);
 			democlesPattern.setName(patternNameGenerator.generateName());
-
+			if(patternType!=PatternType.BINDING_AND_BLACK_PATTERN) {
 			democlesPattern.getBodies().get(0).getConstraints().stream()
 					.filter(constr -> constr instanceof PatternInvocationConstraint).forEach(constr -> {
 						Pattern invokedPattern = ((PatternInvocationConstraint) constr).getInvokedPattern();
 						invokedPattern.setName(patternNameGenerator.generateName(true,
 								((PatternInvocationConstraint) constr).isPositive()));
 						createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
-								correspondingEClass, patternType, constr, invokedPattern, democlesPattern);
+								correspondingEClass, patternType, constr, invokedPattern, democlesPattern,null);
 					});
+			}else {
+				skipblack=true;
+				List<Constraint> constraints=democlesPattern.getBodies().get(0).getConstraints();
+				PatternInvocationConstraint bindingConstr=(PatternInvocationConstraint)democlesPattern.getBodies().get(0).getConstraints().get(0);
+				PatternInvocationConstraint blackConstr=(PatternInvocationConstraint)democlesPattern.getBodies().get(0).getConstraints().get(1);
+				Pattern invokedBindingPattern = ((PatternInvocationConstraint) bindingConstr).getInvokedPattern();
+				Pattern invokedBlackPattern=((PatternInvocationConstraint) blackConstr).getInvokedPattern();
+				//Set pattern Names
+				patternNameGenerator.setPatternType(PatternType.BINDING_PATTERN);
+				invokedBindingPattern.setName(patternNameGenerator.generateName());
+				patternNameGenerator.setPatternType(PatternType.BLACK_PATTERN);
+				invokedBlackPattern.setName(patternNameGenerator.generateName());
+				createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+						correspondingEClass, patternType, bindingConstr, invokedBindingPattern, democlesPattern,PatternType.BINDING_PATTERN);
+				createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+						correspondingEClass, patternType, blackConstr, invokedBlackPattern, democlesPattern,PatternType.BLACK_PATTERN);
+			if(constraints.size()>2) {
+					for(int i=2;i<constraints.size();i++) {
+						if(constraints.get(i) instanceof PatternInvocationConstraint) {
+							Constraint constr=constraints.get(i);
+							Pattern invokedPattern = ((PatternInvocationConstraint) constr).getInvokedPattern();
+							invokedPattern.setName(patternNameGenerator.generateName(true,
+									((PatternInvocationConstraint) constr).isPositive()));
+							createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+									correspondingEClass, patternType, constr, invokedPattern, democlesPattern,null);
+						}
+					}
+				}
+			}
 			final AdapterResource adapterResource = attachInRegisteredAdapter(democlesPattern, correspondingEClass,
 					resourceSet, patternType.getSuffix());
 
@@ -537,17 +571,29 @@ public class EditorToControlFlowTransformation {
 
 	private void createAndSaveSearchPlanForApplicationConditions(final ResourceSet resourceSet,
 			final MultiStatus tranformationStatus, final EClass correspondingEClass, final PatternType patternType,
-			Constraint constr, Pattern invokedPattern, Pattern invokatingPattern) {
-		final AdapterResource adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass,
-				resourceSet, PatternType.BLACK_PATTERN.getSuffix());
+			Constraint constr, Pattern invokedPattern, Pattern invokatingPattern,final PatternType constraintType) {
+		final AdapterResource adapterResource;
+		if(constraintType==null) {
+			adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass,
+					resourceSet, PatternType.BLACK_PATTERN.getSuffix());
+		}
+		else {
+			adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass,
+					resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+		}
 		try {
 			saveResourceQuiely(adapterResource);
 		} catch (RuntimeException exception) {
 			System.out.println("CaughtRuntimeException: " + exception);
 		}
-		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
+		final PatternMatcher patternMatcher;
+		if(constraintType==null) 
+		{ patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);}
+		else {
+			patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(constraintType);
+		}
 		final Adornment adornment = calculateAdornmentForApplicationCondition(
-				((PatternInvocationConstraint) constr).getParameters(), invokatingPattern.getSymbolicParameters());
+				((PatternInvocationConstraint) constr).getParameters(), invokatingPattern.getSymbolicParameters(),invokatingPattern.getBodies().get(0).getLocalVariables(),constraintType==PatternType.BINDING_PATTERN);
 		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
 		final boolean isMultipleMatch = false;
 
@@ -558,7 +604,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private Adornment calculateAdornmentForApplicationCondition(EList<ConstraintParameter> constraintParams,
-			EList<Variable> symbolicParametersInvokatingPattern) {
+			EList<Variable> symbolicParametersInvokatingPattern,EList<Variable> localVariablesInvokingPattern,boolean isBinding) {
 		final Adornment adornment = new Adornment(constraintParams.size());
 		int i = 0;
 		for (final ConstraintParameter param : constraintParams) {
@@ -567,6 +613,10 @@ public class EditorToControlFlowTransformation {
 				adornment.set(i, 2);
 			else
 				adornment.set(i, 0);
+			if(!isBinding&&localVariablesInvokingPattern.stream().anyMatch(
+					symbolicparam -> ((EMFVariable) param.getReference()).getName().equals(symbolicparam.getName()))) {
+				adornment.set(i, 0);
+			}
 			i++;
 		}
 		return adornment;
@@ -800,8 +850,14 @@ public class EditorToControlFlowTransformation {
 		final List<PatternType> invocationOrder = Arrays.asList(PatternType.BINDING_AND_BLACK_PATTERN,PatternType.BLACK_PATTERN, PatternType.RED_PATTERN,
 				PatternType.GREEN_PATTERN);
 		PatternInvocation previous = null;
+		boolean skipblack=false;
 		for (PatternType t : invocationOrder) {
 			PatternInvocation current = invocationsByPatternType.get(t);
+			if(t==PatternType.BINDING_AND_BLACK_PATTERN&&current!=null) {
+				skipblack=true;
+			}
+			if(t==PatternType.BLACK_PATTERN&&skipblack)
+				continue;
 			if (current == null)
 				continue;
 			if (previous == null)

@@ -412,8 +412,10 @@ public class PatternBuilderVisitor {
 		this.generatedDemoclesPatterns.put(PatternType.BINDING_AND_BLACK_PATTERN, bindingAndBlack);
 		this.emfVariableLUT.put(PatternType.BINDING_AND_BLACK_PATTERN, new HashMap<EObject, EMFVariable>());
 		EMFVariable emfVarTarget=getOrCreateEMFVariableCached(node, null, PatternType.BINDING_AND_BLACK_PATTERN);
+		emfVarTarget.setEClassifier(node.getType());
 		EMFVariable emfVarSource=getOrCreateEMFVariableCached(source, null, PatternType.BINDING_AND_BLACK_PATTERN);
-		bindingAndBlack.getSymbolicParameters().add(emfVarTarget);
+		emfVarSource.setEClassifier(source.getType());
+		//bindingAndBlack.getSymbolicParameters().add(emfVarTarget);
 		bindingAndBlack.getSymbolicParameters().add(emfVarSource);
 		//TODO: create a more sophisticated solution
 		EMFVariable toBeRemoved = this.getOrCreateEMFVariableCached(source, null, PatternType.BLACK_PATTERN);
@@ -421,6 +423,7 @@ public class PatternBuilderVisitor {
 		this.generatedDemoclesPatterns.put(PatternType.BINDING_AND_BLACK_PATTERN, bindingAndBlack);
 		PatternBody body = patternHelper.createPatternBody();
 		body.setHeader(bindingAndBlack);
+		body.getLocalVariables().add(emfVarTarget);
 		PatternInvocationConstraint bindingConstraint = patternHelper.createPatternInvocationConstraint();
 		bindingConstraint.setPositive(true);
 		bindingConstraint.setInvokedPattern(this.generatedDemoclesPatterns.get(PatternType.BINDING_PATTERN));
@@ -445,7 +448,9 @@ public class PatternBuilderVisitor {
 		this.generatedDemoclesPatterns.put(PatternType.BINDING_PATTERN, binding);
 		this.emfVariableLUT.put(PatternType.BINDING_PATTERN, new HashMap<EObject, EMFVariable>());
 		EMFVariable emfVarTarget=getOrCreateEMFVariableCached(node, null, PatternType.BINDING_PATTERN);
+		emfVarTarget.setEClassifier(node.getType());
 		EMFVariable emfVarSource=getOrCreateEMFVariableCached(source, null, PatternType.BINDING_PATTERN);
+		emfVarSource.setEClassifier(source.getType());
 		binding.getSymbolicParameters().add(emfVarTarget);
 		binding.getSymbolicParameters().add(emfVarSource);
 		PatternBody body = patternHelper.createPatternBody();
