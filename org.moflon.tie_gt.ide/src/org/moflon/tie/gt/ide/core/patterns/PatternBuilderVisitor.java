@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.management.RuntimeErrorException;
-
+import javax.xml.stream.events.EndDocument;
+import org.eclipse.emf.*;
+import org.antlr.grammar.v3.TreeToNFAConverter.set_return;
 import org.eclipse.core.internal.resources.Marker;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -20,6 +22,8 @@ import org.eclipse.emf.common.CommonPlugin;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
+import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
@@ -511,7 +515,7 @@ public class PatternBuilderVisitor {
 		to.setReference(enumLiteralConstant);
 	}
 
-	private void setConstantValueWithAdjustedType(Constant constant, Object valueObject) {
+	private static void setConstantValueWithAdjustedType(Constant constant, Object valueObject) {
 		if (valueObject instanceof Integer) {
 			Integer integerValue = (Integer) valueObject;
 			constant.setValue(integerValue);
@@ -590,7 +594,7 @@ public class PatternBuilderVisitor {
 		}
 	}
 	
-	static Pattern createExpressionPattern(CFVariable returnVariable) {
+	static Pattern createExpressionPatternForObjectVariables(CFVariable returnVariable) {
 		//createPattern
 		Pattern exprPattern = patternHelper.createPattern();
 		PatternBody body = patternHelper.createPatternBody();
@@ -614,6 +618,38 @@ public class PatternBuilderVisitor {
 		equal.getParameters().add(sourceConstr);
 		body.getConstraints().add(equal);
 		return exprPattern;
+	}
+
+	public static Pattern createExpressionPatternForLiteralValues(CFVariable returnVariable, String val) {
+		final Pattern exprPattern = patternHelper.createPattern();
+		final PatternBody body = patternHelper.createPatternBody();
+		exprPattern.getBodies().add(body);
+		final EMFVariable target = emfHelper.createEMFVariable();
+		target.setName("_result");
+		target.setEClassifier(returnVariable.getType());
+		final Constant source = patternHelper.createConstant();
+		setConstantValueWithAdjustedType(source,getValueForType(returnVariable.getType(),val));
+		exprPattern.getSymbolicParameters().add(target);
+		body.getConstants().add(source);
+		//create EqualConstraint
+		Equal equal=relationalConstraintsHelper.createEqual();
+		ConstraintParameter sourceConstr = patternHelper.createConstraintParameter();
+		sourceConstr.setReference(source);
+		ConstraintParameter targetConstr = patternHelper.createConstraintParameter();
+		targetConstr.setReference(target);
+		equal.getParameters().add(targetConstr);
+		equal.getParameters().add(sourceConstr);
+		body.getConstraints().add(equal);
+		return exprPattern;
+	}
+
+	private static Object getValueForType(EClassifier type, String val) {
+		if(type instanceof EDataType) {
+			EDataType dataType=(EDataType)type;
+			return dataType.getEPackage().getEFactoryInstance().createFromString(dataType, val);
+		}
+		else return val;
+		
 	}
 
 }
