@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.management.RuntimeErrorException;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -14,6 +16,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
@@ -34,6 +37,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 
 	public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
 	public static final String IBEX_GT_FILE_EXTENSION = "gt";
+	private GenModel genModel=null;
 
 	/**
 	 * The top-level {@link EPackage} of the ongoing build process
@@ -64,14 +68,17 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		this.project = project;
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
-		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(
-				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
-				preferencesStorage);
 		// TODO:
 		// final Map<String, PatternMatcher> patternMatcherConfiguration =
 		// methodBodyHandler.getPatternMatcherConfiguration();
 		// this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
 		// DemoclesMethodBodyHandler.initResourceSetForDemocles(resourceSet);
+		if(this.genModel==null) {
+			throw new RuntimeException("GenModel was not set in TieGTControlFlowBuilder");
+		}
+		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(
+				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
+				preferencesStorage,this.genModel);
 		return run(monitor);
 	}
 
@@ -215,6 +222,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			ecoreRes.load(null);
 			// final EPackage contextEPackage = EcoreUtil.copy((EPackage)
 			// ecoreRes.getContents().get(0));
+			
 			final EPackage contextEPackage = (EPackage) ecoreRes.getContents().get(0);
 
 			// transformation
@@ -227,7 +235,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			// enrichedEcoreResource.save(Collections.EMPTY_MAP);
 			// EcoreUtil.resolveAll(contextEPackage);
 			// final EPackage enrichedEPackage =
-			return helper.transform(contextEPackage, mCF, this.resourceSet);
+			return helper.transform(contextEPackage, mCF, this.resourceSet,genModel.getEcoreGenPackage().getEcorePackage());
 
 			// save context
 			// enrichedEcoreResource.getContents().clear();
@@ -238,6 +246,10 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			// enrichedEcoreResource.save(saveOptions);
 		}
 		return Status.OK_STATUS;
+	}
+
+	public void setGenModel(GenModel genModel) {
+		this.genModel = genModel;
 	}
 
 }

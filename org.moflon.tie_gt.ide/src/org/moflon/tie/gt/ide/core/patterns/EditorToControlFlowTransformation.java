@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -85,20 +86,20 @@ public class EditorToControlFlowTransformation {
 	private EPackage ecorePackage;
 	private int cfNodeIDcounter;
 	private CFNode lastCFNode;
+	private GenModel genModel;
 
 	public EditorToControlFlowTransformation(PatternMatcherConfiguration patternMatcherConfiguration,
-			final EMoflonPreferencesStorage preferencesStorage) {
+			final EMoflonPreferencesStorage preferencesStorage, GenModel genModel) {
 		this.patternMatcherConfiguration = patternMatcherConfiguration;
+		this.genModel=genModel;
 	}
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile mCF,
-			final ResourceSet resourceSet) {
+			final ResourceSet resourceSet, EPackage ecorePackage) {
 		EcoreUtil.resolveAll(resourceSet);
 		final MultiStatus tranformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Control flow construction failed.", null);
-		// TODO:is there a better way?
-		Resource ecoreRes = (Resource) resourceSet.getResources().get(1);
-		this.ecorePackage = (EPackage) ecoreRes.getContents().get(0);
+		this.ecorePackage = ecorePackage;
 		final PatternNameGenerator patternNameGenerator = new PatternNameGenerator();
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
 			// TODO@rkluge: Could cause problems when we have to search in multiple
@@ -234,7 +235,8 @@ public class EditorToControlFlowTransformation {
 				returnVariable.setScope(scope);
 				returnVariable.setLocal(true);
 				returnVariable.setConstructor(resPatternInvocation);
-				pattern=PatternBuilderVisitor.createExpressionPatternForLiteralValues(returnVariable,val.getVal());
+				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
+				pattern=patternBuilderVisitor.createExpressionPatternForLiteralValues(returnVariable,val.getVal(),this.genModel);
 				Variable emfReturnVariable=pattern.getSymbolicParameters().get(0);
 				final VariableReference ref=DEMOCLES_CF_FACTORY.createVariableReference();
 				ref.setFrom(returnVariable);
@@ -254,7 +256,8 @@ public class EditorToControlFlowTransformation {
 					tempCFReturnVariable.setScope(scope);
 					tempCFReturnVariable.setLocal(true);
 					tempCFReturnVariable.setType(cfReturnVariable.getType());
-					pattern= PatternBuilderVisitor.createExpressionPatternForObjectVariables(cfReturnVariable);
+					final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
+					pattern= patternBuilderVisitor.createExpressionPatternForObjectVariables(cfReturnVariable);
 					final Variable source = pattern.getSymbolicParameters().get(1);
 					final Variable target =pattern.getSymbolicParameters().get(0);
 					final VariableReference varRefSource = DEMOCLES_CF_FACTORY.createVariableReference();

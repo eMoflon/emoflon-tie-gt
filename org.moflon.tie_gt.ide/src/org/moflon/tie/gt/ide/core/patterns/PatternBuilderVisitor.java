@@ -11,6 +11,7 @@ import java.util.Optional;
 import javax.management.RuntimeErrorException;
 import javax.xml.stream.events.EndDocument;
 import org.eclipse.emf.*;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.antlr.grammar.v3.TreeToNFAConverter.set_return;
 import org.eclipse.core.internal.resources.Marker;
 import org.eclipse.core.resources.IFile;
@@ -594,7 +595,7 @@ public class PatternBuilderVisitor {
 		}
 	}
 	
-	static Pattern createExpressionPatternForObjectVariables(CFVariable returnVariable) {
+	Pattern createExpressionPatternForObjectVariables(CFVariable returnVariable) {
 		//createPattern
 		Pattern exprPattern = patternHelper.createPattern();
 		PatternBody body = patternHelper.createPatternBody();
@@ -602,10 +603,10 @@ public class PatternBuilderVisitor {
 		//create EMFVariables
 		EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
-		target.setEClassifier(returnVariable.getType());
+		target.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
 		EMFVariable source= emfHelper.createEMFVariable();
 		source.setName(returnVariable.getName());
-		source.setEClassifier(returnVariable.getType());
+		source.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
 		exprPattern.getSymbolicParameters().add(target);
 		exprPattern.getSymbolicParameters().add(source);
 		//create EqualConstraint
@@ -620,13 +621,14 @@ public class PatternBuilderVisitor {
 		return exprPattern;
 	}
 
-	public static Pattern createExpressionPatternForLiteralValues(CFVariable returnVariable, String val) {
+	public Pattern createExpressionPatternForLiteralValues(CFVariable returnVariable, String val, GenModel genModel) {
 		final Pattern exprPattern = patternHelper.createPattern();
 		final PatternBody body = patternHelper.createPatternBody();
 		exprPattern.getBodies().add(body);
 		final EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
-		target.setEClassifier(returnVariable.getType());
+		//target.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
+		target.setEClassifier(genModel.findGenClassifier(returnVariable.getType()).getEcoreClassifier());
 		final Constant source = patternHelper.createConstant();
 		setConstantValueWithAdjustedType(source,getValueForType(returnVariable.getType(),val));
 		exprPattern.getSymbolicParameters().add(target);
