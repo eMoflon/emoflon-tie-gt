@@ -147,7 +147,7 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 						if (this.additionalCodeGenerationPhase != null) {
 							if(this.additionalCodeGenerationPhase instanceof TieGTControlFlowBuilder) {
 								TieGTControlFlowBuilder cfBuilder=(TieGTControlFlowBuilder)this.additionalCodeGenerationPhase;
-								cfBuilder.setGenModel(this.genModel);
+								cfBuilder.setECorePackage(this.genModel.getEcoreGenPackage().getEcorePackage());
 							}
 							weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
 									methodBodyHandler, subMon.split(10));

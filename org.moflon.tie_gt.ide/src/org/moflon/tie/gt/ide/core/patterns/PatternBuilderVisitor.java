@@ -63,6 +63,7 @@ import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.InstanceOf;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
@@ -70,6 +71,7 @@ import org.gervarro.democles.specification.emf.constraint.relational.RelationalC
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.core.utilities.ProblemMarkerUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.StringConstant;
 import org.moflon.sdm.compiler.democles.validation.result.Severity;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.sdm.runtime.democles.DemoclesFactory;
@@ -521,7 +523,7 @@ public class PatternBuilderVisitor {
 			Integer integerValue = (Integer) valueObject;
 			constant.setValue(integerValue);
 		}
-		if (valueObject instanceof String) {
+		if (valueObject instanceof String ) {
 			String stringValue = (String) valueObject;
 			constant.setValue(stringValue);
 		}
@@ -621,14 +623,13 @@ public class PatternBuilderVisitor {
 		return exprPattern;
 	}
 
-	public Pattern createExpressionPatternForLiteralValues(CFVariable returnVariable, String val, GenModel genModel) {
+	public Pattern createExpressionPatternForLiteralValues(CFVariable returnVariable, String val) {
 		final Pattern exprPattern = patternHelper.createPattern();
 		final PatternBody body = patternHelper.createPatternBody();
 		exprPattern.getBodies().add(body);
 		final EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
-		//target.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
-		target.setEClassifier(genModel.findGenClassifier(returnVariable.getType()).getEcoreClassifier());
+		target.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
 		final Constant source = patternHelper.createConstant();
 		setConstantValueWithAdjustedType(source,getValueForType(returnVariable.getType(),val));
 		exprPattern.getSymbolicParameters().add(target);

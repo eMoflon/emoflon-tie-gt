@@ -37,7 +37,6 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 
 	public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
 	public static final String IBEX_GT_FILE_EXTENSION = "gt";
-	private GenModel genModel=null;
 
 	/**
 	 * The top-level {@link EPackage} of the ongoing build process
@@ -53,6 +52,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 
 	private EditorToControlFlowTransformation tieGTAdapterTransformation;
 	private EMoflonPreferencesStorage preferencesStorage;
+	private EPackage ecorePackage;
 
 	public TieGTControlFlowBuilder(EMoflonPreferencesStorage preferencesStorage) {
 		this.preferencesStorage = preferencesStorage;
@@ -73,12 +73,12 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		// methodBodyHandler.getPatternMatcherConfiguration();
 		// this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
 		// DemoclesMethodBodyHandler.initResourceSetForDemocles(resourceSet);
-		if(this.genModel==null) {
-			throw new RuntimeException("GenModel was not set in TieGTControlFlowBuilder");
+		if(this.ecorePackage==null) {
+			throw new RuntimeException("eCore Package was not set in "+ TieGTControlFlowBuilder.class.getName());
 		}
 		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(
 				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
-				preferencesStorage,this.genModel);
+				preferencesStorage);
 		return run(monitor);
 	}
 
@@ -235,7 +235,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			// enrichedEcoreResource.save(Collections.EMPTY_MAP);
 			// EcoreUtil.resolveAll(contextEPackage);
 			// final EPackage enrichedEPackage =
-			return helper.transform(contextEPackage, mCF, this.resourceSet,genModel.getEcoreGenPackage().getEcorePackage());
+			return helper.transform(contextEPackage, mCF, this.resourceSet,this.ecorePackage);
 
 			// save context
 			// enrichedEcoreResource.getContents().clear();
@@ -248,8 +248,8 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		return Status.OK_STATUS;
 	}
 
-	public void setGenModel(GenModel genModel) {
-		this.genModel = genModel;
+	public void setECorePackage(EPackage ecorePackage) {
+		this.ecorePackage = ecorePackage;
 	}
 
 }

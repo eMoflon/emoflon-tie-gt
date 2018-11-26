@@ -86,12 +86,10 @@ public class EditorToControlFlowTransformation {
 	private EPackage ecorePackage;
 	private int cfNodeIDcounter;
 	private CFNode lastCFNode;
-	private GenModel genModel;
 
 	public EditorToControlFlowTransformation(PatternMatcherConfiguration patternMatcherConfiguration,
-			final EMoflonPreferencesStorage preferencesStorage, GenModel genModel) {
+			final EMoflonPreferencesStorage preferencesStorage) {
 		this.patternMatcherConfiguration = patternMatcherConfiguration;
-		this.genModel=genModel;
 	}
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile mCF,
@@ -235,8 +233,8 @@ public class EditorToControlFlowTransformation {
 				returnVariable.setScope(scope);
 				returnVariable.setLocal(true);
 				returnVariable.setConstructor(resPatternInvocation);
-				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
-				pattern=patternBuilderVisitor.createExpressionPatternForLiteralValues(returnVariable,val.getVal(),this.genModel);
+				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(this.ecorePackage, resourceSet);
+				pattern=patternBuilderVisitor.createExpressionPatternForLiteralValues(returnVariable,val.getVal());
 				Variable emfReturnVariable=pattern.getSymbolicParameters().get(0);
 				final VariableReference ref=DEMOCLES_CF_FACTORY.createVariableReference();
 				ref.setFrom(returnVariable);
