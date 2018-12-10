@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -44,14 +45,17 @@ import org.moflon.gt.mosl.controlflow.language.moslControlFlow.DoLoopStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ForLoopStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ReturnObject;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
+import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedNamedObject;
 import org.moflon.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStatement;
 import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
 import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
@@ -81,6 +85,7 @@ public class EditorToControlFlowTransformation {
 	private final PatternMatcherConfiguration patternMatcherConfiguration;
 	private EPackage ecorePackage;
 	private int cfNodeIDcounter;
+	private CFNode lastCFNode;
 
 	public EditorToControlFlowTransformation(PatternMatcherConfiguration patternMatcherConfiguration,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -88,13 +93,11 @@ public class EditorToControlFlowTransformation {
 	}
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile mCF,
-			final ResourceSet resourceSet) {
+			final ResourceSet resourceSet, EPackage ecorePackage) {
 		EcoreUtil.resolveAll(resourceSet);
 		final MultiStatus tranformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Control flow construction failed.", null);
-		// TODO:is there a better way?
-		Resource ecoreRes = (Resource) resourceSet.getResources().get(1);
-		this.ecorePackage = (EPackage) ecoreRes.getContents().get(0);
+		this.ecorePackage = ecorePackage;
 		final PatternNameGenerator patternNameGenerator = new PatternNameGenerator();
 		for (final EClassDef editorEClass : mCF.getEClasses()) {
 			// TODO@rkluge: Could cause problems when we have to search in multiple
@@ -117,8 +120,9 @@ public class EditorToControlFlowTransformation {
 					final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
 					Statement currentStatement = editorEOperation.getStartStatement();
 					this.cfNodeIDcounter = 1;
+					this.lastCFNode=null;
 					visitStatement(currentStatement, patternNameGenerator, rootscope, resourceSet, ePackage,
-							correspondingEClass, tranformationStatus, null);
+							correspondingEClass, tranformationStatus,eOperation);
 					rootscope.getVariables().stream()
 							.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 							.forEach(thisVariable -> thisVariable.setConstructor(null));
@@ -135,49 +139,49 @@ public class EditorToControlFlowTransformation {
 
 	private MultiStatus visitStatement(Statement currentStatement, PatternNameGenerator patternNameGenerator,
 			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
-			MultiStatus transformationStatus, CFNode previousCFNode) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		while (currentStatement instanceof NextStatement) {
 			final NextStatement aNextStatement = (NextStatement) currentStatement;
 			if (aNextStatement instanceof ObjectVariableStatement) {
 				MultiStatus returnStatus = visitStatement((ObjectVariableStatement) currentStatement, scope, ePackage,
-						transformationStatus);
+						transformationStatus, currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			} else if (aNextStatement instanceof ConditionStatement) {
 				MultiStatus returnStatus = visitStatement((ConditionStatement) currentStatement, patternNameGenerator,
-						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			} else if (aNextStatement instanceof WhileLoopStatement) {
 				MultiStatus returnStatus = visitStatement((WhileLoopStatement) currentStatement, patternNameGenerator,
-						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			} 
 			else if (aNextStatement instanceof ForLoopStatement) {
 				MultiStatus returnStatus = visitStatement((ForLoopStatement) currentStatement, patternNameGenerator,
-						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus,currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			} else if (aNextStatement instanceof DoLoopStatement) {
 				MultiStatus returnStatus = visitStatement((DoLoopStatement) currentStatement, patternNameGenerator,
-						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus,currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			} else if (aNextStatement instanceof ReturnStatement) {
 				MultiStatus returnStatus = visitStatement((ReturnStatement) currentStatement, patternNameGenerator,
-						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus,currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
 			}else if (aNextStatement instanceof PatternStatement) {
 				MultiStatus returnStatus = visitStatement((PatternStatement) currentStatement, patternNameGenerator,
-						scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+						scope, resourceSet, ePackage, correspondingEClass, transformationStatus,currentEOP);
 				if (returnStatus.matches(IStatus.ERROR)) {
 					return returnStatus;
 				}
@@ -186,7 +190,7 @@ public class EditorToControlFlowTransformation {
 		}
 		if (currentStatement instanceof ReturnStatement) {
 			MultiStatus returnStatus = visitStatement((ReturnStatement) currentStatement, patternNameGenerator,
-					scope, resourceSet, ePackage, correspondingEClass, transformationStatus, previousCFNode);
+					scope, resourceSet, ePackage, correspondingEClass, transformationStatus,currentEOP);
 			if (returnStatus.matches(IStatus.ERROR)) {
 				return returnStatus;
 			}
@@ -195,68 +199,105 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private MultiStatus visitStatement(ObjectVariableStatement oVarStatement, Scope scope, EPackage ePackage,
-			MultiStatus transformationStatus) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		createCFVariableFromObjectVariable(scope, oVarStatement, ePackage);
 		return transformationStatus;
 	}
 	
 	private MultiStatus visitStatement(ReturnStatement returnStmt, PatternNameGenerator patternNameGenerator,Scope scope,ResourceSet resourceSet, EPackage ePackage,EClass correspondingEClass,
-			MultiStatus transformationStatus,CFNode currentCFNode) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		org.moflon.sdm.runtime.democles.ReturnStatement returnStmtDemocles = DEMOCLES_CF_FACTORY.createReturnStatement();
 		returnStmtDemocles.setId(this.cfNodeIDcounter++);
-		if (currentCFNode != null)
-			returnStmtDemocles.setPrev(currentCFNode);
+		returnStmtDemocles.setPrev(this.lastCFNode);
 		returnStmtDemocles.setScope(scope);
-		ObjectVariableStatement returnObject=returnStmt.getReturnObject();
+		ReturnObject returnObject=returnStmt.getObj();
 		if(returnObject==null) {
 			Action emptyReturnAction = DEMOCLES_CF_FACTORY.createAction();
 			emptyReturnAction.setCfNode(returnStmtDemocles);
 			returnStmtDemocles.setMainAction(emptyReturnAction);
 		}
 		else {
-			SingleResultPatternInvocation resPatternInvocation=DEMOCLES_CF_FACTORY.createSingleResultPatternInvocation();
+			final SingleResultPatternInvocation resPatternInvocation=DEMOCLES_CF_FACTORY.createSingleResultPatternInvocation();
 			resPatternInvocation.setCfNode(returnStmtDemocles);
+			Pattern pattern=null;
 			returnStmtDemocles.setMainAction(resPatternInvocation);
-			resPatternInvocation.setReturnType(lookupTypeInEcoreFile(returnObject.getEType(), ePackage));
-			Optional<CFVariable> returnVariableCandidate = scope.getVariables().stream().filter(cfVar -> returnObject.getName().contentEquals(cfVar.getName())).findFirst();
-			if(returnVariableCandidate.isPresent()) {
-				CFVariable cfReturnVariable=returnVariableCandidate.get();
-				CFVariable tempCFReturnVariable = DEMOCLES_CF_FACTORY.createCFVariable();
-				tempCFReturnVariable.setConstructor(resPatternInvocation);
-				tempCFReturnVariable.setName("ret_"+cfReturnVariable.getName());
-				tempCFReturnVariable.setScope(scope);
-				tempCFReturnVariable.setType(cfReturnVariable.getType());
-				PatternInvocationConstraint constraint = SpecificationFactory.eINSTANCE.createPatternInvocationConstraint();
-				Pattern pattern= PatternBuilderVisitor.createExpressionPattern(cfReturnVariable);
-				patternNameGenerator.setPatternType(PatternType.EXPRESSION_PATTERN);
-				patternNameGenerator.setPatternDefinition(null);
-				pattern.setName(patternNameGenerator.generateName());
-				Variable source = pattern.getSymbolicParameters().get(0);
-				Variable target =pattern.getSymbolicParameters().get(1);
-				final VariableReference varRefSource = DEMOCLES_CF_FACTORY.createVariableReference();
-				varRefSource.setFrom(cfReturnVariable);
-				varRefSource.setTo(source);
-				varRefSource.setInvocation(resPatternInvocation);
-				final VariableReference varRefTarget = DEMOCLES_CF_FACTORY.createVariableReference();
-				varRefTarget.setFrom(tempCFReturnVariable);
-				varRefTarget.setTo(target);
-				varRefTarget.setInvocation(resPatternInvocation);
-				constraint.setInvokedPattern(pattern);
-				createAndSaveSearchPlan(resPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN, transformationStatus);
+			final PatternInvocationConstraint constraint = SpecificationFactory.eINSTANCE.createPatternInvocationConstraint();
+			if(returnObject instanceof LiteralExpression) {
+				LiteralExpression val=(LiteralExpression) returnObject;
+				EClassifier returnVariableType = lookupTypeInEcoreFile(currentEOP.getEType(),ePackage);
+				resPatternInvocation.setReturnType(returnVariableType);
+				String returnVariableName = returnVariableType.getName()+"_0";
+				CFVariable returnVariable=DEMOCLES_CF_FACTORY.createCFVariable();
+				returnVariable.setType(returnVariableType);
+				returnVariable.setName(returnVariableName);
+				returnVariable.setScope(scope);
+				returnVariable.setLocal(true);
+				returnVariable.setConstructor(resPatternInvocation);
+				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(this.ecorePackage, resourceSet);
+				pattern=patternBuilderVisitor.createExpressionPatternForLiteralValues(returnVariable,val.getVal());
+				Variable emfReturnVariable=pattern.getSymbolicParameters().get(0);
+				final VariableReference ref=DEMOCLES_CF_FACTORY.createVariableReference();
+				ref.setFrom(returnVariable);
+				ref.setTo(emfReturnVariable);
+				ref.setInvocation(resPatternInvocation);
 			}
-			else {
-				//TODO@rkluge: error status, can not resolve variable to be returned
+			else if(returnObject instanceof TypedNamedObject) {
+				final TypedNamedObject namedObject = (TypedNamedObject) returnObject;
+				final ObjectVariableStatement oVarStmt = namedObject.getObj();
+				resPatternInvocation.setReturnType(lookupTypeInEcoreFile(oVarStmt.getEType(), ePackage));
+				final Optional<CFVariable> returnVariableCandidate = scope.getVariables().stream().filter(cfVar -> oVarStmt.getName().contentEquals(cfVar.getName())).findFirst();
+				if(returnVariableCandidate.isPresent()) {
+					CFVariable cfReturnVariable=returnVariableCandidate.get();
+					final CFVariable tempCFReturnVariable = DEMOCLES_CF_FACTORY.createCFVariable();
+					tempCFReturnVariable.setConstructor(resPatternInvocation);
+					tempCFReturnVariable.setName("ret_"+cfReturnVariable.getName());
+					tempCFReturnVariable.setScope(scope);
+					tempCFReturnVariable.setLocal(true);
+					tempCFReturnVariable.setType(cfReturnVariable.getType());
+					final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
+					pattern= patternBuilderVisitor.createExpressionPatternForObjectVariables(cfReturnVariable);
+					final Variable source = pattern.getSymbolicParameters().get(1);
+					final Variable target =pattern.getSymbolicParameters().get(0);
+					final VariableReference varRefSource = DEMOCLES_CF_FACTORY.createVariableReference();
+					varRefSource.setFrom(cfReturnVariable);
+					varRefSource.setTo(source);
+					final VariableReference varRefTarget = DEMOCLES_CF_FACTORY.createVariableReference();
+					varRefTarget.setFrom(tempCFReturnVariable);
+					varRefTarget.setTo(target);
+					varRefTarget.setInvocation(resPatternInvocation);
+					varRefSource.setInvocation(resPatternInvocation);
+				}
+				else {
+					//TODO@rkluge: error status, can not resolve variable to be returned
+				}
 			}
+			constraint.setInvokedPattern(pattern);
+			resPatternInvocation.setPattern(pattern);
+			patternNameGenerator.setCFNode(returnStmtDemocles);
+			patternNameGenerator.setPatternType(PatternType.EXPRESSION_PATTERN);
+			patternNameGenerator.setPatternDefinition(null);
+			pattern.setName(patternNameGenerator.generateName());
+			final AdapterResource adapterResource = attachInRegisteredAdapter(pattern, correspondingEClass,
+					resourceSet, PatternType.EXPRESSION_PATTERN.getSuffix());
+
+			// TODO@rkluge: Just for debugging
+			try {
+				saveResourceQuiely(adapterResource);
+			} catch (RuntimeException exception) {
+				System.out.println("CaughtRuntimeException: " + exception);
+			}
+			createAndSaveSearchPlan(resPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN, transformationStatus);
 		}
+		this.lastCFNode=returnStmtDemocles;
 		return transformationStatus;
 	}
 
 	private MultiStatus visitStatement(ConditionStatement ifStatement, PatternNameGenerator patternNameGenerator,
 			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
-			MultiStatus transformationStatus, CFNode previousCFNode) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		MultiStatus result = transformationStatus;
 		IfStatement ifStmtDemocles = DemoclesFactory.eINSTANCE.createIfStatement();
-		ifStmtDemocles.setPrev(previousCFNode);
+		ifStmtDemocles.setPrev(this.lastCFNode);
 		ifStmtDemocles.setScope(scope);
 		// TODO:check header
 		// ifStmtDemocles.setHeader(null);
@@ -265,7 +306,7 @@ public class EditorToControlFlowTransformation {
 		List<CFVariable> createdVariables = new ArrayList<>();
 		result = invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, resourceSet,
 				ePackage, correspondingEClass, transformationStatus, cond.getParameters(), ifStmtDemocles,
-				createdVariables);
+				createdVariables,currentEOP);
 		if (result.matches(IStatus.ERROR)) {
 			return result;
 		}
@@ -283,24 +324,24 @@ public class EditorToControlFlowTransformation {
 			// clause
 			createdVariables.clear();
 			nextScope.setParent(ifStmtDemocles);
+			this.lastCFNode=null;
 			result = visitStatement(stmt, patternNameGenerator, nextScope, resourceSet, ePackage, correspondingEClass,
-					result, null);
+					result,currentEOP);
 			if (result.matches(IStatus.ERROR)) {
 				return result;
 			}
 		}
 		// Continue with next statement after if
-		result = visitStatement(ifStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, result, ifStmtDemocles);
+		this.lastCFNode=ifStmtDemocles;
 		return result;
 	}
 
 	private MultiStatus visitStatement(WhileLoopStatement whileLoopStatement, PatternNameGenerator patternNameGenerator,
 			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
-			MultiStatus transformationStatus, CFNode previousCFNode) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		MultiStatus result = transformationStatus;
 		HeadControlledLoop whileLoopDemocles = DemoclesFactory.eINSTANCE.createHeadControlledLoop();
-		whileLoopDemocles.setPrev(previousCFNode);
+		whileLoopDemocles.setPrev(this.lastCFNode);
 		whileLoopDemocles.setScope(scope);
 		// TODO: recheck loop along
 		whileLoopDemocles.setLoopAlongTrue(true);
@@ -311,7 +352,7 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.setCFNode(whileLoopDemocles);
 		List<CFVariable> createdVariables = new ArrayList<CFVariable>();
 		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, transformationStatus, cond.getParameters(), whileLoopDemocles, createdVariables);
+				correspondingEClass, transformationStatus, cond.getParameters(), whileLoopDemocles, createdVariables,currentEOP);
 		// Transform loop body
 		// TODO: test variable binding in then clause
 		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
@@ -321,25 +362,25 @@ public class EditorToControlFlowTransformation {
 		});
 		createdVariables.clear();
 		nextScope.setParent(whileLoopDemocles);
+		this.lastCFNode=null;
 		result = visitStatement(whileLoopStatement.getLoopStartStatement(), patternNameGenerator, nextScope,
-				resourceSet, ePackage, correspondingEClass, result, null);
+				resourceSet, ePackage, correspondingEClass, result,currentEOP);
 		if (result.matches(IStatus.ERROR)) {
 			return result;
 		}
 		// Continue with next statement after if
-		result = visitStatement(whileLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, result, whileLoopDemocles);
+		this.lastCFNode=whileLoopDemocles;
 		return result;
 	}
 	
 	private MultiStatus visitStatement(ForLoopStatement forLoopStatement, PatternNameGenerator patternNameGenerator,
 			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
-			MultiStatus transformationStatus, CFNode previousCFNode) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		MultiStatus result = transformationStatus;
 		//TODO@rkluge: errorstatus as we do not support forloops
 		//result.add(new Status(IStatus.ERROR, pluginId, message));
 		ForEach forLoopDemocles = DemoclesFactory.eINSTANCE.createForEach();
-		forLoopDemocles.setPrev(previousCFNode);
+		forLoopDemocles.setPrev(this.lastCFNode);
 		forLoopDemocles.setScope(scope);
 		// TODO: recheck loop along
 		// TODO:check header
@@ -349,7 +390,7 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.setCFNode(forLoopDemocles);
 		List<CFVariable> createdVariables = new ArrayList<CFVariable>();
 		invokePattern(cond.getPatternReference().getPattern(), patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, transformationStatus, cond.getParameters(), forLoopDemocles, createdVariables);
+				correspondingEClass, transformationStatus, cond.getParameters(), forLoopDemocles, createdVariables,currentEOP);
 		// Transform loop body
 		// TODO: test variable binding in then clause
 		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
@@ -359,23 +400,24 @@ public class EditorToControlFlowTransformation {
 		});
 		createdVariables.clear();
 		nextScope.setParent(forLoopDemocles);
+		this.lastCFNode=null;
 		result = visitStatement(forLoopStatement.getLoopStartStatement(), patternNameGenerator, nextScope,
-				resourceSet, ePackage, correspondingEClass, result, null);
+				resourceSet, ePackage, correspondingEClass, result,currentEOP);
 		if (result.matches(IStatus.ERROR)) {
 			return result;
 		}
 		// Continue with next statement after if
-		result = visitStatement(forLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, result, forLoopDemocles);
+		//TODO: Nextpointer: In linear order yes, what about recursive order? linear=this.lastCFNode
+		this.lastCFNode=forLoopDemocles;
 		return result;
 	}
 
 	private MultiStatus visitStatement(DoLoopStatement doLoopStatement, PatternNameGenerator patternNameGenerator,
 			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
-			MultiStatus transformationStatus, CFNode previousCFNode) {
+			MultiStatus transformationStatus,EOperation currentEOP) {
 		MultiStatus result = transformationStatus;
 		TailControlledLoop doLoopDemocles = DemoclesFactory.eINSTANCE.createTailControlledLoop();
-		doLoopDemocles.setPrev(previousCFNode);
+		doLoopDemocles.setPrev(this.lastCFNode);
 		doLoopDemocles.setScope(scope);
 		// TODO: recheck loop along
 		doLoopDemocles.setLoopAlongTrue(true);
@@ -387,15 +429,16 @@ public class EditorToControlFlowTransformation {
 		List<CFVariable> createdVariables = new ArrayList<CFVariable>();
 		Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
 		nextScope.setParent(doLoopDemocles);
+		this.lastCFNode=null;
 		result = visitStatement(doLoopStatement.getLoopStartStatement(), patternNameGenerator, nextScope, resourceSet,
-				ePackage, correspondingEClass, result, null);
+				ePackage, correspondingEClass, result,currentEOP);
 		if (result.matches(IStatus.ERROR)) {
 			return result;
 		}
 		//TODO:downgrade non parameter variables
 		EditorPattern conditionPattern=cond.getPatternReference().getPattern();
 		invokePattern(conditionPattern, patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, transformationStatus, cond.getParameters(), doLoopDemocles, createdVariables);
+				correspondingEClass, transformationStatus, cond.getParameters(), doLoopDemocles, createdVariables,currentEOP);
 		// Transform loop body
 		// TODO: test variable binding in while clause
 		/*createdVariables.forEach(cfVar -> {
@@ -407,44 +450,129 @@ public class EditorToControlFlowTransformation {
 		});
 		createdVariables.clear();*/
 		// Continue with next statement after if
-		result = visitStatement(doLoopStatement.getNext(), patternNameGenerator, scope, resourceSet, ePackage,
-				correspondingEClass, result, doLoopDemocles);
+		this.lastCFNode=doLoopDemocles;
 		return result;
 	}
 
 	private MultiStatus visitStatement(PatternStatement patternStatement, PatternNameGenerator patternNameGenerator,
 			Scope rootscope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
-			MultiStatus transformationStatus, CFNode previousCFNode) {
-		final CFNode cfNode = createCFNode(rootscope, previousCFNode);
+			MultiStatus transformationStatus,EOperation currentEOP) {
+		final CFNode cfNode = createCFNode(rootscope, this.lastCFNode);
+		cfNode.setPrev(this.lastCFNode);
 		patternNameGenerator.setCFNode(cfNode);
 		final EditorPattern editorPattern = patternStatement.getPatternReference().getPattern();
+		this.lastCFNode=cfNode;
 		return invokePattern(editorPattern, patternNameGenerator, rootscope, resourceSet, ePackage, correspondingEClass,
-				transformationStatus, patternStatement.getParameters(), cfNode, new ArrayList<CFVariable>());
+				transformationStatus, patternStatement.getParameters(), cfNode, new ArrayList<CFVariable>(),currentEOP);
 	}
 
 	private MultiStatus invokePattern(EditorPattern editorPattern, PatternNameGenerator patternNameGenerator,
 			Scope scope, ResourceSet resourceSet, EPackage ePackage, EClass correspondingEClass,
 			MultiStatus transformationStatus, EList<CalledPatternParameter> calledParameters, CFNode invokingCFNode,
-			List<CFVariable> createdVariables) {
+			List<CFVariable> createdVariables,EOperation currentEOP) {
 		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
 		patternNameGenerator.setPatternDefinition(editorPattern);
 		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
 		Map<PatternType, PatternInvocation> invocations = new HashMap<PatternBuilderVisitor.PatternType, PatternInvocation>();
-		for (final PatternType patternType : PatternType.values()) {
+		/*if(patterns.containsKey(PatternType.BINDING_AND_BLACK_PATTERN)) {
+				PatternType[] patternTypesFIFO= {PatternType.BLACK_PATTERN,PatternType.BINDING_PATTERN,PatternType.BINDING_AND_BLACK_PATTERN};
+				for(PatternType t:patternTypesFIFO) {
+					final Pattern democlesPattern = patterns.get(t);
+					patternNameGenerator.setPatternType(t);
+					democlesPattern.setName(patternNameGenerator.generateName());
+					AdapterResource adapterResource=attachInRegisteredAdapter(democlesPattern, correspondingEClass,
+							resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+					try {
+						saveResourceQuiely(adapterResource);
+					} catch (RuntimeException exception) {
+						System.out.println("CaughtRuntimeException: " + exception);
+					}
+					PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
+							democlesPattern);
+					bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
+							ePackage, createdVariables);
+
+					createAndSaveSearchPlan(patternInvocation, democlesPattern, t, transformationStatus);
+					if (transformationStatus.matches(IStatus.ERROR)) {
+						return transformationStatus;
+					}
+					patterns.remove(t);
+					invocations.put(PatternType.BINDING_AND_BLACK_PATTERN, patternInvocation);
+				}
+				
+				/*Map<Pattern,PatternType> inverseMapForBindingAndBlack= new HashMap<Pattern, PatternBuilderVisitor.PatternType>();
+				inverseMapForBindingAndBlack.put(patterns.get(PatternType.BINDING_PATTERN), PatternType.BINDING_PATTERN);
+				inverseMapForBindingAndBlack.put(patterns.get(PatternType.BLACK_PATTERN), PatternType.BLACK_PATTERN);
+				democlesPattern.getBodies().get(0).getConstraints().stream()
+						.filter(constr -> constr instanceof PatternInvocationConstraint).forEach(constr -> {
+							Pattern invokedPattern = ((PatternInvocationConstraint) constr).getInvokedPattern();
+							invokedPattern.setName(patternNameGenerator.generateName(true,
+									((PatternInvocationConstraint) constr).isPositive()));
+							if(inverseMapForBindingAndBlack.containsKey(invokedPattern)) {
+								PatternType patternType = inverseMapForBindingAndBlack.get(invokedPattern);
+								createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+										correspondingEClass, patternType, constr, invokedPattern, democlesPattern);
+							}
+							else {
+								//TODO: as it seems other invocations are not handled correctly in the presence of bindingPatterns in the old TIE so probably issue a warning here
+							}
+						});
+
+				// TODO@rkluge: Just for debugging 
+		}*/
+		PatternType[] patternTypesArray= {PatternType.BINDING_AND_BLACK_PATTERN,PatternType.BLACK_PATTERN,PatternType.RED_PATTERN,PatternType.GREEN_PATTERN};
+		ArrayList<PatternType>patternTypesFIFO= new ArrayList<PatternBuilderVisitor.PatternType>();
+		patternTypesFIFO.add(PatternType.BINDING_AND_BLACK_PATTERN);
+		patternTypesFIFO.add(PatternType.BLACK_PATTERN);
+		patternTypesFIFO.add(PatternType.RED_PATTERN);
+		patternTypesFIFO.add(PatternType.GREEN_PATTERN);
+		boolean skipblack=false;
+		for (final PatternType patternType : patternTypesFIFO) {
 			final Pattern democlesPattern = patterns.get(patternType);
+			if(patternType==PatternType.BLACK_PATTERN&&skipblack)
+				continue;
 			if (democlesPattern == null)
 				continue;
 			patternNameGenerator.setPatternType(patternType);
 			democlesPattern.setName(patternNameGenerator.generateName());
-
+			if(patternType!=PatternType.BINDING_AND_BLACK_PATTERN) {
 			democlesPattern.getBodies().get(0).getConstraints().stream()
 					.filter(constr -> constr instanceof PatternInvocationConstraint).forEach(constr -> {
 						Pattern invokedPattern = ((PatternInvocationConstraint) constr).getInvokedPattern();
 						invokedPattern.setName(patternNameGenerator.generateName(true,
 								((PatternInvocationConstraint) constr).isPositive()));
 						createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
-								correspondingEClass, patternType, constr, invokedPattern, democlesPattern);
+								correspondingEClass, patternType, constr, invokedPattern, democlesPattern,null);
 					});
+			}else {
+				skipblack=true;
+				List<Constraint> constraints=democlesPattern.getBodies().get(0).getConstraints();
+				PatternInvocationConstraint bindingConstr=(PatternInvocationConstraint)democlesPattern.getBodies().get(0).getConstraints().get(0);
+				PatternInvocationConstraint blackConstr=(PatternInvocationConstraint)democlesPattern.getBodies().get(0).getConstraints().get(1);
+				Pattern invokedBindingPattern = ((PatternInvocationConstraint) bindingConstr).getInvokedPattern();
+				Pattern invokedBlackPattern=((PatternInvocationConstraint) blackConstr).getInvokedPattern();
+				//Set pattern Names
+				patternNameGenerator.setPatternType(PatternType.BINDING_PATTERN);
+				invokedBindingPattern.setName(patternNameGenerator.generateName());
+				patternNameGenerator.setPatternType(PatternType.BLACK_PATTERN);
+				invokedBlackPattern.setName(patternNameGenerator.generateName());
+				createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+						correspondingEClass, patternType, bindingConstr, invokedBindingPattern, democlesPattern,PatternType.BINDING_PATTERN);
+				createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+						correspondingEClass, patternType, blackConstr, invokedBlackPattern, democlesPattern,PatternType.BLACK_PATTERN);
+			if(constraints.size()>2) {
+					for(int i=2;i<constraints.size();i++) {
+						if(constraints.get(i) instanceof PatternInvocationConstraint) {
+							Constraint constr=constraints.get(i);
+							Pattern invokedPattern = ((PatternInvocationConstraint) constr).getInvokedPattern();
+							invokedPattern.setName(patternNameGenerator.generateName(true,
+									((PatternInvocationConstraint) constr).isPositive()));
+							createAndSaveSearchPlanForApplicationConditions(resourceSet, transformationStatus,
+									correspondingEClass, patternType, constr, invokedPattern, democlesPattern,null);
+						}
+					}
+				}
+			}
 			final AdapterResource adapterResource = attachInRegisteredAdapter(democlesPattern, correspondingEClass,
 					resourceSet, patternType.getSuffix());
 
@@ -471,17 +599,29 @@ public class EditorToControlFlowTransformation {
 
 	private void createAndSaveSearchPlanForApplicationConditions(final ResourceSet resourceSet,
 			final MultiStatus tranformationStatus, final EClass correspondingEClass, final PatternType patternType,
-			Constraint constr, Pattern invokedPattern, Pattern invokatingPattern) {
-		final AdapterResource adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass,
-				resourceSet, PatternType.BLACK_PATTERN.getSuffix());
+			Constraint constr, Pattern invokedPattern, Pattern invokatingPattern,final PatternType constraintType) {
+		final AdapterResource adapterResource;
+		if(constraintType==null) {
+			adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass,
+					resourceSet, PatternType.BLACK_PATTERN.getSuffix());
+		}
+		else {
+			adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass,
+					resourceSet, PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+		}
 		try {
 			saveResourceQuiely(adapterResource);
 		} catch (RuntimeException exception) {
 			System.out.println("CaughtRuntimeException: " + exception);
 		}
-		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
+		final PatternMatcher patternMatcher;
+		if(constraintType==null) 
+		{ patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);}
+		else {
+			patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(constraintType);
+		}
 		final Adornment adornment = calculateAdornmentForApplicationCondition(
-				((PatternInvocationConstraint) constr).getParameters(), invokatingPattern.getSymbolicParameters());
+				((PatternInvocationConstraint) constr).getParameters(), invokatingPattern.getSymbolicParameters(),invokatingPattern.getBodies().get(0).getLocalVariables(),constraintType==PatternType.BINDING_PATTERN);
 		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
 		final boolean isMultipleMatch = false;
 
@@ -492,7 +632,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private Adornment calculateAdornmentForApplicationCondition(EList<ConstraintParameter> constraintParams,
-			EList<Variable> symbolicParametersInvokatingPattern) {
+			EList<Variable> symbolicParametersInvokatingPattern,EList<Variable> localVariablesInvokingPattern,boolean isBinding) {
 		final Adornment adornment = new Adornment(constraintParams.size());
 		int i = 0;
 		for (final ConstraintParameter param : constraintParams) {
@@ -501,6 +641,10 @@ public class EditorToControlFlowTransformation {
 				adornment.set(i, 2);
 			else
 				adornment.set(i, 0);
+			if(!isBinding&&localVariablesInvokingPattern.stream().anyMatch(
+					symbolicparam -> ((EMFVariable) param.getReference()).getName().equals(symbolicparam.getName()))) {
+				adornment.set(i, 0);
+			}
 			i++;
 		}
 		return adornment;
@@ -529,7 +673,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void createAndSaveSearchPlan(final PatternInvocation patternInvocation, final Pattern democlesPattern,
-			final PatternType patternType, final MultiStatus tranformationStatus) {
+			final PatternType patternType, final MultiStatus transformationStatus) {
 		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
 		final Adornment adornment = calculateAdornment(patternInvocation,patternType);
 		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
@@ -538,7 +682,7 @@ public class EditorToControlFlowTransformation {
 			isMultipleMatch = true;
 		final ValidationReport report = patternMatcher.generateSearchPlan(democlesPattern, adornment, isMultipleMatch);
 		for (final ErrorMessage message : report.getErrorMessages()) {
-			tranformationStatus.add(ValidationStatus.createValidationStatus(message));
+			transformationStatus.add(ValidationStatus.createValidationStatus(message));
 		}
 	}
 
@@ -731,11 +875,17 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void chainPatternInvocations(Map<PatternType, PatternInvocation> invocationsByPatternType, CFNode cfNode) {
-		final List<PatternType> invocationOrder = Arrays.asList(PatternType.BLACK_PATTERN, PatternType.RED_PATTERN,
+		final List<PatternType> invocationOrder = Arrays.asList(PatternType.BINDING_AND_BLACK_PATTERN,PatternType.BLACK_PATTERN, PatternType.RED_PATTERN,
 				PatternType.GREEN_PATTERN);
 		PatternInvocation previous = null;
+		boolean skipblack=false;
 		for (PatternType t : invocationOrder) {
 			PatternInvocation current = invocationsByPatternType.get(t);
+			if(t==PatternType.BINDING_AND_BLACK_PATTERN&&current!=null) {
+				skipblack=true;
+			}
+			if(t==PatternType.BLACK_PATTERN&&skipblack)
+				continue;
 			if (current == null)
 				continue;
 			if (previous == null)

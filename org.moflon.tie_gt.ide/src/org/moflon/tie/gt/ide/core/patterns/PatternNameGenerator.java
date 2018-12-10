@@ -36,6 +36,9 @@ public class PatternNameGenerator {
 		final String descriptiveName = (this.patternDefinition!=null&&this.patternDefinition.getName() != null
 				? this.patternDefinition.getName().trim()
 				: "").replaceAll("\\s+", "");
+		if(patternType==PatternType.EXPRESSION_PATTERN)
+			return String.format("pattern_%s_%d_%d_%s", this.eContainingClass.getName(), this.eOperationIndex,
+					this.cfNode.getId(),  this.patternType.getSuffix());
 		if(isAC)
 			return String.format("pattern_%s_%d_%d_%s_%s_"+(isPositive?"p":"n")+"ac", this.eContainingClass.getName(), this.eOperationIndex,
 					this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
