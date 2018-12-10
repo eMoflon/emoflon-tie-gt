@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
+import org.gervarro.eclipse.workspace.util.RelevantElementCollector;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
@@ -43,7 +44,10 @@ import com.google.inject.Injector;
 
 public class TieGTBuilder extends AbstractVisitorBuilder {
 
-	public static String TIE_GT_BUILDER_ID = TieGTBuilder.class.getName();
+	private static final AntPatternCondition VISITOR_CONDITION = new AntPatternCondition(
+			new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" });
+
+	public static String BUILDER_ID = TieGTBuilder.class.getName();
 
 	public static final Logger logger = Logger.getLogger(TieGTBuilder.class);
 
@@ -53,8 +57,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	 * This builder gets triggered whenever any ecore file in /models changes
 	 */
 	public TieGTBuilder() {
-		super(new AntPatternCondition(
-				new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" }));
+		super(VISITOR_CONDITION);
 	}
 
 	/**
@@ -82,10 +85,8 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	/**
 	 * Converts the given {@link Status} to problem markers in the Eclipse UI
 	 *
-	 * @param status
-	 *            the status to be converted
-	 * @param file
-	 *            the file contains problems
+	 * @param status the status to be converted
+	 * @param file   the file contains problems
 	 */
 	public void handleErrorsInEclipse(final IStatus status, final IFile file) {
 		final String reporterClass = "org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter";
@@ -186,8 +187,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	/**
 	 * Handles errors and warning produced by the code generation task
 	 *
-	 * @param status
-	 *            the {@link IStatus} that contains the errors and warnings
+	 * @param status the {@link IStatus} that contains the errors and warnings
 	 */
 	protected void handleErrorsAndWarnings(final IStatus status, final IFile ecoreFile) throws CoreException {
 		if (status.matches(IStatus.ERROR)) {
@@ -201,10 +201,8 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	/**
 	 * Removes all contents in /gen, but preserves all versioning files
 	 *
-	 * @param project
-	 *            the project to be cleaned
-	 * @throws CoreException
-	 *             if cleaning fails
+	 * @param project the project to be cleaned
+	 * @throws CoreException if cleaning fails
 	 */
 	private void removeGeneratedCode(final IProject project) throws CoreException {
 		final CleanVisitor cleanVisitor = new CleanVisitor(project, //
@@ -235,7 +233,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	}
 
 	public static String getId() {
-		return TIE_GT_BUILDER_ID;
+		return BUILDER_ID;
 	}
 
 	/**
@@ -244,13 +242,21 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	 *
 	 * @return the initialized resource set
 	 */
-	public static ResourceSet initializeResourceSet() {
+	protected static ResourceSet initializeResourceSet() {
 		final Injector injector = LanguageActivator.getInstance()
 				.getInjector(LanguageActivator.ORG_MOFLON_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
 		final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
 		resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
 		eMoflonEMFUtil.installCrossReferencers(resourceSet);
 		return resourceSet;
+	}
+
+	@Override
+	protected void postprocess(final RelevantElementCollector buildVisitor, final int originalKind,
+			final Map<String, String> builderArguments, final IProgressMonitor monitor) {
+		final RelevantElementCollector filteredBuildVisitor = new SingleResourceRelevantElementCollector(buildVisitor,
+				VISITOR_CONDITION, getProject());
+		super.postprocess(filteredBuildVisitor, originalKind, builderArguments, monitor);
 	}
 
 }
