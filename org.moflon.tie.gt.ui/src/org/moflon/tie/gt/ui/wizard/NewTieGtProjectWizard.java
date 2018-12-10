@@ -73,14 +73,10 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	/**
 	 * Initializes and runs the {@link MoflonProjectCreator} for the current project
 	 *
-	 * @param monitor
-	 *            the progress monitor
-	 * @param project
-	 *            the project being created
-	 * @param pluginProperties
-	 *            the metadata of the project
-	 * @throws CoreException
-	 *             if setting up the project fails
+	 * @param monitor          the progress monitor
+	 * @param project          the project being created
+	 * @param pluginProperties the metadata of the project
+	 * @throws CoreException if setting up the project fails
 	 */
 	protected void createProject(final IProgressMonitor monitor, final IProject project,
 			final PluginProperties pluginProperties) throws CoreException {
@@ -93,12 +89,9 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	/**
 	 * Stores the default Ecore file in the proper location
 	 *
-	 * @param monitor
-	 *            the progress monitor
-	 * @param project
-	 *            the project being created currently
-	 * @throws CoreException
-	 *             if storing the file fails
+	 * @param monitor the progress monitor
+	 * @param project the project being created currently
+	 * @throws CoreException if storing the file fails
 	 */
 	protected void generateDefaultFiles(final IProgressMonitor monitor, final IProject project) throws CoreException {
 		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating default files", 1);
@@ -116,8 +109,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	/**
 	 * Adds the given project to the selected working set (if exists)
 	 *
-	 * @param project
-	 *            the project being creatd
+	 * @param project the project being creatd
 	 */
 	private void addToWorkingSet(final IProject project) {
 		final IWorkingSet[] recentWorkingSet = WorkingSetUtilities.getSelectedWorkingSet(getSelection(),

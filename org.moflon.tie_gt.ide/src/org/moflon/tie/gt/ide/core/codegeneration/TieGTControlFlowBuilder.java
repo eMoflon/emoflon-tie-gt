@@ -73,8 +73,8 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		// methodBodyHandler.getPatternMatcherConfiguration();
 		// this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
 		// DemoclesMethodBodyHandler.initResourceSetForDemocles(resourceSet);
-		if(this.ecorePackage==null) {
-			throw new RuntimeException("eCore Package was not set in "+ TieGTControlFlowBuilder.class.getName());
+		if (this.ecorePackage == null) {
+			throw new RuntimeException("eCore Package was not set in " + TieGTControlFlowBuilder.class.getName());
 		}
 		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(
 				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
@@ -88,8 +88,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 	 * It iterates through all {@link EClass}es in the metamodel and invokes
 	 * {@link #weaveEClass(EClass, MultiStatus, IProgressMonitor)} for each one.
 	 *
-	 * @param monitor
-	 *            the progress monitor
+	 * @param monitor the progress monitor
 	 * @return the status of the entire task
 	 */
 	@Override
@@ -149,9 +148,11 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 						return false;
 
 					if (isMOSLCFFile(resource)) {
-						final Resource schemaResource = (Resource) getResourceSet().getResource(
-								URI.createPlatformResourceURI(resource.getAdapter(IFile.class).getFullPath().toString(),
-										false), true);
+						final Resource schemaResource = (Resource) getResourceSet()
+								.getResource(
+										URI.createPlatformResourceURI(
+												resource.getAdapter(IFile.class).getFullPath().toString(), false),
+										true);
 						try {
 							schemaResource.load(null);
 						} catch (final IOException e) {
@@ -222,7 +223,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			ecoreRes.load(null);
 			// final EPackage contextEPackage = EcoreUtil.copy((EPackage)
 			// ecoreRes.getContents().get(0));
-			
+
 			final EPackage contextEPackage = (EPackage) ecoreRes.getContents().get(0);
 
 			// transformation
@@ -235,7 +236,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			// enrichedEcoreResource.save(Collections.EMPTY_MAP);
 			// EcoreUtil.resolveAll(contextEPackage);
 			// final EPackage enrichedEPackage =
-			return helper.transform(contextEPackage, mCF, this.resourceSet,this.ecorePackage);
+			return helper.transform(contextEPackage, mCF, this.resourceSet, this.ecorePackage);
 
 			// save context
 			// enrichedEcoreResource.getContents().clear();

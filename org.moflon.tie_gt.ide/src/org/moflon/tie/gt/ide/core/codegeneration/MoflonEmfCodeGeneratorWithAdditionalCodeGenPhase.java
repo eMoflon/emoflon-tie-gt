@@ -141,28 +141,28 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 				return genModelBuilderStatus;
 			}
 			this.genModel = genModelBuilderJob.getGenModel();
-			
+
 			// (2.1) Perform additional code generation phase
-						final IStatus weaverStatus;
-						if (this.additionalCodeGenerationPhase != null) {
-							if(this.additionalCodeGenerationPhase instanceof TieGTControlFlowBuilder) {
-								TieGTControlFlowBuilder cfBuilder=(TieGTControlFlowBuilder)this.additionalCodeGenerationPhase;
-								cfBuilder.setECorePackage(this.genModel.getEcoreGenPackage().getEcorePackage());
-							}
-							weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
-									methodBodyHandler, subMon.split(10));
+			final IStatus weaverStatus;
+			if (this.additionalCodeGenerationPhase != null) {
+				if (this.additionalCodeGenerationPhase instanceof TieGTControlFlowBuilder) {
+					TieGTControlFlowBuilder cfBuilder = (TieGTControlFlowBuilder) this.additionalCodeGenerationPhase;
+					cfBuilder.setECorePackage(this.genModel.getEcoreGenPackage().getEcorePackage());
+				}
+				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
+						methodBodyHandler, subMon.split(10));
 
-							if (subMon.isCanceled()) {
-								return Status.CANCEL_STATUS;
-							}
+				if (subMon.isCanceled()) {
+					return Status.CANCEL_STATUS;
+				}
 
-							if (weaverStatus.matches(IStatus.ERROR)) {
-								return weaverStatus;
-							}
-						} else {
-							weaverStatus = Status.OK_STATUS;
-							subMon.worked(10);
-						}
+				if (weaverStatus.matches(IStatus.ERROR)) {
+					return weaverStatus;
+				}
+			} else {
+				weaverStatus = Status.OK_STATUS;
+				subMon.worked(10);
+			}
 
 			// Load injections
 			final IProject project = getEcoreFile().getProject();

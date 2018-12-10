@@ -27,24 +27,25 @@ public class PatternNameGenerator {
 	private CFNode cfNode;
 
 	private PatternType patternType;
-	
+
 	public String generateName() {
-		return generateName(false,true);
+		return generateName(false, true);
 	}
 
-	public String generateName(boolean isAC,boolean isPositive) {
-		final String descriptiveName = (this.patternDefinition!=null&&this.patternDefinition.getName() != null
+	public String generateName(boolean isAC, boolean isPositive) {
+		final String descriptiveName = (this.patternDefinition != null && this.patternDefinition.getName() != null
 				? this.patternDefinition.getName().trim()
 				: "").replaceAll("\\s+", "");
-		if(patternType==PatternType.EXPRESSION_PATTERN)
+		if (patternType == PatternType.EXPRESSION_PATTERN)
 			return String.format("pattern_%s_%d_%d_%s", this.eContainingClass.getName(), this.eOperationIndex,
-					this.cfNode.getId(),  this.patternType.getSuffix());
-		if(isAC)
-			return String.format("pattern_%s_%d_%d_%s_%s_"+(isPositive?"p":"n")+"ac", this.eContainingClass.getName(), this.eOperationIndex,
-					this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
+					this.cfNode.getId(), this.patternType.getSuffix());
+		if (isAC)
+			return String.format("pattern_%s_%d_%d_%s_%s_" + (isPositive ? "p" : "n") + "ac",
+					this.eContainingClass.getName(), this.eOperationIndex, this.cfNode.getId(), descriptiveName,
+					this.patternType.getSuffix());
 		else
 			return String.format("pattern_%s_%d_%d_%s_%s", this.eContainingClass.getName(), this.eOperationIndex,
-				this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
+					this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
 	}
 
 	/**
@@ -86,7 +87,7 @@ public class PatternNameGenerator {
 
 	/**
 	 * Configures the {@link PatternType} being currently transformed
-	 * 
+	 *
 	 * @param patternType
 	 */
 	public void setPatternType(final PatternType patternType) {

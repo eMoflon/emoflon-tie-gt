@@ -42,7 +42,7 @@ public class ContextController {
 		else
 			return ref;
 	}
-	
+
 	public EAttribute getEAttributeContext(EAttribute attr, EClass contextEclass) {
 		Optional<EAttribute> contextEAttributeMonad = contextEclass.getEAllAttributes().stream()
 				.filter(attribute -> attribute.getName().equals(attr.getName())).findFirst();

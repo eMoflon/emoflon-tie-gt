@@ -21,12 +21,9 @@ public class TieGTProjectCreator extends MoflonProjectCreator {
 	/**
 	 * Pass-through constructor to {@link MoflonProjectCreator}
 	 * 
-	 * @param project
-	 *            the project to create
-	 * @param projectProperties
-	 *            the metadata to use
-	 * @param projectConfigurator
-	 *            the project configurator
+	 * @param project             the project to create
+	 * @param projectProperties   the metadata to use
+	 * @param projectConfigurator the project configurator
 	 */
 	public TieGTProjectCreator(IProject project, PluginProperties projectProperties,
 			MoflonProjectConfigurator projectConfigurator) throws CoreException {

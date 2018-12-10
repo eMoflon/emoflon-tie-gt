@@ -22,8 +22,7 @@ public class PatternMatcherConfiguration {
 	/**
 	 * Returns the pattern matcher associated with the given {@link PatternType}
 	 * 
-	 * @param patternType
-	 *            the pattern type
+	 * @param patternType the pattern type
 	 * @return the {@link PatternMatcher}. May be <code>null</code>
 	 */
 	public PatternMatcher getPatternMatcher(final PatternType patternType) {
