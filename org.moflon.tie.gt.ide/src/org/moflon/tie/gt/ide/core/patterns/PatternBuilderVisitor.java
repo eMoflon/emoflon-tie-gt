@@ -492,24 +492,28 @@ public class PatternBuilderVisitor {
 
 	private static void setConstantValueWithAdjustedType(Constant constant, Object valueObject) {
 		if (valueObject instanceof Integer) {
-			Integer integerValue = (Integer) valueObject;
-			constant.setValue(integerValue);
+			Integer value = (Integer) valueObject;
+			constant.setValue(value);
 		}
 		if (valueObject instanceof String) {
-			String stringValue = (String) valueObject;
-			constant.setValue(stringValue);
+			String value = (String) valueObject;
+			constant.setValue(value);
 		}
 		if (valueObject instanceof Boolean) {
-			Boolean boolValue = (Boolean) valueObject;
-			constant.setValue(boolValue.booleanValue());
+			Boolean value = (Boolean) valueObject;
+			constant.setValue(value.booleanValue());
 		}
 		if (valueObject instanceof Double) {
-			Double doubleValue = (Double) valueObject;
-			constant.setValue(doubleValue.doubleValue());
+			Double value = (Double) valueObject;
+			constant.setValue(value.doubleValue());
 		}
 		if (valueObject instanceof Float) {
-			Float floatValue = (Float) valueObject;
-			constant.setValue(floatValue.floatValue());
+			Float value = (Float) valueObject;
+			constant.setValue(value.floatValue());
+		}
+		if (valueObject instanceof Long) {
+			Long value = (Long) valueObject;
+			constant.setValue(value.longValue());
 		}
 	}
 

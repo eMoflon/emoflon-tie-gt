@@ -117,8 +117,13 @@ terminal OPERATOR_VALUE: '++'| '!' | '--';
 terminal INTEGER returns ecore::EInt:
 	'-'?INT
 ;
+
 terminal FLOAT returns ecore::EFloat:
-	'-'?INT"."INT
+	'-'?INT'.'INT'f'
+;
+
+terminal DOUBLE returns ecore::EDouble:
+  '-'?INT'.'INT
 ;
 
 terminal NULL :
@@ -126,7 +131,7 @@ terminal NULL :
 
 
 LiteralValue:
-	(INTEGER | FLOAT | BOOL | NULL)
+	(INTEGER | FLOAT | DOUBLE | BOOL | NULL)
 ;
 
 terminal BOOL returns ecore::EBoolean:

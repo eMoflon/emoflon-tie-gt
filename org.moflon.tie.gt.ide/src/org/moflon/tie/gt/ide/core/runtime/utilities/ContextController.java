@@ -24,8 +24,11 @@ public class ContextController {
 	}
 
 	public <EC extends EClassifier> EC getTypeContext(EC eClassifier) {
+		if (eClassifier == null)
+			return eClassifier;
+
 		@SuppressWarnings("unchecked")
-		Optional<EC> contextEClassMonad = contextEPackage.getEClassifiers().stream()
+		final Optional<EC> contextEClassMonad = contextEPackage.getEClassifiers().stream()
 				.filter(classifier -> classifier.getName().equals(eClassifier.getName()))
 				.map(classifier -> (EC) classifier).findFirst();
 		if (contextEClassMonad.isPresent())

@@ -789,6 +789,8 @@ public class EditorToControlFlowTransformation {
 		CFVariable temp = DEMOCLES_CF_FACTORY.createCFVariable();
 		temp.setName("temp_" + var.getName());
 		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
+		if (editorObjectVariableType == null)
+			throw new IllegalArgumentException(String.format("Variable %s has no type.", var));
 		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, epackage);
 		if (properCfVariableType == null)
 			throw new IllegalArgumentException(
@@ -942,7 +944,10 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage) {
-		EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
+		if (statementEType == null)
+			return null;
+
+		final EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
 		if (properEClassifierFromEPackage != null)
 			return properEClassifierFromEPackage;
 		else
