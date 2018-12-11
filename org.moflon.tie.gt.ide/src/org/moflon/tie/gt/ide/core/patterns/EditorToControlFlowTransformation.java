@@ -503,9 +503,7 @@ public class EditorToControlFlowTransformation {
 		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
 		final Map<PatternType, PatternInvocation> invocations = new HashMap<>();
 
-		// TODO@rkluge: For node deletion to work, we have to create additional
-		// CFVariables
-		final Collection<CFVariable> destructedVariables = collectDestrucedVariables(invokingCFNode, editorPattern);
+		final Collection<CFVariable> destructedVariables = new ArrayList<>();
 
 		for (final PatternType patternType : getOrderedPatternTypes()) {
 
@@ -576,13 +574,18 @@ public class EditorToControlFlowTransformation {
 			final PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
 					democlesPattern);
 			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters, ePackage,
-					createdVariables);
+					createdVariables, patternType);
 
 			createAndSaveSearchPlan(patternInvocation, democlesPattern, patternType, transformationStatus);
 			if (transformationStatus.matches(IStatus.ERROR)) {
 				return transformationStatus;
 			}
+
 			invocations.put(patternType, patternInvocation);
+
+			if (patternType == PatternType.RED_PATTERN) {
+				destructedVariables.addAll(collectDestrucedVariables(scope, patternInvocation, editorPattern));
+			}
 		}
 
 		chainPatternInvocations(invocations, destructedVariables, invokingCFNode);
@@ -604,13 +607,26 @@ public class EditorToControlFlowTransformation {
 		return patternTypesFIFO;
 	}
 
-	private Collection<CFVariable> collectDestrucedVariables(final CFNode cfNode, final EditorPattern editorPattern) {
+	private Collection<CFVariable> collectDestrucedVariables(final Scope scope,
+			final PatternInvocation patternInvocation, final EditorPattern editorPattern) {
 		final List<String> deletedEditorNodeNames = editorPattern.getNodes().stream()
 				.filter(node -> node.getOperator() == EditorOperator.DELETE).map(EditorNode::getName)
 				.collect(Collectors.toList());
-		final List<CFVariable> destructedVariables = cfNode.getScope().getVariables().stream()
-				.filter(cfVariable -> deletedEditorNodeNames.contains(cfVariable.getName()))
-				.collect(Collectors.toList());
+
+		final Collection<CFVariable> destructedVariables = new ArrayList<>();
+
+		final EList<EObject> contents = patternInvocation.eContents();
+		for (final EObject content : contents) {
+			if (content instanceof VariableReference) {
+				final VariableReference varRef = (VariableReference) content;
+				final CFVariable fromVariable = varRef.getFrom();
+				final Variable toVariable = varRef.getTo();
+				if (deletedEditorNodeNames.contains(toVariable.getName())) {
+					destructedVariables.add(fromVariable);
+				}
+			}
+		}
+
 		return destructedVariables;
 	}
 
@@ -780,18 +796,20 @@ public class EditorToControlFlowTransformation {
 
 	private void bindConstructedVariablesFromParameter(final Scope currentScope, final Pattern democlesPattern,
 			final PatternInvocation invocation, final EList<CalledPatternParameter> calledPatternParameters,
-			final EPackage epackage, final List<CFVariable> createdVariables) {
+			final EPackage epackage, final List<CFVariable> createdVariables, final PatternType patternType) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
 			CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
 			if (from == null) {
 				from = createTemporaryCFVariable(currentScope, var, epackage);
-				createdVariables.add(from);
+				if (patternType != PatternType.RED_PATTERN) {
+					createdVariables.add(from);
+				}
 			}
 			final VariableReference varRef = DEMOCLES_CF_FACTORY.createVariableReference();
 			varRef.setFrom(from);
 			varRef.setTo(var);
 			varRef.setInvocation(invocation);
-			if (from.getConstructor() == null)
+			if (from.getConstructor() == null && patternType != PatternType.RED_PATTERN)
 				from.setConstructor(invocation);
 		});
 	}
