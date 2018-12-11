@@ -1,6 +1,8 @@
 # emoflon-tie-gt
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/7566bf29bf0546a6a75c52be30b85c79)](https://www.codacy.com/app/RolandKluge/emoflon-tie-gt?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=eMoflon/emoflon-tie-gt&amp;utm_campaign=Badge_Grade)
+[![codebeat badge](https://codebeat.co/badges/5d38ead2-f38e-472c-99b5-9f7408970d8e)](https://codebeat.co/projects/github-com-emoflon-emoflon-tie-gt-master)
+[![Project Stats](https://www.openhub.net/p/emoflon-tie-gt/widgets/project_thin_badge.gif)](https://www.openhub.net/p/emoflon-tie-gt)
 
 eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 
