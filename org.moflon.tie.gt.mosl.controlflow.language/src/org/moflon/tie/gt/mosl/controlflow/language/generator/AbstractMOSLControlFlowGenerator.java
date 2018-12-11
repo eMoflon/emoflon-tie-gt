@@ -27,65 +27,65 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransfor
 public abstract class AbstractMOSLControlFlowGenerator extends AbstractGenerator {
 
 	@Override
-	public void doGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		GraphTransformationControlFlowFile gtcf = GraphTransformationControlFlowFile.class
+	public void doGenerate(final Resource input, final IFileSystemAccess2 fsa, final IGeneratorContext context) {
+		final GraphTransformationControlFlowFile gtcf = GraphTransformationControlFlowFile.class
 				.cast(input.getContents().get(0));
-		Set<EPackage> oldEPackages = gtcf.getEClasses().parallelStream()
+		final Set<EPackage> oldEPackages = gtcf.getEClasses().parallelStream()
 				.map(eclassDef -> eclassDef.getName().getEPackage()).collect(Collectors.toSet());
 		gtcf.getEClassifiers()
 				.addAll(gtcf.getEClasses().parallelStream().map(this::moveEOperations).collect(Collectors.toList()));
 		gtcf.getEClasses().clear();
-		List<EClassifier> classes = oldEPackages.parallelStream()
+		final List<EClassifier> classes = oldEPackages.parallelStream().filter(ePackage -> ePackage != null)
 				.flatMap(ePackage -> ePackage.getEClassifiers().parallelStream()
 						.filter(eClassifier -> !gtcf.getEClassifiers().contains(eClassifier)))
 				.collect(Collectors.toList());
 		gtcf.getEClassifiers().addAll(classes);
 		update(gtcf);
-		URI uri = createURI(input, "model/generated", input.getURI().toString().split("/")[2] + ".ecore");
+		final URI uri = createURI(input, "model/generated", input.getURI().toString().split("/")[2] + ".ecore");
 		MOSLScopeUtil.saveToResource(uri, input.getResourceSet(), gtcf);
 	}
 
-	private void update(EPackage ePackage) {
-		Set<EClassifier> classifiers = ePackage.getEClassifiers().parallelStream().collect(Collectors.toSet());
-		List<ETypedElement> typedElements = EcoreUtil2.eAllOfType(ePackage, ETypedElement.class).parallelStream()
+	private void update(final EPackage ePackage) {
+		final Set<EClassifier> classifiers = ePackage.getEClassifiers().parallelStream().collect(Collectors.toSet());
+		final List<ETypedElement> typedElements = EcoreUtil2.eAllOfType(ePackage, ETypedElement.class).parallelStream()
 				.filter(eType -> eType.getEType() != null && !classifiers.contains(eType.getEType()))
 				.collect(Collectors.toList());
 		typedElements.parallelStream().forEach(typedElement -> updateETypes(typedElement, classifiers));
 
-		List<EReference> references = ePackage.getEClassifiers().parallelStream().filter(EClass.class::isInstance)
+		final List<EReference> references = ePackage.getEClassifiers().parallelStream().filter(EClass.class::isInstance)
 				.flatMap(eClass -> EClass.class.cast(eClass).getEReferences().stream()).collect(Collectors.toList());
 		references.parallelStream().filter(ref -> ref.getEOpposite() != null).forEach(ref -> update(ref, references));
 	}
 
-	private void update(EReference reference, Collection<EReference> others) {
-		Optional<EReference> referenceMonad = others.parallelStream()
+	private void update(final EReference reference, final Collection<EReference> others) {
+		final Optional<EReference> referenceMonad = others.parallelStream()
 				.filter(ref -> ref.getName().equals(reference.getEOpposite().getName())).findFirst();
 		if (referenceMonad.isPresent())
 			reference.setEOpposite(referenceMonad.get());
 	}
 
-	private void updateETypes(ETypedElement typedElement, Collection<EClassifier> classifiers) {
-		Optional<EClassifier> classifierMonad = classifiers.parallelStream()
+	private void updateETypes(final ETypedElement typedElement, final Collection<EClassifier> classifiers) {
+		final Optional<EClassifier> classifierMonad = classifiers.parallelStream()
 				.filter(eClassifier -> eClassifier.getName().equals(typedElement.getEType().getName())).findFirst();
 		if (classifierMonad.isPresent()) {
 			typedElement.setEType(classifierMonad.get());
 		}
 	}
 
-	private EClass moveEOperations(EClassDef eClassDef) {
-		Collection<EOperation> toDelete = eClassDef.getName().getEOperations().parallelStream()
+	private EClass moveEOperations(final EClassDef eClassDef) {
+		final Collection<EOperation> toDelete = eClassDef.getName().getEOperations().parallelStream()
 				.filter(eop -> exist(eop, eClassDef.getOperations())).collect(Collectors.toList());
 		eClassDef.getName().getEOperations().removeAll(toDelete);
 		eClassDef.getName().getEOperations().addAll(eClassDef.getOperations());
 		return eClassDef.getName();
 	}
 
-	private boolean exist(EOperation eOperation, List<? extends EOperation> others) {
+	private boolean exist(final EOperation eOperation, final List<? extends EOperation> others) {
 		return others.parallelStream().anyMatch(other -> other.getName().equals(eOperation.getName())
 				&& sameTypes(other.getEParameters(), eOperation.getEParameters()));
 	}
 
-	private boolean sameTypes(List<EParameter> parameters1, List<EParameter> parameters2) {
+	private boolean sameTypes(final List<EParameter> parameters1, final List<EParameter> parameters2) {
 		if (parameters1.size() != parameters2.size())
 			return false;
 		for (int index = 0; index < parameters1.size(); ++index) {
@@ -96,9 +96,9 @@ public abstract class AbstractMOSLControlFlowGenerator extends AbstractGenerator
 		return true;
 	}
 
-	protected URI createURI(Resource resource, String folder, String fileName) {
-		URI oldUri = resource.getURI();
-		List<String> parts = Arrays.asList(oldUri.toString().split("/")).subList(0, 3);
+	protected URI createURI(final Resource resource, final String folder, final String fileName) {
+		final URI oldUri = resource.getURI();
+		final List<String> parts = Arrays.asList(oldUri.toString().split("/")).subList(0, 3);
 		return URI.createURI(parts.stream().reduce("", (a, b) -> a + b + "/") + folder + "/" + fileName);
 	}
 

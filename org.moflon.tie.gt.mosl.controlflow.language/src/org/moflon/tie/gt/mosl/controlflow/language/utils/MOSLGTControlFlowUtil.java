@@ -22,46 +22,56 @@ import org.moflon.core.xtext.utils.ResourceUtil;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 
 public class MOSLGTControlFlowUtil {
-	public static IScope getScopeByPattern(EObject context, EReference reference,
-			Map<GraphTransformationControlFlowFile, List<EditorGTFile>> resolvingCache)
+	public static IScope getScopeByPattern(final EObject context, final EReference reference,
+			final Map<GraphTransformationControlFlowFile, List<EditorGTFile>> resolvingCache)
 			throws CannotFindScopeException {
-		GraphTransformationControlFlowFile gtf = ResourceUtil.getRootObject(context,
+		final GraphTransformationControlFlowFile gtf = ResourceUtil.getRootObject(context,
 				GraphTransformationControlFlowFile.class);
-		List<EditorGTFile> patternFiles = resolvingCache.getOrDefault(gtf, new ArrayList<>()).stream()
+		final List<EditorGTFile> patternFiles = resolvingCache.getOrDefault(gtf, new ArrayList<>()).stream()
 				.collect(Collectors.toList());
-		EClassifier type = reference.getEType();
-		List<? extends EObject> candidates = patternFiles.parallelStream()
+		final EClassifier type = reference.getEType();
+		final List<? extends EObject> candidates = patternFiles.parallelStream()
 				.map(ptFile -> getElements(ptFile.eAllContents(), type)).flatMap(lst -> lst.stream())
 				.collect(Collectors.toList());
 		return Scopes.scopeFor(candidates);
 	}
 
-	private static <O extends EObject> List<O> getElements(Iterator<O> iterator, EClassifier type) {
-		List<O> lst = new ArrayList<>();
+	private static <O extends EObject> List<O> getElements(final Iterator<O> iterator, final EClassifier type) {
+		final List<O> lst = new ArrayList<>();
 		iterator.forEachRemaining(lst::add);
 		return lst.stream().filter(o -> o.eClass().equals(type)).collect(Collectors.toList());
 	}
 
-	public static void resolvePatterns(EObject context,
-			Map<GraphTransformationControlFlowFile, List<EditorGTFile>> resolvingCache, ResourceSet resSet) {
-		GraphTransformationControlFlowFile cfFile = ResourceUtil.getRootObject(context,
+	public static void resolvePatterns(final EObject context,
+			final Map<GraphTransformationControlFlowFile, List<EditorGTFile>> resolvingCache,
+			final ResourceSet resSet) {
+		final GraphTransformationControlFlowFile cfFile = ResourceUtil.getRootObject(context,
 				GraphTransformationControlFlowFile.class);
-		// if (!resolvingCache.containsKey(cfFile)) {
-		Resource cfFileRes = cfFile.eResource();
-		URI cfFileUri = cfFileRes.getURI();
-		List<String> cfFileUriParts = Arrays.asList(cfFileUri.toString().split("/"));
-		String cfFileURIStringPrefix = cfFileUriParts.stream().filter(part -> !part.endsWith(".mcf")).reduce("",
+		final Resource cfFileRes = cfFile.eResource();
+		final URI cfFileUri = cfFileRes.getURI();
+		final List<String> cfFileUriParts = Arrays.asList(cfFileUri.toString().split("/"));
+		final String cfFileURIStringPrefix = cfFileUriParts.stream().filter(part -> !part.endsWith(".mcf")).reduce("",
 				(a, b) -> a + b + "/");
 
-		List<URI> patternUris = cfFile.getIncludedPatterns().stream()
+		final List<URI> patternUris = cfFile.getIncludedPatterns().stream()
 				.map(pattern -> URI.createURI(cfFileURIStringPrefix + pattern.getImportURI()))
 				.collect(Collectors.toList());
-		List<EditorGTFile> patternFiles = patternUris.stream()
-				.map(uri -> ResourceUtil.getObjectFromResourceSet(uri, resSet, EditorGTFile.class))
-				.collect(Collectors.toList());
+		final List<EditorGTFile> patternFiles = getAllExistingResources(resSet, patternUris);
 		patternFiles.parallelStream().filter(EObject::eIsProxy).forEach(EcoreUtil::resolveAll);
 		resolvingCache.put(cfFile, patternFiles);
-		// }
+	}
+
+	private static List<EditorGTFile> getAllExistingResources(final ResourceSet resSet, final List<URI> uris) {
+		final List<EditorGTFile> patternFiles = uris.stream()//
+				.filter(uri -> hasValidResource(resSet, uri)) //
+				.map(uri -> ResourceUtil.getObjectFromResourceSet(uri, resSet, EditorGTFile.class)) //
+				.collect(Collectors.toList());
+		return patternFiles;
+	}
+
+	private static boolean hasValidResource(final ResourceSet resSet, final URI uri) {
+		final Resource resource = ResourceUtil.getResource(uri, resSet, true);
+		return resource != null && !resource.getContents().isEmpty();
 	}
 
 }

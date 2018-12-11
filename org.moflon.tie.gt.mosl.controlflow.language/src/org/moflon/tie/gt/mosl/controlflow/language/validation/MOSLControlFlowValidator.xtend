@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.ETypedElement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowPackage
 
 /**
- * This class contains custom validation rules. 
+ * This class contains custom validation rules.
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
@@ -27,15 +27,16 @@ def checkParametersofMethodCall(CallStatement callStatement){
 	val operation = getOperartion(callStatement)
 	val eparameters = operation.EParameters
 	val trgTypes = eparameters.map[param | param.EType]
-	val srcTypes = callStatement.parameters.map[param | getTypeOfCalledParameter(param).EType]
+	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)?.EType]
 	if(trgTypes.size > srcTypes.size)
 		error("Too few Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, TOO_FEW_ARGUMENTS)
 	else if(trgTypes.size < srcTypes.size)
 		error("Too many Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, TOO_MANY_ARGUMENTS)
-		
+
 	for(var index = 0; index < trgTypes.size; index++){
-		if(!this.isInstanceOf(srcTypes.get(index), trgTypes.get(index)))
-			error(srcTypes.get(index).name + " cannot be resolved to a variable of " + trgTypes.get(index).name, callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, CANNOT_RESOLVE_TYPE)
+	  val srcType = srcTypes.get(index)
+		if(srcType !== null && !this.isInstanceOf(srcType, trgTypes.get(index)))
+			error(srcType.name + " cannot be resolved to a variable of " + trgTypes.get(index).name, callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, CANNOT_RESOLVE_TYPE)
 	}
 }
 
@@ -51,17 +52,17 @@ def ETypedElement getTypeOfCalledParameter(CalledParameter param){
 	val typedElement =
 	{
 		if(param.create === null)
-			 param.object 
+			 param.object
 		else
 			 param.create
 	}
 	if (typedElement instanceof ETypedElement)
-		typedElement	
+		typedElement
 }
-	
+
 @Check
 def notSet(){
-	
+
 }
 
 //	public static val INVALID_NAME = 'invalidName'
@@ -69,10 +70,10 @@ def notSet(){
 //	@Check
 //	def checkGreetingStartsWithCapital(Greeting greeting) {
 //		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
+//			warning('Name should start with a capital',
 //					MOSLControlFlowPackage.Literals.GREETING__NAME,
 //					INVALID_NAME)
 //		}
 //	}
-	
+
 }

@@ -15,7 +15,7 @@ import org.moflon.tie.gt.mosl.ide.ui.highlighting.utils.XtextColor;
 @RegisterRule
 public class MarkLocalStatementsHighlightingRule extends AbstractHighlightingRule {
 
-	public MarkLocalStatementsHighlightingRule(AbstractHighlightProviderController controller) {
+	public MarkLocalStatementsHighlightingRule(final AbstractHighlightProviderController controller) {
 		super(controller);
 	}
 
@@ -31,25 +31,28 @@ public class MarkLocalStatementsHighlightingRule extends AbstractHighlightingRul
 
 	@Override
 	protected TextStyle getTextStyle() {
-		TextStyle ts = new TextStyle();
+		final TextStyle ts = new TextStyle();
 		ts.setColor(controller.getColorManager().getColor(XtextColor.BROWN));
 		return ts;
 	}
 
 	@Override
-	protected boolean getHighlightingConditions(EObject moslObject, INode node) {
-		String text = node.getText();
+	protected boolean getHighlightingConditions(final EObject moslObject, final INode node) {
+		final String text = node.getText();
 		if (moslObject instanceof ObjectVariableStatement) {
 
-			ObjectVariableStatement objectVariableStatement = ObjectVariableStatement.class.cast(moslObject);
+			final ObjectVariableStatement objectVariableStatement = ObjectVariableStatement.class.cast(moslObject);
 			return objectVariableStatement.getName().equals(text);
 		} else if (moslObject instanceof CalledParameter) {
-			CalledParameter calledParameter = CalledParameter.class.cast(moslObject);
-			return (calledParameter.getObject() != null
-					&& ETypedElement.class.cast(calledParameter.getObject()).getName().equals(text))
-					|| (calledParameter.getCreate() != null && calledParameter.getCreate().getName().equals(text));
+			final CalledParameter calledParameter = CalledParameter.class.cast(moslObject);
+			final boolean hasMatchingText = calledParameter.getObject() != null
+					&& calledParameter.getObject() instanceof ETypedElement
+					&& ETypedElement.class.cast(calledParameter.getObject()).getName().equals(text);
+			final boolean hasMatchingText2 = calledParameter.getCreate() != null
+					&& calledParameter.getCreate().getName().equals(text);
+			return hasMatchingText || hasMatchingText2;
 		} else if (moslObject instanceof MethodParameter) {
-			MethodParameter methodParameter = MethodParameter.class.cast(moslObject);
+			final MethodParameter methodParameter = MethodParameter.class.cast(moslObject);
 			return methodParameter.getName().equals(text);
 		}
 		return false;
