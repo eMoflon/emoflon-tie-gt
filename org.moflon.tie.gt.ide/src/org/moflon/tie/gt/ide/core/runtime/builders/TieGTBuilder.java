@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
@@ -60,6 +61,10 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 		super(VISITOR_CONDITION);
 	}
 
+	public static String getId() {
+		return BUILDER_ID;
+	}
+
 	/**
 	 * This builder locks the surrounding project
 	 */
@@ -68,44 +73,36 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 		return getProject();
 	}
 
+	@Override
+	protected void postprocess(final RelevantElementCollector buildVisitor, final int originalKind,
+			final Map<String, String> builderArguments, final IProgressMonitor monitor) {
+		final RelevantElementCollector filteredBuildVisitor = new SingleResourceRelevantElementCollector(buildVisitor,
+				VISITOR_CONDITION, getProject());
+		super.postprocess(filteredBuildVisitor, originalKind, builderArguments, monitor);
+	}
+
 	/**
 	 * The cleans generated code and problem markers
 	 */
 	@Override
 	protected void clean(final IProgressMonitor monitor) throws CoreException {
-		final SubMonitor subMon = SubMonitor.convert(monitor, "Cleaning " + getProject(), 4);
+		final SubMonitor subMon = SubMonitor.convert(monitor, "Cleaning " + getProject(), 7);
 
 		deleteProblemMarkers();
 		subMon.worked(1);
 
 		removeGeneratedCode(getProject());
 		subMon.worked(3);
-	}
 
-	/**
-	 * Converts the given {@link Status} to problem markers in the Eclipse UI
-	 *
-	 * @param status the status to be converted
-	 * @param file   the file contains problems
-	 */
-	public void handleErrorsInEclipse(final IStatus status, final IFile file) {
-		final String reporterClass = "org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter";
-		final ErrorReporter eclipseErrorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(file,
-				reporterClass);
-		if (eclipseErrorReporter != null) {
-			eclipseErrorReporter.report(status);
-		} else {
-			logger.error(String.format("Could not load error reporter '%s' to report status", reporterClass));
-		}
+		removeGeneratedModels(getProject());
+		subMon.worked(3);
 	}
 
 	@Override
 	protected void processResource(final IResource ecoreResource, final int kind, Map<String, String> args,
 			final IProgressMonitor monitor) {
-		// if (WorkspaceHelper.isEcoreFile(ecoreResource)) {
 		final IFile ecoreFile = getProject()
 				.getFile(MoflonConventions.getDefaultPathToEcoreFileInProject(getProject().getName()));
-//		final IFile ecoreFile = Platform.getAdapterManager().getAdapter(ecoreResource, IFile.class);
 		final MultiStatus emfBuilderStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
 				"Problems during EMF code generation", null);
 		try {
@@ -124,9 +121,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 				addTriggerProject(referencedConfig.getProject());
 			}
 
-			// Remove markers and delete generated code
-			deleteProblemMarkers();
-			removeGeneratedCode(project);
+			clean(new NullProgressMonitor());
 
 			// Build
 			// final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
@@ -176,11 +171,10 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 		} finally {
 			handleErrorsInEclipse(emfBuilderStatus, ecoreFile);
 		}
-		// }
 	}
 
 	@Override
-	protected final AntPatternCondition getTriggerCondition(final IProject project) {
+	protected AntPatternCondition getTriggerCondition(final IProject project) {
 		return new AntPatternCondition(new String[0]);
 	}
 
@@ -199,44 +193,6 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	}
 
 	/**
-	 * Removes all contents in /gen, but preserves all versioning files
-	 *
-	 * @param project the project to be cleaned
-	 * @throws CoreException if cleaning fails
-	 */
-	private void removeGeneratedCode(final IProject project) throws CoreException {
-		final CleanVisitor cleanVisitor = new CleanVisitor(project, //
-				new AntPatternCondition(new String[] { "gen/**" }), //
-				new AntPatternCondition(new String[] { "gen/.keep*" }));
-		project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
-	}
-
-	private void handleInjectionWarningsAndErrors(final IStatus status) {
-		final String reporterClass = "org.moflon.emf.injection.validation.InjectionErrorReporter";
-		final ErrorReporter errorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(getProject(),
-				reporterClass);
-		if (errorReporter != null) {
-			errorReporter.report(status);
-		} else {
-			logger.debug("Could not load error reporter '" + reporterClass + "'");
-		}
-	}
-
-	private static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor)
-			throws CoreException {
-		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project " + project, 5);
-
-		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getSourceFolder(project), subMon.split(1));
-		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.split(1));
-		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.split(1));
-		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
-	}
-
-	public static String getId() {
-		return BUILDER_ID;
-	}
-
-	/**
 	 * Prepare an {@link ResourceSet} that is suitable for a MOSL-GT-based build
 	 * process
 	 *
@@ -251,12 +207,61 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 		return resourceSet;
 	}
 
-	@Override
-	protected void postprocess(final RelevantElementCollector buildVisitor, final int originalKind,
-			final Map<String, String> builderArguments, final IProgressMonitor monitor) {
-		final RelevantElementCollector filteredBuildVisitor = new SingleResourceRelevantElementCollector(buildVisitor,
-				VISITOR_CONDITION, getProject());
-		super.postprocess(filteredBuildVisitor, originalKind, builderArguments, monitor);
+	private static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor)
+			throws CoreException {
+		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project " + project, 5);
+
+		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getSourceFolder(project), subMon.split(1));
+		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.split(1));
+		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.split(1));
+		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
+	}
+
+	private void removeGeneratedModels(IProject project) throws CoreException {
+		final CleanVisitor cleanVisitor = new CleanVisitor(project, //
+				new AntPatternCondition(new String[] { "model/generated/**" }));
+		project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
+	}
+
+	/**
+	 * Removes all contents in /gen, but preserves all versioning files
+	 *
+	 * @param project the project to be cleaned
+	 * @throws CoreException if cleaning fails
+	 */
+	private void removeGeneratedCode(final IProject project) throws CoreException {
+		final CleanVisitor cleanVisitor = new CleanVisitor(project, //
+				new AntPatternCondition(new String[] { "gen/**" }), //
+				new AntPatternCondition(new String[] { "gen/.keep*" }));
+		project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);
+	}
+
+	/**
+	 * Converts the given {@link Status} to problem markers in the Eclipse UI
+	 *
+	 * @param status the status to be converted
+	 * @param file   the file contains problems
+	 */
+	private void handleErrorsInEclipse(final IStatus status, final IFile file) {
+		final String reporterClass = "org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter";
+		final ErrorReporter eclipseErrorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(file,
+				reporterClass);
+		if (eclipseErrorReporter != null) {
+			eclipseErrorReporter.report(status);
+		} else {
+			logger.error(String.format("Could not load error reporter '%s' to report status", reporterClass));
+		}
+	}
+
+	private void handleInjectionWarningsAndErrors(final IStatus status) {
+		final String reporterClass = "org.moflon.emf.injection.validation.InjectionErrorReporter";
+		final ErrorReporter errorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(getProject(),
+				reporterClass);
+		if (errorReporter != null) {
+			errorReporter.report(status);
+		} else {
+			logger.debug("Could not load error reporter '" + reporterClass + "'");
+		}
 	}
 
 }
