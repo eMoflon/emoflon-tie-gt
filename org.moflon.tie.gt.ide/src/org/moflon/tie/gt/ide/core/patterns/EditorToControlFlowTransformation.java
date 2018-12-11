@@ -34,26 +34,6 @@ import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Condition;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ConditionStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.DoLoopStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ForLoopStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ReturnObject;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.Statement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.TypedNamedObject;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStatement;
 import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
 import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
@@ -73,6 +53,26 @@ import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ConditionStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.DoLoopStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ForLoopStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnObject;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Statement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.TypedNamedObject;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStatement;
 
 public class EditorToControlFlowTransformation {
 
@@ -495,12 +495,12 @@ public class EditorToControlFlowTransformation {
 		 * invokingCFNode, editorPattern, democlesPattern);
 		 * bindConstructedVariablesFromParameter(scope, democlesPattern,
 		 * patternInvocation, calledParameters, ePackage, createdVariables);
-		 * 
+		 *
 		 * createAndSaveSearchPlan(patternInvocation, democlesPattern, t,
 		 * transformationStatus); if (transformationStatus.matches(IStatus.ERROR)) {
 		 * return transformationStatus; } patterns.remove(t);
 		 * invocations.put(PatternType.BINDING_AND_BLACK_PATTERN, patternInvocation); }
-		 * 
+		 *
 		 * /*Map<Pattern,PatternType> inverseMapForBindingAndBlack= new HashMap<Pattern,
 		 * PatternBuilderVisitor.PatternType>();
 		 * inverseMapForBindingAndBlack.put(patterns.get(PatternType.BINDING_PATTERN),
@@ -519,11 +519,12 @@ public class EditorToControlFlowTransformation {
 		 * invokedPattern, democlesPattern); } else { //TODO: as it seems other
 		 * invocations are not handled correctly in the presence of bindingPatterns in
 		 * the old TIE so probably issue a warning here } });
-		 * 
+		 *
 		 * // TODO@rkluge: Just for debugging }
 		 */
-		PatternType[] patternTypesArray = { PatternType.BINDING_AND_BLACK_PATTERN, PatternType.BLACK_PATTERN,
-				PatternType.RED_PATTERN, PatternType.GREEN_PATTERN };
+//		PatternType[] patternTypesArray = { PatternType.BINDING_AND_BLACK_PATTERN, PatternType.BLACK_PATTERN,
+//				PatternType.RED_PATTERN, PatternType.GREEN_PATTERN };
+
 		ArrayList<PatternType> patternTypesFIFO = new ArrayList<PatternBuilderVisitor.PatternType>();
 		patternTypesFIFO.add(PatternType.BINDING_AND_BLACK_PATTERN);
 		patternTypesFIFO.add(PatternType.BLACK_PATTERN);
@@ -599,6 +600,7 @@ public class EditorToControlFlowTransformation {
 			}
 			invocations.put(patternType, patternInvocation);
 		}
+
 		chainPatternInvocations(invocations, invokingCFNode);
 		return transformationStatus;
 	}

@@ -26,7 +26,7 @@ import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 

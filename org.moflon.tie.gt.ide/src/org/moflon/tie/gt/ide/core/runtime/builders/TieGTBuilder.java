@@ -36,9 +36,9 @@ import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTControlFlowBuilder;
+import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
 import com.google.inject.Injector;
 
@@ -244,7 +244,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	 */
 	protected static ResourceSet initializeResourceSet() {
 		final Injector injector = LanguageActivator.getInstance()
-				.getInjector(LanguageActivator.ORG_MOFLON_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
+				.getInjector(LanguageActivator.ORG_MOFLON_TIE_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
 		final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
 		resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
 		eMoflonEMFUtil.installCrossReferencers(resourceSet);
