@@ -118,10 +118,6 @@ terminal INTEGER returns ecore::EInt:
 	'-'?INT
 ;
 
-terminal FLOAT returns ecore::EFloat:
-	'-'?INT'.'INT'f'
-;
-
 terminal DOUBLE returns ecore::EDouble:
   '-'?INT'.'INT
 ;
@@ -131,7 +127,7 @@ terminal NULL :
 
 
 LiteralValue:
-	(INTEGER | FLOAT | DOUBLE | BOOL | NULL)
+	(INTEGER | DOUBLE | BOOL | NULL)
 ;
 
 terminal BOOL returns ecore::EBoolean:
