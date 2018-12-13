@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -64,6 +65,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ConditionStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.DoLoopStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EnumExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ForLoopStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
@@ -229,7 +231,7 @@ public class EditorToControlFlowTransformation {
 			final SingleResultPatternInvocation resultPatternInvocation = DEMOCLES_CF_FACTORY
 					.createSingleResultPatternInvocation();
 			resultPatternInvocation.setCfNode(returnStmtDemocles);
-			Pattern pattern = null;
+			final Pattern pattern;
 			returnStmtDemocles.setMainAction(resultPatternInvocation);
 			final PatternInvocationConstraint constraint = SpecificationFactory.eINSTANCE
 					.createPatternInvocationConstraint();
@@ -280,8 +282,17 @@ public class EditorToControlFlowTransformation {
 					varRefTarget.setInvocation(resultPatternInvocation);
 					varRefSource.setInvocation(resultPatternInvocation);
 				} else {
-					// TODO@rkluge: error status, can not resolve variable to be returned
+					transformationStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+							"Cannot resolve variable to be returned: " + namedObject));
+					return transformationStatus;
 				}
+			} else if (returnObject instanceof EnumExpression) {
+				final EnumExpression enumExpression = (EnumExpression) returnObject;
+				transformationStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+						"Enum expressions currently not supported"));
+				return transformationStatus;
+			} else {
+				throw new IllegalArgumentException(String.format("Cannot handle '%s'", returnObject));
 			}
 			constraint.setInvokedPattern(pattern);
 			resultPatternInvocation.setPattern(pattern);

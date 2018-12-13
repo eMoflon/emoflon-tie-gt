@@ -99,7 +99,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	}
 
 	@Override
-	protected void processResource(final IResource ecoreResource, final int kind, Map<String, String> args,
+	protected void processResource(final IResource ecoreResource, final int kind, final Map<String, String> args,
 			final IProgressMonitor monitor) {
 		final IFile ecoreFile = getProject()
 				.getFile(MoflonConventions.getDefaultPathToEcoreFileInProject(getProject().getName()));
@@ -140,7 +140,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			resourceSet.getAdapterFactories().add(cfFactory);
 			eMoflonEMFUtil.installCrossReferencers(resourceSet);
 			subMon.worked(1);
-			EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
+			final EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
 					.getPreferencesStorage();
 			final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask = new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(
 					ecoreFile, resourceSet, preferencesStorage);
@@ -153,8 +153,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			if (!emfBuilderStatus.isOK())
 				return;
 
-			// TODO: fix this when MoflonEmfCodeGenerator is fixed
-			final GenModel genModel = codeGenerationTask.getGenModelDummy();
+			final GenModel genModel = codeGenerationTask.getGenModel();
 			if (genModel == null) {
 				emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
 						String.format("No GenModel found for '%s'", getProject())));
@@ -217,7 +216,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
 	}
 
-	private void removeGeneratedModels(IProject project) throws CoreException {
+	private void removeGeneratedModels(final IProject project) throws CoreException {
 		final CleanVisitor cleanVisitor = new CleanVisitor(project, //
 				new AntPatternCondition(new String[] { "model/generated/**" }));
 		project.accept(cleanVisitor, IResource.DEPTH_INFINITE, IResource.NONE);

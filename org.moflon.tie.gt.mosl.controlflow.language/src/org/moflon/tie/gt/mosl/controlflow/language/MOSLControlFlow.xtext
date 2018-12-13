@@ -16,10 +16,12 @@ EPackage returns ecore::EPackage: GraphTransformationControlFlowFile ;
 
 ETypedElement returns ecore::ETypedElement:ObjectVariableStatement;
 
-
 EOperation returns ecore::EOperation:MethodDec;
 
 EParameter returns ecore::EParameter:MethodParameter;
+
+EnumExpression:
+  'enum::' literal=[ecore::EEnumLiteral];
 
 EClassDef:
 	'class' name = [ecore::EClass | QualifiedName] '{'
@@ -151,4 +153,4 @@ CalledParameter:CalledPatternParameter | CalledMethodParameter;
 
 LiteralExpression: val= LiteralValue | {StringConstant} val=STRING;
 
-ReturnObject: (LiteralExpression|TypedNamedObject);
+ReturnObject: (LiteralExpression|TypedNamedObject|EnumExpression);

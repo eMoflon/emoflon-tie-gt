@@ -4,20 +4,17 @@ import java.util.Locale;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
-import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -33,32 +30,24 @@ import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
 import org.moflon.core.propertycontainer.SDMCodeGeneratorIds;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
 import org.moflon.emf.codegen.CodeGenerator;
-import org.moflon.emf.injection.build.CodeInjectorImpl;
-import org.moflon.emf.injection.build.XTextInjectionExtractor;
-import org.moflon.emf.injection.ide.CodeInjector;
-import org.moflon.emf.injection.ide.InjectionExtractor;
 import org.moflon.emf.injection.ide.InjectionManager;
 
-public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCodeGenerator {
+public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonEmfCodeGenerator {
 
 	private static final Logger logger = Logger.getLogger(MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase.class);
 
-	// TODO: this should be only a protected field in MoflonEmfCodeGenerator
-	private GenModel genModel;
-	// TODO: this should be only a protected field in MoflonEmfCodeGenerator
-	private InjectionManager injectionManager;
-
 	protected MoflonCodeGeneratorPhase additionalCodeGenerationPhase;
 
-	public MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(IFile ecoreFile, ResourceSet resourceSet,
-			EMoflonPreferencesStorage preferencesStorage) {
+	public MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(final IFile ecoreFile, final ResourceSet resourceSet,
+			final EMoflonPreferencesStorage preferencesStorage) {
 		super(ecoreFile, resourceSet, preferencesStorage);
 	}
 
 	@Override
-	protected String getFullProjectName(MoflonPropertiesContainer moflonProperties) {
+	protected String getFullProjectName(final MoflonPropertiesContainer moflonProperties) {
 		return moflonProperties.getProjectName();
 	}
 
@@ -70,7 +59,7 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 					totalWork);
 			logger.info("Generating code for: " + getProject().getName());
 
-			long toc = System.nanoTime();
+			final long toc = System.nanoTime();
 
 			// (1) Instantiate code generation engine
 			final Resource resource = getEcoreResource();
@@ -140,14 +129,14 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 			if (genModelBuilderStatus.matches(IStatus.ERROR)) {
 				return genModelBuilderStatus;
 			}
-			this.genModel = genModelBuilderJob.getGenModel();
+			this.setGenModel(genModelBuilderJob.getGenModel());
 
 			// (2.1) Perform additional code generation phase
 			final IStatus weaverStatus;
 			if (this.additionalCodeGenerationPhase != null) {
 				if (this.additionalCodeGenerationPhase instanceof TieGTControlFlowBuilder) {
-					TieGTControlFlowBuilder cfBuilder = (TieGTControlFlowBuilder) this.additionalCodeGenerationPhase;
-					cfBuilder.setECorePackage(this.genModel.getEcoreGenPackage().getEcorePackage());
+					final TieGTControlFlowBuilder cfBuilder = (TieGTControlFlowBuilder) this.additionalCodeGenerationPhase;
+					cfBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
 				}
 				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
 						methodBodyHandler, subMon.split(10));
@@ -166,8 +155,9 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 
 			// Load injections
 			final IProject project = getEcoreFile().getProject();
-
-			final IStatus injectionStatus = createInjections(project, genModel);
+			final InjectionManager injectionManager = createInjectionManager(project);
+			this.setInjectorManager(injectionManager);
+			final IStatus injectionStatus = createInjections(project);
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
@@ -177,9 +167,14 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 
 			// Generate code
 			subMon.subTask("Generating code for project " + project.getName());
-			final Descriptor codeGenerationEngine = createCodeGenerationEngine(this, resource);
+			final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(
+					getResourceSet(), getPreferencesStorage());
+			final TemplateConfigurationProvider templateConfig = defaultCodeGeneratorConfig
+					.createTemplateConfiguration(this.getGenModel());
+			final Descriptor codeGenerationEngine = new DemoclesGeneratorAdapterFactory(templateConfig,
+					this.getInjectorManager());
 			final CodeGenerator codeGenerator = new CodeGenerator(codeGenerationEngine);
-			final IStatus codeGenerationStatus = codeGenerator.generateCode(genModel,
+			final IStatus codeGenerationStatus = codeGenerator.generateCode(getGenModel(),
 					new BasicMonitor.EclipseSubProgress(subMon, 30));
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -189,7 +184,7 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 			}
 			subMon.worked(5);
 
-			long tic = System.nanoTime();
+			final long tic = System.nanoTime();
 
 			logger.info(String.format(Locale.US, "Completed in %.3fs", (tic - toc) / 1e9));
 
@@ -201,43 +196,6 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonCode
 							+ "'. (Stacktrace is logged with level debug)",
 					e);
 		}
-	}
-
-	@Deprecated // TODO@rkluge Hack to avoid inheritance problems with getGenModel
-	public Descriptor createCodeGenerationEngine(final MoflonCodeGenerator codeGenerator, final Resource resource) {
-		final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(getResourceSet(),
-				getPreferencesStorage());
-		final TemplateConfigurationProvider templateConfig = defaultCodeGeneratorConfig
-				.createTemplateConfiguration(this.genModel);
-		return new DemoclesGeneratorAdapterFactory(templateConfig, codeGenerator.getInjectorManager());
-	}
-
-	// TODO: this should just be a protected method in MoflonEmfCodeGenerator
-	/**
-	 * Loads the injections from the /injection folder
-	 */
-	private IStatus createInjections(final IProject project, final GenModel genModel) throws CoreException {
-		final IFolder injectionFolder = WorkspaceHelper.addFolder(project, WorkspaceHelper.INJECTION_FOLDER,
-				new NullProgressMonitor());
-		final CodeInjector injector = new CodeInjectorImpl(project.getLocation().toOSString());
-
-		final InjectionExtractor injectionExtractor = new XTextInjectionExtractor(injectionFolder, genModel);
-
-		injectionManager = new InjectionManager(injectionExtractor, injector);
-		final IStatus extractionStatus = injectionManager.extractInjections();
-		return extractionStatus;
-	}
-
-	// TODO: this method should not be final in MoflonEmfCodeGenerator / if field is
-	// protected getter is sufficient
-	public GenModel getGenModelDummy() {
-		return genModel;
-	}
-
-	// TODO: should not need to be overridden as soon as injection manager is only a
-	// protected field in MoflonEmfCodeGenerator
-	public InjectionManager getInjectionManager() {
-		return injectionManager;
 	}
 
 	public void setAdditionalCodeGenerationPhase(final MoflonCodeGeneratorPhase codeGenerationPhase) {
