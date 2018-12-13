@@ -544,25 +544,28 @@ public class PatternBuilderVisitor {
 
 	EMFVariable getOrCreateEMFVariableCached(final EObject obj, final EditorNode parent,
 			final PatternType patternType) {
-		String name = null;
+		final String name;
+
+		if (obj.eClass() == null) {
+			throw new IllegalArgumentException("Object" + obj + " has no type.");
+		}
+
 		if (obj instanceof EditorNode) {
 			name = ((EditorNode) obj).getName();
-		}
-		if (obj instanceof EditorParameter) {
+		} else if (obj instanceof EditorParameter) {
 			name = ((EditorParameter) obj).getName();
-		}
-		if (obj instanceof EAttribute) {
+		} else if (obj instanceof EAttribute) {
 			name = ((EAttribute) obj).getName();
-		}
-		if (name == null) {
+		} else {
 			throw new RuntimeException("Type " + obj.getClass() + " is not supported for this operation");
 		}
-		final String nameInLut = parent == null ? name : parent.getName() + "_" + name;
+
+		final String keyForLookup = parent == null ? name : parent.getName() + "_" + name;
 		if (getVariableLookupForPatternType(patternType).containsKey(obj))
 			return getVariableLookupForPatternType(patternType).get(obj);
 		else {
 			final EMFVariable newVariable = emfHelper.createEMFVariable();
-			newVariable.setName(nameInLut);
+			newVariable.setName(keyForLookup);
 			getVariableLookupForPatternType(patternType).put(obj, newVariable);
 			return newVariable;
 		}
