@@ -259,7 +259,7 @@ public class EditorToControlFlowTransformation {
 				final ObjectVariableStatement oVarStmt = namedObject.getObj();
 				resultPatternInvocation.setReturnType(lookupTypeInEcoreFile(oVarStmt.getEType(), ePackage));
 				final Optional<CFVariable> returnVariableCandidate = scope.getVariables().stream()
-						.filter(cfVar -> oVarStmt.getName().contentEquals(cfVar.getName())).findFirst();
+						.filter(cfVar -> cfVar.getName().contentEquals(oVarStmt.getName())).findFirst();
 				if (returnVariableCandidate.isPresent()) {
 					final CFVariable cfReturnVariable = returnVariableCandidate.get();
 					final CFVariable tempCFReturnVariable = DEMOCLES_CF_FACTORY.createCFVariable();

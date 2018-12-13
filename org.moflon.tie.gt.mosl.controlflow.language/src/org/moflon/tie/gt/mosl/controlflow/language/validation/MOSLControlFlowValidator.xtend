@@ -25,6 +25,8 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 @Check
 def checkParametersofMethodCall(CallStatement callStatement){
 	val operation = getOperartion(callStatement)
+	if (operation === null)
+	 return
 	val eparameters = operation.EParameters
 	val trgTypes = eparameters.map[param | param.EType]
 	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)?.EType]
