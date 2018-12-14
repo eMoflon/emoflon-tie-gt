@@ -9,16 +9,26 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 ## Prerequisites
 - Xtext Complete SDK
    * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
-- eMoflon Core Components Feature	1.2.0.201806211841
-   * Update site: https://emoflon.org/emoflon-core-updatesite/snapshot/updatesite/
-- eMoflon Tool   3.2.0.201804101444
-   * Update site: https://emoflon.org/eclipse-plugin/beta/updatesite/
-- (eMoflon MOSL Pattern Language Feature	1.0.0.201804101444)
+- eMoflon::Core
+   * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
+- StringTemplate 
+   * Update site: http://gervarro.org/external
+- Democles 0.4.0
+   * Update site: http://gervarro.org/democles/integration-0.4.0/
+   * Install
+      * Pattern Matcher Specification
+      * Pattern Matcher Compiler
    
 ## Setup of eMoflon::TIE-GT Developer Workspace
-1. Install the following team project set (via *Import &rarr; Team Project Set*) https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/giessing-dev/tieGTDevWorkspace.psf
-2. Run MWE2 workflows (Search for files ending with *.mwe2* via *Ctrl+Shift+R*).
-   * Proceed if Eclipse warns you about "Errors in the Workspace"
-3. Start Runtime from org.moflon.tie.gt.ide
+1. Install the following team project set (via *Import &rarr; Team Project Set*) https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf
+1. Run MWE2 workflows (Search for files ending with *.mwe2* via *Ctrl+Shift+R*).
+   * Proceed even if Eclipse warns you about "Errors in the Workspace"
+1. The subsequent build should complete without errors.
+
+## Run the test suite 
+1. Start Runtime Eclipse
+1. Check out all projects from *https://github.com/eMoflon/emoflon-tie-gt-examples*
+1. Run JUnit test suite *EMoflonTieGtTestSuite*
+   * Runner class *org.moflon.tie.gt.testsuite.EMoflonTieGtTestSuite*
    
    
