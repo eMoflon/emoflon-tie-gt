@@ -1,0 +1,8 @@
+/bin
+/gen/*
+/model/*.ecore
+/model/*.genmodel
+/model/*.xmi
+!/**/.keep*
+/**/XMLTreeGrammar.java
+/**/XMLTreeGrammar.tokens

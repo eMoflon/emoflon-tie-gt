@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="ASCII"?>
+<org.moflon.core.propertycontainer:MoflonPropertiesContainer xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:org.moflon.core.propertycontainer="platform:/plugin/org.moflon.core.propertycontainer/model/Propertycontainer.ecore" projectName="org.moflon.sdm.constraints.scopevalidation">
+  <dependencies value="platform:/resource/org.moflon.sdm.compiler.democles.validation.scope/model/Scope.ecore"/>
+  <dependencies value="platform:/resource/SDMLanguage/model/SDMLanguage.ecore"/>
+  <dependencies value="platform:/resource/MocaTree/model/MocaTree.ecore"/>
+  <dependencies value="platform:/resource/org.moflon.sdm.compiler.democles.validation.result/model/Result.ecore"/>
+  <dependencies value="platform:/resource/org.moflon.sdm.compiler.democles.pattern/model/Pattern.ecore"/>
+  <dependencies value="platform:/resource/org.moflon.sdm.runtime.democles/model/Democles.ecore"/>
+  <dependencies value="platform:/resource/org.moflon.sdm.democles.literalexpressionsolver/model/Literalexpressionsolver.ecore"/>
+  <dependencies value="platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore"/>
+  <factoryMappings key="relational" value="RelationalConstraintFactory"/>
+  <factoryMappings key="emf" value="EMFTypeFactory"/>
+  <factoryMappings key="relational" value="RelationalConstraintFactory"/>
+  <factoryMappings key="emf" value="EMFTypeFactory"/>
+  <additionalDependencies value="platform:/plugin/org.gervarro.democles.specification.emf/model/specification.ecore"/>
+  <additionalDependencies value="platform:/plugin/org.gervarro.democles.specification.emf/model/emf.ecore"/>
+  <additionalDependencies value="platform:/plugin/org.gervarro.democles.specification.emf/model/relational.ecore"/>
+  <metaModelProject MetaModelProjectName="org.moflon.sdm.constraints.validation"/>
+  <replaceGenModel/>
+  <sdmCodegeneratorHandlerId/>
+  <importMappings key="specification" value="org.gervarro.democles.specification.emf"/>
+  <importMappings key="emf" value="org.gervarro.democles.specification.emf.constraint.emf.emf"/>
+  <importMappings key="relational" value="org.gervarro.democles.specification.emf.constraint.relational"/>
+  <importMappings key="SDMLanguage.patterns.Variable" value="org.gervarro.democles.specification.emf.Variable"/>
+  <importMappings key="SDMLanguage.patterns.Pattern" value="org.gervarro.democles.specification.emf.Pattern"/>
+  <importMappings key="SDMLanguage.patterns.PatternBody" value="org.gervarro.democles.specification.emf.PatternBody"/>
+  <additionalUsedGenPackages value="platform:/plugin/org.gervarro.democles.specification.emf/model/specification.genmodel"/>
+  <additionalUsedGenPackages value="platform:/plugin/org.gervarro.democles.specification.emf/model/emf.genmodel"/>
+  <additionalUsedGenPackages value="platform:/plugin/org.gervarro.democles.specification.emf/model/relational.genmodel"/>
+</org.moflon.core.propertycontainer:MoflonPropertiesContainer>
