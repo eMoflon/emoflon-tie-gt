@@ -10,6 +10,7 @@ import org.gervarro.democles.compiler.CompilerPatternBody;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.democles.reachability.javabdd.BDDReachabilityAnalyzer;
 import org.moflon.democles.reachability.javabdd.NullReachabilityAnalyzer;
 import org.moflon.democles.reachability.javabdd.ReachabilityAnalyzer;
@@ -37,11 +38,9 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	 * Configures which search plan generator to use
 	 * ({@link PatternMatcherCompiler}) and which pattern type is supported
 	 * 
-	 * @param patternMatcher
-	 *            the search plan generator to use
-	 * @param patternType
-	 *            the pattern type to use (see e.g.,
-	 *            {@link DefaultCodeGeneratorConfig#BLACK_PATTERN_MATCHER_GENERATOR})
+	 * @param patternMatcher the search plan generator to use
+	 * @param patternType    the pattern type to use (see e.g.,
+	 *                       {@link DefaultCodeGeneratorConfig#BLACK_PATTERN_MATCHER_GENERATOR})
 	 */
 	public PatternMatcherGenerator(final PatternMatcherCompiler patternMatcher, final String patternType,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -54,13 +53,10 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	 * This method generates a search plan for the given pattern invocations
 	 * (consisting of a {@link Pattern} and an input {@link Adornment})
 	 * 
-	 * @param pattern
-	 *            the pattern of the pattern invocation
-	 * @param adornment
-	 *            the adornment of the pattern invocation
-	 * @param isMultipleMatch
-	 *            if true, the search plan shall return all matches, if false the
-	 *            search plan shall return any match
+	 * @param pattern         the pattern of the pattern invocation
+	 * @param adornment       the adornment of the pattern invocation
+	 * @param isMultipleMatch if true, the search plan shall return all matches, if
+	 *                        false the search plan shall return any match
 	 * @return a validation report that may contain errors occurred during the
 	 *         search plan generation
 	 */
@@ -68,7 +64,8 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	public ValidationReport generateSearchPlan(final Pattern pattern, final Adornment adornment,
 			final boolean isMultipleMatch) {
 		final ValidationReport report = ResultFactory.eINSTANCE.createValidationReport();
-		Logger.getLogger(getClass()).debug("Generating search plan for " + pattern);
+		Logger logger = Logger.getLogger(getClass());
+		LogUtils.debug(logger, "Generating search plan for '%s'.", pattern.getName());
 		try {
 			final EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
 			final CompilerPattern compilerPattern = patternMatcher.compilePattern(pattern, adornment);
@@ -99,16 +96,12 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	/**
 	 * Search plan adapter generation strategy to be implemented by subclasses.
 	 * 
-	 * @param body
-	 *            the body of the processed {@link Pattern}
-	 * @param adornment
-	 *            the input {@link Adornment}
-	 * @param searchPlan
-	 *            the search plan generated from the {@link CompilerPatternBody} and
-	 *            the {@link Adornment}
-	 * @param multipleMatches
-	 *            (see isMultipleMatch in
-	 *            {@link #generateSearchPlan(Pattern, Adornment, boolean)})
+	 * @param body            the body of the processed {@link Pattern}
+	 * @param adornment       the input {@link Adornment}
+	 * @param searchPlan      the search plan generated from the
+	 *                        {@link CompilerPatternBody} and the {@link Adornment}
+	 * @param multipleMatches (see isMultipleMatch in
+	 *                        {@link #generateSearchPlan(Pattern, Adornment, boolean)})
 	 * @return
 	 */
 	public abstract SearchPlanAdapter createSearchPlanAdapter(final CompilerPatternBody body, final Adornment adornment,
@@ -118,12 +111,9 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	 * Creates a 'no search plan found' error for the given {@link Pattern} and
 	 * attaches it to the {@link ValidationReport}.
 	 * 
-	 * @param pattern
-	 *            the pattern
-	 * @param report
-	 *            the report
-	 * @param details
-	 *            details about the error message
+	 * @param pattern the pattern
+	 * @param report  the report
+	 * @param details details about the error message
 	 */
 	static void createAndAddErrorMessage(final Pattern pattern, final ValidationReport report, final String details) {
 		final ErrorMessage error = ResultFactory.eINSTANCE.createErrorMessage();
