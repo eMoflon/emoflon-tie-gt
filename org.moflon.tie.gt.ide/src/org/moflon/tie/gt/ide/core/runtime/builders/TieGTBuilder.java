@@ -37,7 +37,7 @@ import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.tie.gt.ide.core.codegeneration.MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase;
+import org.moflon.tie.gt.ide.core.codegeneration.TieGtCodeGenerator;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGTControlFlowBuilder;
 import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
@@ -142,7 +142,7 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			subMon.worked(1);
 			final EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
 					.getPreferencesStorage();
-			final MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase codeGenerationTask = new MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(
+			final TieGtCodeGenerator codeGenerationTask = new TieGtCodeGenerator(
 					ecoreFile, resourceSet, preferencesStorage);
 			final TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder(preferencesStorage);
 			codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);

@@ -35,13 +35,13 @@ import org.moflon.emf.build.MonitoredGenModelBuilder;
 import org.moflon.emf.codegen.CodeGenerator;
 import org.moflon.emf.injection.ide.InjectionManager;
 
-public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonEmfCodeGenerator {
+public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
-	private static final Logger logger = Logger.getLogger(MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase.class);
+	private static final Logger logger = Logger.getLogger(TieGtCodeGenerator.class);
 
 	protected MoflonCodeGeneratorPhase additionalCodeGenerationPhase;
 
-	public MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase(final IFile ecoreFile, final ResourceSet resourceSet,
+	public TieGtCodeGenerator(final IFile ecoreFile, final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage) {
 		super(ecoreFile, resourceSet, preferencesStorage);
 	}
@@ -65,8 +65,7 @@ public class MoflonEmfCodeGeneratorWithAdditionalCodeGenPhase extends MoflonEmfC
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 			final EPackage ePackage = (EPackage) resource.getContents().get(0);
-			// TODO@rkluge: Switch to DEMOCLES_ATTRIBUTES
-			final String engineID = SDMCodeGeneratorIds.DEMOCLES.getLiteral();
+			final String engineID = SDMCodeGeneratorIds.DEMOCLES_ATTRIBUTES.getLiteral();
 			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
 			subMon.worked(5);
