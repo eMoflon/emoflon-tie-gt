@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <description name="eMoflon::TIE-GT update site" url="https://emoflon.org/emoflon-tie-gt-updatesite/stable/updatesite/">
+      For all available update channels of eMoflon::TIE-GT, see
+https://github.com/eMoflon/emoflon-tie-gt-updatesite/ .
+For further information on eMoflon, see
+https://emoflon.org/ .
+   </description>
+   <feature url="features/org.moflon.tie.gt.feature_1.0.0.qualifier.jar" id="org.moflon.tie.gt.feature" version="1.0.0.qualifier">
+      <category name="org.moflon.tie.gt.category"/>
+   </feature>
+   <category-def name="org.moflon.tie.gt.category" label="eMoflon::TIE-GT">
+      <description>
+         eMoflon::TIE-GT Components
+      </description>
+   </category-def>
+</site>
