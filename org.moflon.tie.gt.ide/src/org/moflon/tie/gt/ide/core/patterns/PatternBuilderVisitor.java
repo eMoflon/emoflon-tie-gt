@@ -137,37 +137,29 @@ public class PatternBuilderVisitor {
 	}
 
 	private void visit(final EditorCondition condition, final EditorPattern pattern) {
-		// TODO: create problem marker if condition.getConditions()>1
-		// TODO: @rkluge you are possibly a lot quicker than me here. Just insert after
-		// the if statment
-		if (condition.getConditions().size() > 1) {
-			// Resource res=((EditorPatternImpl)pattern).eResource();
-			// URI resolvedFile = CommonPlugin.resolve(res.getURI());
-			// IFile f = ResourcesPlugin.getWorkspace().getRoot().getFile(new
-			// Path(resolvedFile.toFileString()));
-			// try {
-			// ProblemMarkerUtil.createProblemMarker(f,"Chaining of Multiple Application
-			// Conditions of varying type is not supported", Severity.ERROR.getValue(),
-			// pattern.getName());
-			// } catch (CoreException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
-			// throw new RuntimeException("multipleConditions");
-			;
-		}
-		// We only take the first one here as we do not accept AND connections
-		final EditorSimpleCondition partialCondition = condition.getConditions().get(0);
-		if (partialCondition instanceof EditorConditionReference) {
-			final EditorConditionReference simpleCond = (EditorConditionReference) partialCondition;
-			visit(simpleCond.getCondition(), pattern);
-		} else {
-			final EditorApplicationCondition simpleCond = (EditorApplicationCondition) partialCondition;
-			final EditorPattern applicationCondition = simpleCond.getPattern();
-			final EditorApplicationConditionType type = simpleCond.getType();
-			// TODO:obtain pattern
-			final Pattern newInvokedPattern = buildApplicationConditionPattern(applicationCondition);
-			createPatternInvocation(type, newInvokedPattern);
+
+		switch (condition.getConditions().size()) {
+		case 0:
+			return;
+		case 1:
+			// We only take the first one here as we do not accept AND connections
+			final EditorSimpleCondition partialCondition = condition.getConditions().get(0);
+			if (partialCondition instanceof EditorConditionReference) {
+				final EditorConditionReference simpleCond = (EditorConditionReference) partialCondition;
+				visit(simpleCond.getCondition(), pattern);
+			} else {
+				final EditorApplicationCondition simpleCond = (EditorApplicationCondition) partialCondition;
+				final EditorPattern applicationCondition = simpleCond.getPattern();
+				final EditorApplicationConditionType type = simpleCond.getType();
+				// TODO:obtain pattern
+				final Pattern newInvokedPattern = buildApplicationConditionPattern(applicationCondition);
+				createPatternInvocation(type, newInvokedPattern);
+			}
+		default:
+			// TODO: create problem marker if condition.getConditions()>1
+			// TODO@rkluge you are possibly a lot quicker than me here. Just insert after
+			// the if statment
+			return;
 		}
 	}
 
