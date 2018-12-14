@@ -488,26 +488,26 @@ public class PatternBuilderVisitor {
 		if (valueObject instanceof Integer) {
 			final Integer value = (Integer) valueObject;
 			constant.setValue(value);
-		}
-		if (valueObject instanceof String) {
+		} else if (valueObject instanceof String) {
 			final String value = (String) valueObject;
 			constant.setValue(value);
-		}
-		if (valueObject instanceof Boolean) {
+		} else if (valueObject instanceof Boolean) {
 			final Boolean value = (Boolean) valueObject;
 			constant.setValue(value.booleanValue());
-		}
-		if (valueObject instanceof Double) {
+		} else if (valueObject instanceof Double) {
 			final Double value = (Double) valueObject;
 			constant.setValue(value.doubleValue());
-		}
-		if (valueObject instanceof Float) {
+		} else if (valueObject instanceof Float) {
 			final Float value = (Float) valueObject;
 			constant.setValue(value.floatValue());
-		}
-		if (valueObject instanceof Long) {
+		} else if (valueObject instanceof Long) {
 			final Long value = (Long) valueObject;
 			constant.setValue(value.longValue());
+		} else if (valueObject instanceof EEnumLiteral) {
+			final EEnumLiteral literal = (EEnumLiteral) valueObject;
+			constant.setValue(literal);
+		} else {
+			throw new IllegalArgumentException("Unsupported value type: " + valueObject);
 		}
 	}
 
@@ -606,6 +606,30 @@ public class PatternBuilderVisitor {
 		target.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
 		final Constant source = patternHelper.createConstant();
 		setConstantValueWithAdjustedType(source, getValueForType(returnVariable.getType(), val));
+		exprPattern.getSymbolicParameters().add(target);
+		body.getConstants().add(source);
+		// create EqualConstraint
+		final Equal equal = relationalConstraintsHelper.createEqual();
+		final ConstraintParameter sourceConstr = patternHelper.createConstraintParameter();
+		sourceConstr.setReference(source);
+		final ConstraintParameter targetConstr = patternHelper.createConstraintParameter();
+		targetConstr.setReference(target);
+		equal.getParameters().add(targetConstr);
+		equal.getParameters().add(sourceConstr);
+		body.getConstraints().add(equal);
+		return exprPattern;
+	}
+
+	public Pattern createExpressionPatternForEnumValues(final CFVariable returnVariable,
+			final EEnumLiteral enumLiteral) {
+		final Pattern exprPattern = patternHelper.createPattern();
+		final PatternBody body = patternHelper.createPatternBody();
+		exprPattern.getBodies().add(body);
+		final EMFVariable target = emfHelper.createEMFVariable();
+		target.setName("_result");
+		target.setEClassifier(contextController.getTypeContext(returnVariable.getType()));
+		final Constant source = patternHelper.createConstant();
+		setConstantValueWithAdjustedType(source, enumLiteral);
 		exprPattern.getSymbolicParameters().add(target);
 		body.getConstants().add(source);
 		// create EqualConstraint

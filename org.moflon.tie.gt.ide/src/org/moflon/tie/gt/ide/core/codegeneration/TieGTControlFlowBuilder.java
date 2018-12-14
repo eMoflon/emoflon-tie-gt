@@ -26,9 +26,9 @@ import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 
 public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask {
 
@@ -166,7 +166,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 							&& MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
 				}
 			});
-			EcoreUtil.resolveAll(this.getResourceSet());
+			// EcoreUtil.resolveAll(this.getResourceSet());
 		} catch (final CoreException e) {
 			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
 		}

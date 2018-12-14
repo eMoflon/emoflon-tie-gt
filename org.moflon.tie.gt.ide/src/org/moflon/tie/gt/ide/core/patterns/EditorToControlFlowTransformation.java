@@ -287,10 +287,25 @@ public class EditorToControlFlowTransformation {
 					return transformationStatus;
 				}
 			} else if (returnObject instanceof EnumExpression) {
-//				final EnumExpression enumExpression = (EnumExpression) returnObject;
-				transformationStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-						"Enum expressions currently not supported"));
-				return transformationStatus;
+				final EnumExpression enumExpression = (EnumExpression) returnObject;
+				final EClassifier returnVariableType = lookupTypeInEcoreFile(currentEOP.getEType(), ePackage);
+				resultPatternInvocation.setReturnType(returnVariableType);
+				final String returnVariableName = returnVariableType.getName() + "_0";
+				final CFVariable returnVariable = DEMOCLES_CF_FACTORY.createCFVariable();
+				returnVariable.setType(returnVariableType);
+				returnVariable.setName(returnVariableName);
+				returnVariable.setScope(scope);
+				returnVariable.setLocal(true);
+				returnVariable.setConstructor(resultPatternInvocation);
+				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(this.ecorePackage,
+						resourceSet);
+				pattern = patternBuilderVisitor.createExpressionPatternForEnumValues(returnVariable,
+						enumExpression.getLiteral());
+				final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
+				final VariableReference ref = DEMOCLES_CF_FACTORY.createVariableReference();
+				ref.setFrom(returnVariable);
+				ref.setTo(emfReturnVariable);
+				ref.setInvocation(resultPatternInvocation);
 			} else {
 				throw new IllegalArgumentException(String.format("Cannot handle '%s'", returnObject));
 			}

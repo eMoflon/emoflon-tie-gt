@@ -30,41 +30,56 @@ EClassDef:
 ;
 
 MethodDec:
-	'operation' name = ID '(' (eParameters+=MethodParameter)? (',' eParameters+=MethodParameter)* ')' ':' (eType=[ecore::EClassifier | QualifiedName] | 'void') ('{'
+	'operation' name = ID '(' (eParameters+=MethodParameter)? (',' eParameters+=MethodParameter)* ')' ':' 
+	(eType=[ecore::EClassifier | QualifiedName] | 'void') ('{'
 		startStatement = Statement?
 	'}')?
 ;
 
-CalledPatternParameter: (parameter = CalledPatternParameterName) '=' object=[TypedElement | QualifiedName] | create= ObjectVariableStatement;
+CalledPatternParameter: 
+  (parameter = CalledPatternParameterName) '=' object=[TypedElement | QualifiedName] | create= ObjectVariableStatement
+;
+
 CalledPatternParameterName: name=ID;
 
-ObjectVariableStatement:(op = Operator)? name = ID ':' eType = [ecore::EClass | QualifiedName] (':=' assignment=[ObjectVariableStatement | QualifiedName])?;
+ObjectVariableStatement:
+  (op = Operator)? name = ID ':' eType = [ecore::EClass | QualifiedName] 
+  (':=' assignment=[ObjectVariableStatement | QualifiedName])?
+;
 
 Statement: NextStatement | ReturnStatement;
 
-NextStatement:(PatternStatement | ConditionContainingStatement| ObjectVariableStatement| CallStatement ) (next = Statement)?;
-//TODO: possibly need to create alternative to CalledPatternParameter
-PatternStatement:'invoke' patternReference=PatternReference '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')';
-
-ConditionStatement:'if' '(' cond=Condition ')''{'
-	thenStartStatement = Statement ?
-	'}'
-	('else' '{'
-		elseStartStatement = Statement ?
-	'}')?
+NextStatement:
+  (PatternStatement | ConditionContainingStatement | ObjectVariableStatement| CallStatement ) (next = Statement)?
 ;
 
-CallStatement:OperationCallStatement | MethodCallStatement;
+PatternStatement:
+'invoke' patternReference=PatternReference 
+  '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')'
+;
 
-MethodCallStatement:name = [MethodDec] '('(parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)?')';
+ConditionStatement:
+  'if' '(' cond=Condition ')''{'	thenStartStatement = Statement ?	'}'
+	('else' '{'	elseStartStatement = Statement ? '}')?
+;
+
+CallStatement: OperationCallStatement | MethodCallStatement;
+
+MethodCallStatement:
+  name = [MethodDec] '('(parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)?')'
+;
 
 OperationCallStatement:
 	object=[TypedElement] '.' call = [ecore::EOperation] '(' (parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)? ')'
 ;
 
-CalledMethodParameter:(object=[TypedElement | QualifiedName]) | create= ObjectVariableStatement;
+CalledMethodParameter:
+  (object=[TypedElement | QualifiedName]) | create= ObjectVariableStatement
+;
 
-Condition:patternReference=PatternReference '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')';
+Condition:
+  patternReference=PatternReference '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')'
+;
 
 PatternReference: pattern = [ibexPattern::EditorPattern];
 
@@ -72,17 +87,20 @@ ConditionContainingStatement:ConditionStatement | LoopStatement;
 
 LoopStatement:DoLoopStatement | WhileLoopStatement| ForLoopStatement;
 
-WhileLoopStatement: 'while''(' cond=Condition ')''{'
+WhileLoopStatement: 
+'while''(' cond=Condition ')''{'
 		loopStartStatement = Statement?
 	'}'
 ;
 
-DoLoopStatement: 'do' '{'
+DoLoopStatement: 
+'do' '{'
 	loopStartStatement = Statement?
 	'}' 'while' '(' cond=Condition ')'
 ;
 
-ForLoopStatement: 'for' '('
+ForLoopStatement: 
+'for' '('
 	cond = Condition
 	')''{'
 		loopStartStatement = Statement ?
@@ -153,4 +171,4 @@ CalledParameter:CalledPatternParameter | CalledMethodParameter;
 
 LiteralExpression: val= LiteralValue | {StringConstant} val=STRING;
 
-ReturnObject: (LiteralExpression|TypedNamedObject|EnumExpression);
+ReturnObject: (LiteralExpression | TypedNamedObject | EnumExpression);
