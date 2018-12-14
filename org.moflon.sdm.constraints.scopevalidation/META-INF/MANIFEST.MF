@@ -6,11 +6,9 @@ Export-Package: org.moflon.sdm.constraints.scopevalidation,
  org.moflon.sdm.constraints.scopevalidation.util
 Bundle-Name: org.moflon.sdm.constraints.scopevalidation
 Bundle-Version: 2.0.0.qualifier
-Require-Bundle: org.eclipse.emf.ecore.xmi;bundle-version="[2.9.1,
- 3.0.0)",
- SDMLanguage,
- org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,
- 0.5.0)",
+Require-Bundle: org.eclipse.emf.ecore.xmi;bundle-version="[2.9.1,3.0.0)",
+ org.moflon.sdm.language,
+ org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,0.5.0)",
  org.moflon.sdm.runtime.democles,
  org.moflon.sdm.compiler.democles.validation.scope,
  org.moflon.sdm.compiler.democles.validation.result,
@@ -18,7 +16,7 @@ Require-Bundle: org.eclipse.emf.ecore.xmi;bundle-version="[2.9.1,
  org.eclipse.emf.ecore,
  org.moflon.core.utilities,
  org.moflon.sdm.democles.literalexpressionsolver,
- MocaTree
+ org.moflon.core.moca.tree
 Bundle-ManifestVersion: 2
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

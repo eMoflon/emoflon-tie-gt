@@ -14,7 +14,7 @@ Require-Bundle:
  org.moflon.core.utilities,
  org.moflon.core.build,
  org.moflon.core.propertycontainer,
- SDMLanguage,
+ org.moflon.sdm.language,
  org.moflon.sdm.runtime.democles,
  org.moflon.sdm.democles.literalexpressionsolver,
  org.moflon.core.dfs,
