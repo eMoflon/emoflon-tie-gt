@@ -287,7 +287,7 @@ public class EditorToControlFlowTransformation {
 					return transformationStatus;
 				}
 			} else if (returnObject instanceof EnumExpression) {
-				final EnumExpression enumExpression = (EnumExpression) returnObject;
+//				final EnumExpression enumExpression = (EnumExpression) returnObject;
 				transformationStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
 						"Enum expressions currently not supported"));
 				return transformationStatus;
