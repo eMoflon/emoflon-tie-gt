@@ -22,7 +22,6 @@ Require-Bundle:
  org.moflon.emf.injection.ide,
  org.moflon.emf.build
 Bundle-ClassPath: .
-Bundle-Activator: org.moflon.codegen.eclipse.CodeGeneratorPlugin
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.codegen,
  org.moflon.codegen.eclipse,
