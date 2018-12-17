@@ -37,6 +37,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
+import org.moflon.compiler.sdm.democles.eclipse.DemoclesValidationUtils;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
@@ -318,12 +319,7 @@ public class EditorToControlFlowTransformation {
 			final AdapterResource adapterResource = attachInRegisteredAdapter(pattern, correspondingEClass, resourceSet,
 					PatternType.EXPRESSION_PATTERN.getSuffix());
 
-			// TODO@rkluge: Just for debugging
-			try {
-				saveResourceQuiely(adapterResource);
-			} catch (final RuntimeException exception) {
-				System.out.println("CaughtRuntimeException: " + exception);
-			}
+			DemoclesValidationUtils.saveResource(adapterResource);
 			createAndSaveSearchPlan(resultPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN,
 					transformationStatus);
 		}

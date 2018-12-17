@@ -51,31 +51,31 @@ public final class DemoclesValidationUtils {
 			for (final EOperation eOperation : eClass.getEOperations()) {
 				final AdapterResource controlFlowResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
 						DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
-				AdapterResource sdmFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
+				final AdapterResource sdmFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
 						DemoclesMethodBodyHandler.SDM_FILE_EXTENSION);
-				AdapterResource dfsFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
+				final AdapterResource dfsFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
 						DemoclesMethodBodyHandler.DFS_FILE_EXTENSION);
 
-				for (AdapterResource adapterResource : Arrays.asList(controlFlowResource, dfsFileResource,
+				for (final AdapterResource adapterResource : Arrays.asList(controlFlowResource, dfsFileResource,
 						sdmFileResource)) {
 					saveResource(adapterResource);
 				}
 			}
 
-			AdapterResource bindingAndBlackResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
+			final AdapterResource bindingAndBlackResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
 					DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION);
-			AdapterResource redResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
+			final AdapterResource redResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
 					DemoclesMethodBodyHandler.RED_FILE_EXTENSION);
-			AdapterResource greenResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
+			final AdapterResource greenResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
 					DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION);
-			AdapterResource bindingFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
+			final AdapterResource bindingFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
 					DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION);
-			AdapterResource blackFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
+			final AdapterResource blackFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
 					DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
-			AdapterResource expressionResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
+			final AdapterResource expressionResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
 					DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION);
 
-			for (AdapterResource adapterResource : Arrays.asList(bindingAndBlackResource, blackFileResource,
+			for (final AdapterResource adapterResource : Arrays.asList(bindingAndBlackResource, blackFileResource,
 					redResource, greenResource, bindingFileResource, blackFileResource, expressionResource)) {
 				saveResource(adapterResource);
 			}
@@ -87,10 +87,9 @@ public final class DemoclesValidationUtils {
 	 *
 	 * The resource will is not changed during this method.
 	 *
-	 * @param adapterResource
-	 *            the resource to save
+	 * @param adapterResource the resource to save
 	 */
-	private static void saveResource(AdapterResource adapterResource) {
+	public static void saveResource(final AdapterResource adapterResource) {
 		if (adapterResource != null) {
 			final URI oldUri = adapterResource.getURI();
 			final URI inWorkspaceUri;
@@ -114,7 +113,7 @@ public final class DemoclesValidationUtils {
 				URIConverter.URI_MAP.put(oldUri, inWorkspaceUri);
 
 				restoreNonSerializeableValues(temporarilyClearedConstants);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				LogUtils.error(logger, e);
 			} finally {
 				adapterResource.setURI(oldUri);
@@ -130,12 +129,14 @@ public final class DemoclesValidationUtils {
 	 * {@link Constant} objects to <code>null</code> if the value is not
 	 * {@link Serializable}.
 	 *
-	 * The returned map saves the original value assignments of the modified {@link Constant} objects
+	 * The returned map saves the original value assignments of the modified
+	 * {@link Constant} objects
 	 *
 	 * @param adapterResource the resource to update
-	 * @return the lookup table of all {@link Constant} objects whose value was set to <code>null</code>
+	 * @return the lookup table of all {@link Constant} objects whose value was set
+	 *         to <code>null</code>
 	 */
-	private static Map<Constant, Object> removeAndSaveAllNonSerializeableValues(AdapterResource adapterResource) {
+	private static Map<Constant, Object> removeAndSaveAllNonSerializeableValues(final AdapterResource adapterResource) {
 		final Map<Constant, Object> temporarilyClearedConstants = new HashMap<>();
 		final TreeIterator<Object> allContentsIterator = EcoreUtil.getAllContents(adapterResource.getContents());
 		while (allContentsIterator.hasNext()) {
@@ -152,8 +153,11 @@ public final class DemoclesValidationUtils {
 	}
 
 	/**
-	 * For each stored {@link Constant}-Object mapping, this method sets the value of the constant to be the respective value.
-	 * @param temporarilyClearedConstants the lookup from {@link Constant} to objects
+	 * For each stored {@link Constant}-Object mapping, this method sets the value
+	 * of the constant to be the respective value.
+	 * 
+	 * @param temporarilyClearedConstants the lookup from {@link Constant} to
+	 *                                    objects
 	 */
 	private static void restoreNonSerializeableValues(final Map<Constant, Object> temporarilyClearedConstants) {
 		temporarilyClearedConstants.forEach((constant, value) -> constant.setValue(value));
@@ -163,8 +167,7 @@ public final class DemoclesValidationUtils {
 	 * Deletes all intermediate models of the control flow generation process, which
 	 * are generated, e.g., by #saveAllIntermediateModels.
 	 *
-	 * @param modelFolder
-	 *            only files contained in this folder are scanned
+	 * @param modelFolder only files contained in this folder are scanned
 	 */
 	public static void clearAllIntermediateModels(final IFolder modelFolder) {
 		try {
