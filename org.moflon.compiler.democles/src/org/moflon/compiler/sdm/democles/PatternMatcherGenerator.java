@@ -50,6 +50,8 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 
 	private final EMoflonPreferencesStorage preferencesStorage;
 
+	private final Logger logger = Logger.getLogger(getClass());
+
 	/**
 	 * Configures which search plan generator to use
 	 * ({@link PatternMatcherCompiler}) and which pattern type is supported
@@ -80,7 +82,6 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	public ValidationReport generateSearchPlan(final Pattern pattern, final Adornment adornment,
 			final boolean isMultipleMatch) {
 		final ValidationReport report = ResultFactory.eINSTANCE.createValidationReport();
-		final Logger logger = Logger.getLogger(getClass());
 		LogUtils.debug(logger, "Generating search plan for '%s'.", pattern.getName());
 		try {
 			final EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
@@ -104,28 +105,33 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 				createAndAddErrorMessage(pattern, report, "Reachability analysis was negative.");
 			}
 		} catch (final RuntimeException e) {
-			if (exceptionMessageIndicatesThatNoSearchPlanExists(e)) {
-				createAndAddErrorMessage(pattern, report, null);
-			} else {
-				final String shortMessage = String.format(
-						"%s occured with error message: %s (see debug output for details)", e.getClass(),
-						e.getMessage());
-				createAndAddErrorMessage(pattern, report, shortMessage);
-				final String stacktrace = ExceptionUtils.getStackTrace(e);
-				LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
-			}
-
-			LogUtils.debug(logger, "Adornment: %s", adornment);
-			LogUtils.debug(logger, "Symbolic parameters: %s", pattern.getSymbolicParameters().stream()
-					.map(parameter -> EMFVariable.class.cast(parameter).getName()).collect(Collectors.toList()));
-			for (final PatternBody body : pattern.getBodies()) {
-				for (final Constraint constraint : body.getConstraints()) {
-					LogUtils.debug(logger, "  %s", describeConstraint(constraint));
-				}
-			}
+			handleExceptionDuringSearchPlanGeneration(pattern, adornment, report, e);
 
 		}
 		return report;
+	}
+
+	private void handleExceptionDuringSearchPlanGeneration(final Pattern pattern, final Adornment adornment,
+			final ValidationReport report, final RuntimeException exception) {
+		if (exceptionMessageIndicatesThatNoSearchPlanExists(exception)) {
+			createAndAddErrorMessage(pattern, report, null);
+		} else {
+			final String shortMessage = String.format(
+					"%s occured with error message: %s (see debug output for details)", exception.getClass(),
+					exception.getMessage());
+			createAndAddErrorMessage(pattern, report, shortMessage);
+			final String stacktrace = ExceptionUtils.getStackTrace(exception);
+			LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
+		}
+
+		LogUtils.debug(logger, "Adornment: %s", adornment);
+		LogUtils.debug(logger, "Symbolic parameters: %s", pattern.getSymbolicParameters().stream()
+				.map(parameter -> EMFVariable.class.cast(parameter).getName()).collect(Collectors.toList()));
+		for (final PatternBody body : pattern.getBodies()) {
+			for (final Constraint constraint : body.getConstraints()) {
+				LogUtils.debug(logger, "  %s", describeConstraint(constraint));
+			}
+		}
 	}
 
 	private Object describeConstraint(final Constraint constraint) {
