@@ -1,5 +1,7 @@
 package org.moflon.compiler.sdm.democles;
 
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.EClass;
@@ -8,7 +10,20 @@ import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPattern;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.gervarro.democles.specification.emf.Constraint;
+import org.gervarro.democles.specification.emf.ConstraintParameter;
+import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
+import org.gervarro.democles.specification.emf.PatternBody;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
+import org.gervarro.democles.specification.emf.constraint.relational.Equal;
+import org.gervarro.democles.specification.emf.constraint.relational.Larger;
+import org.gervarro.democles.specification.emf.constraint.relational.LargerOrEqual;
+import org.gervarro.democles.specification.emf.constraint.relational.Smaller;
+import org.gervarro.democles.specification.emf.constraint.relational.SmallerOrEqual;
+import org.gervarro.democles.specification.emf.constraint.relational.Unequal;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.LogUtils;
@@ -89,13 +104,79 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 				createAndAddErrorMessage(pattern, report, "Reachability analysis was negative.");
 			}
 		} catch (final RuntimeException e) {
-			final String shortMessage = String.format(
-					"%s occured with error message: %s (see debug output for details)", e.getClass(), e.getMessage());
-			createAndAddErrorMessage(pattern, report, shortMessage);
-			final String stacktrace = ExceptionUtils.getStackTrace(e);
-			LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
+			if (exceptionMessageIndicatesThatNoSearchPlanExists(e)) {
+				createAndAddErrorMessage(pattern, report, null);
+			} else {
+				final String shortMessage = String.format(
+						"%s occured with error message: %s (see debug output for details)", e.getClass(),
+						e.getMessage());
+				createAndAddErrorMessage(pattern, report, shortMessage);
+				final String stacktrace = ExceptionUtils.getStackTrace(e);
+				LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
+			}
+
+			LogUtils.debug(logger, "Adornment: %s", adornment);
+			LogUtils.debug(logger, "Symbolic parameters: %s", pattern.getSymbolicParameters().stream()
+					.map(parameter -> EMFVariable.class.cast(parameter).getName()).collect(Collectors.toList()));
+			for (final PatternBody body : pattern.getBodies()) {
+				for (final Constraint constraint : body.getConstraints()) {
+					LogUtils.debug(logger, "  %s", describeConstraint(constraint));
+				}
+			}
+
 		}
 		return report;
+	}
+
+	private Object describeConstraint(final Constraint constraint) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(describeConstraintName(constraint));
+		sb.append("(");
+		for (final ConstraintParameter parameter : constraint.getParameters()) {
+			final ConstraintVariable reference = parameter.getReference();
+			final EMFVariable emfVariable = (EMFVariable) reference;
+			sb.append(emfVariable.getName());
+			sb.append(",");
+		}
+		sb.replace(sb.length() - 1, sb.length(), ")");
+		sb.append("    [class: ").append(constraint).append("]");
+		return sb.toString();
+	}
+
+	private String describeConstraintName(final Constraint constraint) {
+		if (constraint instanceof Attribute) {
+			final Attribute attribute = (Attribute) constraint;
+			return attribute.getEModelElement().getName();
+		} else if (constraint instanceof Reference) {
+			final Reference reference = (Reference) constraint;
+			return reference.getEModelElement().getName();
+		} else if (constraint instanceof Smaller) {
+			return "<";
+		} else if (constraint instanceof SmallerOrEqual) {
+			return "<=";
+		} else if (constraint instanceof Equal) {
+			return "==";
+		} else if (constraint instanceof Unequal) {
+			return "!=";
+		} else if (constraint instanceof LargerOrEqual) {
+			return ">=";
+		} else if (constraint instanceof Larger) {
+			return ">";
+		}
+		return constraint.toString();
+	}
+
+	/**
+	 * Checks whether the message of the given {@link RuntimeException} indicates
+	 * that the search plan algorithm could not find a result
+	 * 
+	 * @param e the exception
+	 * @return whether the exception indicates that the search plan generation
+	 *         failed
+	 */
+	private boolean exceptionMessageIndicatesThatNoSearchPlanExists(final RuntimeException e) {
+		final String magicKeyword = "No valid search plan is available";
+		return e.getMessage() != null && e.getMessage().contains(magicKeyword);
 	}
 
 	/**
@@ -123,9 +204,10 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	static void createAndAddErrorMessage(final Pattern pattern, final ValidationReport report, final String details) {
 		final ErrorMessage error = ResultFactory.eINSTANCE.createErrorMessage();
 		report.getErrorMessages().add(error);
+		final String detailsFragment = details != null ? String.format(" Details: '%s'.", details) : "";
 		error.setId(String.format(
-				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct. Details: '%s'.",
-				pattern.getName(), details));
+				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct.%s",
+				pattern.getName(), detailsFragment));
 		error.setSeverity(Severity.ERROR);
 	}
 
