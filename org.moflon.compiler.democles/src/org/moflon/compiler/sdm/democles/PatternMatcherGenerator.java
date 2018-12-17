@@ -1,7 +1,5 @@
 package org.moflon.compiler.sdm.democles;
 
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.EClass;
@@ -11,19 +9,8 @@ import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPattern;
 import org.gervarro.democles.compiler.CompilerPatternBody;
 import org.gervarro.democles.specification.emf.Constraint;
-import org.gervarro.democles.specification.emf.ConstraintParameter;
-import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
-import org.gervarro.democles.specification.emf.constraint.relational.Equal;
-import org.gervarro.democles.specification.emf.constraint.relational.Larger;
-import org.gervarro.democles.specification.emf.constraint.relational.LargerOrEqual;
-import org.gervarro.democles.specification.emf.constraint.relational.Smaller;
-import org.gervarro.democles.specification.emf.constraint.relational.SmallerOrEqual;
-import org.gervarro.democles.specification.emf.constraint.relational.Unequal;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.LogUtils;
@@ -83,10 +70,11 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 			final boolean isMultipleMatch) {
 		final ValidationReport report = ResultFactory.eINSTANCE.createValidationReport();
 		LogUtils.debug(logger, "Generating search plan for '%s'.", pattern.getName());
+		final EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
+		final CompilerPattern compilerPattern = patternMatcher.compilePattern(pattern, adornment);
+		final CompilerPatternBody body = compilerPattern.getBodies().get(0);
 		try {
-			final EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
-			final CompilerPattern compilerPattern = patternMatcher.compilePattern(pattern, adornment);
-			final CompilerPatternBody body = compilerPattern.getBodies().get(0);
+
 			final ReachabilityAnalyzer reachabilityAnalyzer;
 			if (preferencesStorage.getReachabilityEnabled()) {
 				final int maximumAdornmentSize = preferencesStorage.getMaximumAdornmentSize();
@@ -105,14 +93,14 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 				createAndAddErrorMessage(pattern, report, "Reachability analysis was negative.");
 			}
 		} catch (final RuntimeException e) {
-			handleExceptionDuringSearchPlanGeneration(pattern, adornment, report, e);
+			handleExceptionDuringSearchPlanGeneration(pattern, body, adornment, report, e);
 
 		}
 		return report;
 	}
 
-	private void handleExceptionDuringSearchPlanGeneration(final Pattern pattern, final Adornment adornment,
-			final ValidationReport report, final RuntimeException exception) {
+	private void handleExceptionDuringSearchPlanGeneration(final Pattern pattern, final CompilerPatternBody body,
+			final Adornment adornment, final ValidationReport report, final RuntimeException exception) {
 		if (exceptionMessageIndicatesThatNoSearchPlanExists(exception)) {
 			createAndAddErrorMessage(pattern, report, null);
 		} else {
@@ -124,52 +112,17 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 			LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
 		}
 
-		LogUtils.debug(logger, "Adornment: %s", adornment);
-		LogUtils.debug(logger, "Symbolic parameters: %s", pattern.getSymbolicParameters().stream()
-				.map(parameter -> EMFVariable.class.cast(parameter).getName()).collect(Collectors.toList()));
-		for (final PatternBody body : pattern.getBodies()) {
-			for (final Constraint constraint : body.getConstraints()) {
-				LogUtils.debug(logger, "  %s", describeConstraint(constraint));
-			}
+		LogUtils.debug(logger, "Symbolic parameters: %s", PatternUtils.describeSymbolicParameters(pattern, adornment));
+		final PatternBody originalPattern = pattern.getBodies().get(0);
+		LogUtils.debug(logger, "Constraints");
+		for (final Constraint constraint : originalPattern.getConstraints()) {
+			LogUtils.debug(logger, "  %s", PatternUtils.describeConstraint(constraint));
 		}
-	}
+		LogUtils.debug(logger, "Operations");
+		for (final GeneratorOperation operation : body.getOperations()) {
+			LogUtils.debug(logger, "  %s", PatternUtils.describeOperation(operation));
+		}
 
-	private Object describeConstraint(final Constraint constraint) {
-		final StringBuilder sb = new StringBuilder();
-		sb.append(describeConstraintName(constraint));
-		sb.append("(");
-		for (final ConstraintParameter parameter : constraint.getParameters()) {
-			final ConstraintVariable reference = parameter.getReference();
-			final EMFVariable emfVariable = (EMFVariable) reference;
-			sb.append(emfVariable.getName());
-			sb.append(",");
-		}
-		sb.replace(sb.length() - 1, sb.length(), ")");
-		sb.append("    [class: ").append(constraint).append("]");
-		return sb.toString();
-	}
-
-	private String describeConstraintName(final Constraint constraint) {
-		if (constraint instanceof Attribute) {
-			final Attribute attribute = (Attribute) constraint;
-			return attribute.getEModelElement().getName();
-		} else if (constraint instanceof Reference) {
-			final Reference reference = (Reference) constraint;
-			return reference.getEModelElement().getName();
-		} else if (constraint instanceof Smaller) {
-			return "<";
-		} else if (constraint instanceof SmallerOrEqual) {
-			return "<=";
-		} else if (constraint instanceof Equal) {
-			return "==";
-		} else if (constraint instanceof Unequal) {
-			return "!=";
-		} else if (constraint instanceof LargerOrEqual) {
-			return ">=";
-		} else if (constraint instanceof Larger) {
-			return ">";
-		}
-		return constraint.toString();
 	}
 
 	/**
