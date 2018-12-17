@@ -209,28 +209,27 @@ public class PatternBuilderVisitor {
 
 			final Attribute attributeReference = emfHelper.createAttribute();
 			attributeReference.setEModelElement(eAttribute);
-			if (attributeReference.getParameters().isEmpty()) {
-				if (!variableLookup.containsKey(eAttribute, editorNode, type)) {
-					final EMFVariable newAttribute = variableLookup.getOrCreateEMFVariable(eAttribute, editorNode,
-							type);
-					newAttribute.setEClassifier(contextController.getTypeContext(eAttribute.getEType()));
-					patternBody.getLocalVariables().add(newAttribute);
-				}
-				final EMFVariable attribute = variableLookup.get(eAttribute, editorNode, type);
-				patternBody.getConstraints().add(attributeReference);
-
-				final ConstraintParameter toAttribute = patternHelper.createConstraintParameter();
-				toAttribute.setReference(attribute);
-
-				attributeReference.getParameters().add(fromNode);
-				attributeReference.getParameters().add(toAttribute);
-
-				to.setReference(attribute);
-
-			} else {
-				final EMFVariable attribute = variableLookup.get(eAttribute, editorNode, type);
-				to.setReference(attribute);
+			if (!variableLookup.containsKey(eAttribute, editorNode, type)) {
+				final EMFVariable newAttribute = variableLookup.getOrCreateEMFVariable(eAttribute, editorNode, type);
+				newAttribute.setEClassifier(contextController.getTypeContext(eAttribute.getEType()));
+				patternBody.getLocalVariables().add(newAttribute);
 			}
+			final EMFVariable attribute = variableLookup.get(eAttribute, editorNode, type);
+
+			final ConstraintParameter toAttribute = patternHelper.createConstraintParameter();
+			toAttribute.setReference(attribute);
+
+			attributeReference.getParameters().add(fromNode);
+			attributeReference.getParameters().add(toAttribute);
+
+			final Optional<Attribute> existingConstraint = findAttributeConstraintInPatternBody(attributeReference,
+					patternBody);
+			if (!existingConstraint.isPresent()) {
+				patternBody.getConstraints().add(attributeReference);
+			}
+
+			to.setReference(attribute);
+
 		}
 		if (expr instanceof EditorLiteralExpression) {
 			createAndBindConstant(editorAttribute, patternBody, source, to, (EditorLiteralExpression) expr);
@@ -257,6 +256,15 @@ public class PatternBuilderVisitor {
 		relConstraint.getParameters().add(tmpAttrValCopy);
 		relConstraint.getParameters().add(to);
 		patternBody.getConstraints().add(relConstraint);
+	}
+
+	private Optional<Attribute> findAttributeConstraintInPatternBody(final Attribute attributeReference,
+			final PatternBody patternBody) {
+		final Optional<Attribute> existingAttributeConstraint = patternBody.getConstraints().stream()
+				.filter(constraint -> constraint instanceof Attribute).map(Attribute.class::cast)
+				.filter(attribute -> attribute.getEModelElement().equals(attributeReference.getEModelElement()))
+				.findAny();
+		return existingAttributeConstraint;
 	}
 
 	private void visit(final EditorReference editorReference, final EditorNode source,
