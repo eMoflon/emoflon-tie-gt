@@ -1,5 +1,6 @@
 package org.moflon.compiler.sdm.democles;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.EClass;
 import org.gervarro.democles.codegen.Chain;
@@ -64,7 +65,7 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 	public ValidationReport generateSearchPlan(final Pattern pattern, final Adornment adornment,
 			final boolean isMultipleMatch) {
 		final ValidationReport report = ResultFactory.eINSTANCE.createValidationReport();
-		Logger logger = Logger.getLogger(getClass());
+		final Logger logger = Logger.getLogger(getClass());
 		LogUtils.debug(logger, "Generating search plan for '%s'.", pattern.getName());
 		try {
 			final EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
@@ -88,7 +89,11 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 				createAndAddErrorMessage(pattern, report, "Reachability analysis was negative.");
 			}
 		} catch (final RuntimeException e) {
-			createAndAddErrorMessage(pattern, report, "An " + e.getClass() + " occured: " + e.getMessage());
+			final String shortMessage = String.format(
+					"%s occured with error message: %s (see debug output for details)", e.getClass(), e.getMessage());
+			createAndAddErrorMessage(pattern, report, shortMessage);
+			final String stacktrace = ExceptionUtils.getStackTrace(e);
+			LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
 		}
 		return report;
 	}
