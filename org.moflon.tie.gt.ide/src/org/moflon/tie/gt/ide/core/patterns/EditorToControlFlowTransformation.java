@@ -738,7 +738,7 @@ public class EditorToControlFlowTransformation {
 			final PatternType patternType, final MultiStatus transformationStatus) {
 		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
 		final Adornment adornment = calculateAdornment(patternInvocation, patternType);
-		// TODO@rkluge: multi-match is only relevant for foreach, as far as I know
+
 		boolean isMultipleMatch = false;
 		if (patternInvocation.getCfNode() instanceof ForEach)
 			isMultipleMatch = true;
