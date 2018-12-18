@@ -47,11 +47,11 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 
 	private IProject project;
 
-	private EditorToControlFlowTransformation tieGTAdapterTransformation;
-	private EMoflonPreferencesStorage preferencesStorage;
+	private EditorToControlFlowTransformation controlFlowTransformation;
+	private final EMoflonPreferencesStorage preferencesStorage;
 	private EPackage ecorePackage;
 
-	public TieGTControlFlowBuilder(EMoflonPreferencesStorage preferencesStorage) {
+	public TieGTControlFlowBuilder(final EMoflonPreferencesStorage preferencesStorage) {
 		this.preferencesStorage = preferencesStorage;
 	}
 
@@ -60,20 +60,16 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 	}
 
 	@Override
-	public IStatus run(final IProject project, Resource resource, MethodBodyHandler methodBodyHandler,
-			IProgressMonitor monitor) {
+	public IStatus run(final IProject project, final Resource resource, final MethodBodyHandler methodBodyHandler,
+			final IProgressMonitor monitor) {
 		this.project = project;
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
-		// TODO:
-		// final Map<String, PatternMatcher> patternMatcherConfiguration =
-		// methodBodyHandler.getPatternMatcherConfiguration();
-		// this.transformationConfiguration.getPatternMatchingController().setSearchplanGenerators(patternMatcherConfiguration);
-		// DemoclesMethodBodyHandler.initResourceSetForDemocles(resourceSet);
 		if (this.ecorePackage == null) {
-			throw new RuntimeException("eCore Package was not set in " + TieGTControlFlowBuilder.class.getName());
+			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
+					"eCore Package was not set in " + getClass().getName());
 		}
-		this.tieGTAdapterTransformation = new EditorToControlFlowTransformation(
+		this.controlFlowTransformation = new EditorToControlFlowTransformation(
 				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
 				preferencesStorage);
 		return run(monitor);
@@ -112,7 +108,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			getProject().accept(new IResourceVisitor() {
 
 				@Override
-				public boolean visit(IResource resource) throws CoreException {
+				public boolean visit(final IResource resource) throws CoreException {
 					if (resource.getName().equals("bin"))
 						return false;
 
@@ -130,7 +126,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 					return true;
 				}
 
-				private boolean isGTFile(IResource resource) {
+				private boolean isGTFile(final IResource resource) {
 					final IFile file = resource.getAdapter(IFile.class);
 					return resource != null && resource.exists() && file != null
 							&& "gt".equals(file.getFileExtension());
@@ -140,7 +136,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			getProject().accept(new IResourceVisitor() {
 
 				@Override
-				public boolean visit(IResource resource) throws CoreException {
+				public boolean visit(final IResource resource) throws CoreException {
 					if (resource.getName().equals("bin"))
 						return false;
 
@@ -160,7 +156,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 					return true;
 				}
 
-				private boolean isMOSLCFFile(IResource resource) {
+				private boolean isMOSLCFFile(final IResource resource) {
 					final IFile file = resource.getAdapter(IFile.class);
 					return resource != null && resource.exists() && file != null
 							&& MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION.equals(file.getFileExtension());
@@ -190,7 +186,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 					.collect(Collectors.toList());
 
 			for (final Resource schemaResource : mcfResources) {
-				IStatus status = processMCFResources(tieGTAdapterTransformation, schemaResource);
+				final IStatus status = processMCFResources(controlFlowTransformation, schemaResource);
 				if (status.matches(IStatus.ERROR)) {
 					return status;
 				}
@@ -203,50 +199,25 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		return Status.OK_STATUS;
 	}
 
-	private IStatus processMCFResources(EditorToControlFlowTransformation helper, final Resource schemaResource)
+	private IStatus processMCFResources(final EditorToControlFlowTransformation helper, final Resource schemaResource)
 			throws IOException {
 		final GraphTransformationControlFlowFile mCF = GraphTransformationControlFlowFile.class
 				.cast(schemaResource.getContents().get(0));
 		if (mCF.getImports().size() > 0) {
-			// TODO@rkluge: Probably, we will have to translate the .mgt files
-			// "package-by-package" and load the
-			// appropriate packages
-
-			// load context
-			String contextEcorePath = mCF.getImports().get(0).getName().replaceFirst("platform:/resource", "")
+			final String contextEcorePath = mCF.getImports().get(0).getName().replaceFirst("platform:/resource", "")
 					.replaceFirst("platform:/plugin", "");
-			Resource ecoreRes = this.resourceSet.getResource(URI.createPlatformResourceURI(contextEcorePath, false),
-					true);
+			final Resource ecoreRes = this.resourceSet
+					.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
 			ecoreRes.load(null);
-			// final EPackage contextEPackage = EcoreUtil.copy((EPackage)
-			// ecoreRes.getContents().get(0));
 
 			final EPackage contextEPackage = (EPackage) ecoreRes.getContents().get(0);
 
-			// transformation
-			// Resource enrichedEcoreResource = ePackage.eResource(); //
-			// this.resourceSet.createResource(enrichedEcoreURI);
-			// String nsURI = ePackage.eResource().getURI().toString();
-			// enrichedEcoreResource.getContents().clear();
-			// enrichedEcoreResource.getContents().add(contextEPackage);
-			// contextEPackage.setNsURI(nsURI);
-			// enrichedEcoreResource.save(Collections.EMPTY_MAP);
-			// EcoreUtil.resolveAll(contextEPackage);
-			// final EPackage enrichedEPackage =
 			return helper.transform(contextEPackage, mCF, this.resourceSet, this.ecorePackage);
-
-			// save context
-			// enrichedEcoreResource.getContents().clear();
-			// enrichedEcoreResource.getContents().add(enrichedEPackage);
-			// final Map<String, String> saveOptions = new HashMap<>();
-			// saveOptions.put(Resource.OPTION_LINE_DELIMITER,
-			// WorkspaceHelper.DEFAULT_RESOURCE_LINE_DELIMITER);
-			// enrichedEcoreResource.save(saveOptions);
 		}
 		return Status.OK_STATUS;
 	}
 
-	public void setECorePackage(EPackage ecorePackage) {
+	public void setECorePackage(final EPackage ecorePackage) {
 		this.ecorePackage = ecorePackage;
 	}
 

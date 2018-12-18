@@ -4,8 +4,12 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.gervarro.democles.specification.emf.Constant;
+import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
-public class ConstantUtil {
+public final class ConstantUtil {
+	private ConstantUtil() {
+		throw new UtilityClassNotInstantiableException();
+	}
 
 	public static void setConstantValueWithAdjustedType(final Constant constant, final Object valueObject) {
 		if (valueObject instanceof Integer) {
@@ -40,7 +44,7 @@ public class ConstantUtil {
 			return dataType.getEPackage().getEFactoryInstance().createFromString(dataType, val);
 		} else
 			return val;
-	
+
 	}
 
 }

@@ -61,7 +61,7 @@ public class ValidationStatus implements IStatus {
 	}
 
 	@Override
-	public boolean matches(int severityMask) {
+	public boolean matches(final int severityMask) {
 		return (severity & severityMask) != 0;
 	}
 
@@ -72,13 +72,13 @@ public class ValidationStatus implements IStatus {
 	public static final IStatus createValidationStatus(final ErrorMessage errorMessage) {
 		try {
 			return new ValidationStatus(errorMessage, convertToStatusSeverity(errorMessage.getSeverity()));
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			return e.getStatus();
 		}
 	}
 
 	public static final int convertToStatusSeverity(final Severity severity) throws CoreException {
-		int value = severity.getValue();
+		final int value = severity.getValue();
 		if (value >= Severity.ERROR_VALUE) {
 			return IStatus.ERROR;
 		} else if (value >= Severity.WARNING_VALUE) {
@@ -88,7 +88,7 @@ public class ValidationStatus implements IStatus {
 		} else if (value == Severity.OK_VALUE) {
 			return IStatus.OK;
 		}
-		IStatus invalidSeverityConversion = new Status(IStatus.ERROR,
+		final IStatus invalidSeverityConversion = new Status(IStatus.ERROR,
 				WorkspaceHelper.getPluginId(ValidationStatus.class),
 				"Cannot convert " + severity.getLiteral() + " severity to a marker");
 		throw new CoreException(invalidSeverityConversion);

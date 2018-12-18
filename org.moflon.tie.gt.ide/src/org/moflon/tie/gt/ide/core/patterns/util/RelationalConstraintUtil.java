@@ -1,45 +1,54 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
+import org.eclipse.core.runtime.MultiStatus;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
+import org.emoflon.ibex.gt.editor.gT.EditorRelation;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
+import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
-public class RelationalConstraintUtil {
+public final class RelationalConstraintUtil {
+	private RelationalConstraintUtil() {
+		throw new UtilityClassNotInstantiableException();
+	}
 
-	public static RelationalConstraint createRelationalConstraint(final EditorAttribute attribute) {
+	/**
+	 * Returns an instance of a Democles relational constraint that corresponds to
+	 * the relational constraint of the given {@link EditorAttribute}
+	 * 
+	 * @param attribute            the editor attribute
+	 * @param transformationStatus
+	 * @return the corresponding relational constraint or <code>null</code> if none
+	 *         exists
+	 */
+	public static RelationalConstraint createRelationalConstraint(final EditorAttribute attribute,
+			final MultiStatus transformationStatus) {
 		final RelationalConstraintFactory factory = RelationalConstraintFactory.eINSTANCE;
-		RelationalConstraint relConstraint;
-		switch (attribute.getRelation()) {
+		final EditorRelation relation = attribute.getRelation();
+		switch (relation) {
 		case EQUAL:
-			relConstraint = factory.createEqual();
-			break;
+			return factory.createEqual();
 		case GREATER:
-			relConstraint = factory.createLarger();
-			break;
+			return factory.createLarger();
 		case SMALLER:
-			relConstraint = factory.createSmaller();
-			break;
+			return factory.createSmaller();
 		case GREATER_OR_EQUAL:
-			relConstraint = factory.createLargerOrEqual();
-			break;
+			return factory.createLargerOrEqual();
 		case SMALLER_OR_EQUAL:
-			relConstraint = factory.createSmallerOrEqual();
-			break;
+			return factory.createSmallerOrEqual();
 		case UNEQUAL:
-			relConstraint = factory.createUnequal();
-			break;
+			return factory.createUnequal();
 		case ASSIGNMENT:
-			relConstraint = factory.createEqual();
-			break;
+			return factory.createEqual();
 		default:
-			System.out.println("Unsupported EditorRelation: " + attribute.getRelation());// TODO@rkluge Create error
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Unsupported relation %s", relation);
 			return null;
 		}
-		return relConstraint;
 	}
 
 	public static Equal createEqualConstraint(final ConstraintVariable source, final ConstraintVariable target) {

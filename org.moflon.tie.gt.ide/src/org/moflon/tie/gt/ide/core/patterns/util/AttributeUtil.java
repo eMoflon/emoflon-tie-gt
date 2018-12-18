@@ -6,11 +6,15 @@ import org.eclipse.emf.ecore.EAttribute;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
+import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
-public class AttributeUtil {
+public final class AttributeUtil {
+	private AttributeUtil() {
+		throw new UtilityClassNotInstantiableException();
+	}
 
 	public static Attribute lookupOrCreateAttribute(final PatternBody patternBody, final EAttribute eAttribute) {
-	
+
 		final Optional<Attribute> existingAttribute = patternBody.getConstraints().stream() //
 				.filter(constraint -> constraint instanceof Attribute)//
 				.map(constraint -> (Attribute) constraint) //
@@ -23,6 +27,10 @@ public class AttributeUtil {
 			newAttribute.setEModelElement(eAttribute);
 			return newAttribute;
 		}
+	}
+
+	public static Attribute createAttribute() {
+		return EMFTypeFactory.eINSTANCE.createAttribute();
 	}
 
 }

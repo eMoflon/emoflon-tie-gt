@@ -18,21 +18,21 @@ import MocaTree.Text;
  */
 public class MocaTreeSorter {
 
-	public void applyIndices(Node node) {
+	public void applyIndices(final Node node) {
 		sortAttributes(node);
 		sortChildren(node);
 	}
 
-	private void sortAttributes(Node node) {
-		List<Attribute> elements = new LinkedList<Attribute>();
+	private void sortAttributes(final Node node) {
+		final List<Attribute> elements = new LinkedList<Attribute>();
 		elements.addAll(node.getAttribute());
 		elements.sort(new MocaTreeComparator());
 		node.getAttribute().clear();
 		node.getAttribute().addAll(elements);
 	}
 
-	private void sortChildren(Node node) {
-		List<Text> elements = new LinkedList<Text>();
+	private void sortChildren(final Node node) {
+		final List<Text> elements = new LinkedList<Text>();
 		elements.addAll(node.getChildren());
 		elements.sort(new MocaTreeComparator());
 		node.getChildren().clear();
@@ -46,9 +46,9 @@ public class MocaTreeSorter {
 	 * 
 	 * @param node
 	 */
-	public static void sort(Node node) {
+	public static void sort(final Node node) {
 		new MocaTreeSorter().applyIndices(node);
-		for (Text child : node.getChildren()) {
+		for (final Text child : node.getChildren()) {
 			if (child instanceof Node) {
 				sort((Node) child);
 			}
@@ -62,12 +62,11 @@ public class MocaTreeSorter {
 	 * 
 	 * @param node
 	 */
-	public static void sort(Folder folder) {
-		// TODO apply indices to folders and files!
-		for (File file : folder.getFile()) {
+	public static void sort(final Folder folder) {
+		for (final File file : folder.getFile()) {
 			sort(file);
 		}
-		for (Folder subFolder : folder.getSubFolder()) {
+		for (final Folder subFolder : folder.getSubFolder()) {
 			sort(subFolder);
 		}
 	}
@@ -79,7 +78,7 @@ public class MocaTreeSorter {
 	 * 
 	 * @param node
 	 */
-	public static void sort(File file) {
+	public static void sort(final File file) {
 		sort(file.getRootNode());
 	}
 
