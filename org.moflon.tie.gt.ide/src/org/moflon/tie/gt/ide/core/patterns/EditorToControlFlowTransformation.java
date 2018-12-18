@@ -295,8 +295,8 @@ public class EditorToControlFlowTransformation {
 				returnVariable.setScope(scope);
 				returnVariable.setLocal(true);
 				returnVariable.setConstructor(resultPatternInvocation);
-				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(this.ecorePackage,
-						resourceSet);
+				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(
+						Arrays.asList(ePackage, this.ecorePackage), resourceSet);
 				pattern = patternBuilderVisitor.createExpressionPatternForEnumValues(returnVariable,
 						enumExpression.getLiteral());
 				final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
@@ -518,7 +518,8 @@ public class EditorToControlFlowTransformation {
 
 		patternNameGenerator.setPatternDefinition(editorPattern);
 
-		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage, resourceSet);
+		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(
+				Arrays.asList(ePackage, ecorePackage), resourceSet);
 		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern);
 		final Map<PatternType, PatternInvocation> invocations = new HashMap<>();
 
