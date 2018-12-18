@@ -48,34 +48,10 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class PatternBuilderVisitor {
-	public enum PatternType {
-		BLACK_PATTERN, RED_PATTERN, GREEN_PATTERN, EXPRESSION_PATTERN, BINDING_PATTERN, BINDING_AND_BLACK_PATTERN;
-
-		public String getSuffix() {
-			switch (this) {
-			case BLACK_PATTERN:
-				return DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION;
-			case EXPRESSION_PATTERN:
-				return DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION;
-			case GREEN_PATTERN:
-				return DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION;
-			case RED_PATTERN:
-				return DemoclesMethodBodyHandler.RED_FILE_EXTENSION;
-			case BINDING_PATTERN:
-				return DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION;
-			case BINDING_AND_BLACK_PATTERN:
-				return DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION;
-			default:
-				return null;
-			}
-		}
-	};
-
 	private final RelationalConstraintFactory relationalConstraintsHelper = RelationalConstraintFactory.eINSTANCE;
 	private final EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
 	private final SpecificationFactory patternHelper = SpecificationFactory.eINSTANCE;
@@ -100,7 +76,7 @@ public class PatternBuilderVisitor {
 	}
 
 	private void visit(final EditorNode node, final EditorPattern editorPattern) {
-		List<PatternType> patternTypes = new ArrayList<PatternBuilderVisitor.PatternType>();
+		List<PatternType> patternTypes = new ArrayList<PatternType>();
 		if (node.getOperator() == EditorOperator.CONTEXT) {
 			patternTypes = Arrays.asList(PatternType.BLACK_PATTERN);
 		}

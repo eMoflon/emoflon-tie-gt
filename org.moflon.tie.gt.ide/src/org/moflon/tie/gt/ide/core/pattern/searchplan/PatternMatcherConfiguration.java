@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
-import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
+import org.moflon.tie.gt.ide.core.patterns.PatternType;
 
 /**
  * Stores a mapping from {@link PatternType} to {@link PatternMatcher}

@@ -1,10 +1,8 @@
 package org.moflon.tie.gt.ide.core.patterns;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +57,6 @@ import org.moflon.sdm.runtime.democles.SingleResultPatternInvocation;
 import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
-import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
@@ -135,7 +132,7 @@ public class EditorToControlFlowTransformation {
 					final AdapterResource adapterResource = attachInRegisteredAdapter(rootscope, eOperation,
 							resourceSet, DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
 
-					saveResourceQuiely(adapterResource);
+					DemoclesValidationUtils.saveResource(adapterResource);
 				}
 			}
 		}
@@ -659,11 +656,7 @@ public class EditorToControlFlowTransformation {
 			adapterResource = attachInRegisteredAdapter(invokedPattern, correspondingEClass, resourceSet,
 					PatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
 		}
-		try {
-			saveResourceQuiely(adapterResource);
-		} catch (final RuntimeException exception) {
-			System.out.println("CaughtRuntimeException: " + exception);
-		}
+		DemoclesValidationUtils.saveResource(adapterResource);
 		final PatternMatcher patternMatcher;
 		if (constraintType == null) {
 			patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
@@ -743,14 +736,6 @@ public class EditorToControlFlowTransformation {
 		return correspondingEClass.getEOperations().stream().filter(clazzEop -> {
 			return clazzEop.getName().equals(methodDeclaration.getName());
 		}).findAny().orElse(null);
-	}
-
-	private void saveResourceQuiely(final AdapterResource adapterResource) {
-		try {
-			adapterResource.save(Collections.EMPTY_MAP);
-		} catch (final IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	private AdapterResource attachInRegisteredAdapter(final EObject attachedObject, final EObject container,

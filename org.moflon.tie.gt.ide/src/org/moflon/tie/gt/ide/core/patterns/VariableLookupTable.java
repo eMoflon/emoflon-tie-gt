@@ -9,7 +9,6 @@ import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
-import org.moflon.tie.gt.ide.core.patterns.PatternBuilderVisitor.PatternType;
 
 class VariableLookupTable {
 	private final EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
