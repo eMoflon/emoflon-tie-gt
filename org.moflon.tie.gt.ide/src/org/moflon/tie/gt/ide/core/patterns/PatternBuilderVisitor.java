@@ -93,11 +93,7 @@ public class PatternBuilderVisitor {
 				createPattern(editorPattern, type);
 			}
 
-			if (!variableLookup.containsKey(node, type)) {
-				final EMFVariable var = variableLookup.getOrCreateEMFVariable(node, type);
-				generatedDemoclesPatterns.get(type).getSymbolicParameters().add(var);
-				var.setEClassifier(contextController.getClassifierFromConfiguredEPackage(node.getType()));
-			}
+			registerEmfVariableAndSymbolicParameter(node, type);
 		}
 		node.getAttributes().forEach(attribute -> visit(attribute, node, editorPattern, transformationStatus));
 		node.getReferences().forEach(reference -> visit(reference, node, editorPattern, transformationStatus));
@@ -164,11 +160,7 @@ public class PatternBuilderVisitor {
 		emfAttribute.setEModelElement(editorAttributeEAttribute);
 
 		final ConstraintParameter from = patternFactoty.createConstraintParameter();
-		if (!variableLookup.containsKey(source, type)) {
-			final EMFVariable newNodeVariable = variableLookup.getOrCreateEMFVariable(source, type);
-			newNodeVariable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(source.getType()));
-			this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(newNodeVariable);
-		}
+		registerEmfVariableAndSymbolicParameter(source, type);
 		from.setReference(variableLookup.lookup(source, type));
 		emfAttribute.getParameters().add(from);
 
@@ -178,8 +170,9 @@ public class PatternBuilderVisitor {
 					type);
 			body.getLocalVariables().add(tmpAttrVar);
 			tmpAttrVar.setEClassifier(
-					contextController.getClassifierFromConfiguredEPackage(emfAttribute.getEModelElement().getEType()));
+					contextController.getClassifierFromConfiguredEPackage(editorAttributeEAttribute.getEType()));
 		}
+
 		tmpAttrVal.setReference(variableLookup.get(editorAttributeEAttribute, source, type));
 
 		emfAttribute.getParameters().add(tmpAttrVal);
@@ -227,11 +220,7 @@ public class PatternBuilderVisitor {
 
 		final Attribute attributeReference = AttributeUtil.createAttribute();
 		attributeReference.setEModelElement(eAttribute);
-		if (!variableLookup.containsKey(eAttribute, editorNode, type)) {
-			final EMFVariable newAttribute = variableLookup.getOrCreateEMFVariable(eAttribute, editorNode, type);
-			newAttribute.setEClassifier(contextController.getClassifierFromConfiguredEPackage(eAttribute.getEType()));
-			patternBody.getLocalVariables().add(newAttribute);
-		}
+		registerEmfVariableAndAddToLocalVariable(eAttribute, editorNode, type);
 		final EMFVariable attribute = variableLookup.get(eAttribute, editorNode, type);
 
 		final ConstraintParameter toAttribute = patternFactoty.createConstraintParameter();
@@ -580,10 +569,22 @@ public class PatternBuilderVisitor {
 		}
 	}
 
+	private void registerEmfVariableAndAddToLocalVariable(final EAttribute eAttribute, final EditorNode editorNode,
+			final PatternType type) {
+		if (!variableLookup.containsKey(eAttribute, editorNode, type)) {
+			final EMFVariable newAttribute = variableLookup.getOrCreateEMFVariable(eAttribute, editorNode, type);
+			newAttribute.setEClassifier(contextController.getClassifierFromConfiguredEPackage(eAttribute.getEType()));
+			PatternUtil.getBody(this.generatedDemoclesPatterns.get(type)).getLocalVariables().add(newAttribute);
+		}
+	}
+
 	private EClassifier determineTypeOfEditorElement(final EObject editorElement) {
 		if (editorElement instanceof EditorParameter) {
 			final EditorParameter editorParameter = (EditorParameter) editorElement;
 			return editorParameter.getType();
+		} else if (editorElement instanceof EditorNode) {
+			final EditorNode node = (EditorNode) editorElement;
+			return node.getType();
 		}
 
 		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", editorElement));
