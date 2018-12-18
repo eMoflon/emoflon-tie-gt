@@ -64,9 +64,11 @@ public final class PatternUtils {
 		sb.append("(");
 		for (final ConstraintParameter parameter : constraint.getParameters()) {
 			final ConstraintVariable reference = parameter.getReference();
-			final EMFVariable emfVariable = (EMFVariable) reference;
-			sb.append(emfVariable.getName());
-			sb.append("[").append(String.format("%x", emfVariable.hashCode())).append("]");
+			if (reference instanceof EMFVariable)
+				sb.append(EMFVariable.class.cast(reference).getName());
+			else
+				sb.append(parameter);
+			sb.append("[").append(String.format("%x", reference.hashCode())).append("]");
 			sb.append(",");
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
@@ -98,6 +100,17 @@ public final class PatternUtils {
 	}
 
 	public static Object describeOperation(final GeneratorOperation operation) {
-		return operation.toString();
+		final StringBuilder sb = new StringBuilder();
+		sb.append(operation.toString());
+		sb.append(" [origin:");
+		final Object origin = operation.getOrigin();
+		if (origin instanceof Constraint) {
+			final Constraint constraint = (Constraint) origin;
+			sb.append(describeConstraintName(constraint));
+		} else {
+			sb.append(origin.toString());
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 }
