@@ -587,12 +587,7 @@ public class EditorToControlFlowTransformation {
 			final AdapterResource adapterResource = attachInRegisteredAdapter(democlesPattern, correspondingEClass,
 					resourceSet, patternType.getSuffix());
 
-			// TODO@rkluge: Just for debugging
-			try {
-				saveResourceQuiely(adapterResource);
-			} catch (final RuntimeException exception) {
-				System.out.println("CaughtRuntimeException: " + exception);
-			}
+			DemoclesValidationUtils.saveResource(adapterResource);
 			final PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
 					democlesPattern);
 			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters, ePackage,
