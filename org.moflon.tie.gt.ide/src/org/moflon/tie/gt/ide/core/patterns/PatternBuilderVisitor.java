@@ -159,8 +159,9 @@ public class PatternBuilderVisitor {
 			bindConstraintParameterForParameterExpression(type, rhs, (EditorParameterExpression) expr);
 		}
 
-		final EAttribute editorAttributeEAttribute = editorAttribute.getAttribute();
 		final Attribute emfAttribute = AttributeUtil.createAttribute();
+		final EAttribute editorAttributeEAttribute = editorAttribute.getAttribute();
+		emfAttribute.setEModelElement(editorAttributeEAttribute);
 
 		final ConstraintParameter from = patternFactoty.createConstraintParameter();
 		if (!variableLookup.containsKey(source, type)) {
