@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/org.moflon.core.dfs/gen" modelPluginID="org.moflon.core.dfs"
+    modelName="Dfs" updateClasspath="false" codeFormatting="true" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="8.0" copyrightFields="false" operationReflection="true">
+  <foreignModel>Dfs.ecore</foreignModel>
+  <genPackages prefix="Dfs" basePackage="org.moflon.core" disposableProviderFactory="true"
+      ecorePackage="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeType">
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeType/TREE_EDGE"/>
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeType/BACKWARD_EDGE"/>
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeType/FORWARD_EDGE"/>
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeType/CROSS_EDGE"/>
+    </genEnums>
+    <genClasses image="false" ecoreClass="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeProcessor">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeProcessor/delegate"/>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeProcessor/processEdge">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeProcessor/processEdge/edge"/>
+      </genOperations>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeProcessor/processNode">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//EdgeProcessor/processNode/node"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node/incoming"/>
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node/graph"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node/origin"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node/outgoing"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node/postTraversal"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Node/preTraversal"/>
+    </genClasses>
+    <genClasses ecoreClass="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Edge">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Edge/graph"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Edge/source"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Edge/origin"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Edge/target"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//Edge/type"/>
+    </genClasses>
+    <genClasses ecoreClass="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/postTraversalCounter"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/preTraversalCounter"/>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/incrementPostTraversalCounter"/>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/incrementPreTraversalCounter"/>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/processEdge">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/processEdge/edge"/>
+      </genOperations>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/processNode">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DepthFirstSearch/processNode/node"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DFSGraph">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DFSGraph/edges"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.dfs/model/Dfs.ecore#//DFSGraph/nodes"/>
+    </genClasses>
+  </genPackages>
+</genmodel:GenModel>
