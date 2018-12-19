@@ -52,7 +52,6 @@ import org.moflon.tie.gt.ide.core.patterns.util.AttributeUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ConstantUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.RelationalConstraintUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.runtime.utilities.ContextController;
 
 public class PatternBuilderVisitor {
@@ -107,12 +106,8 @@ public class PatternBuilderVisitor {
 
 	private void visit(final EditorCondition condition, final EditorPattern pattern,
 			final MultiStatus transformationStatus) {
-		switch (condition.getConditions().size()) {
-		case 0:
-			// Nothing to do
-			return;
-		case 1:
-			final EditorSimpleCondition partialCondition = condition.getConditions().get(0);
+		final EList<EditorSimpleCondition> conditions = condition.getConditions();
+		for (final EditorSimpleCondition partialCondition : conditions) {
 			if (partialCondition instanceof EditorConditionReference) {
 				final EditorConditionReference simpleCond = (EditorConditionReference) partialCondition;
 				visit(simpleCond.getCondition(), pattern, transformationStatus);
@@ -124,12 +119,6 @@ public class PatternBuilderVisitor {
 						transformationStatus);
 				createPatternInvocation(type, invokedPattern);
 			}
-			return;
-		default:
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
-					"Multiple application conditions per pattern are not supported currently. Pattern %s",
-					pattern.getName());
-			return;
 		}
 	}
 
@@ -140,7 +129,7 @@ public class PatternBuilderVisitor {
 		if (!this.generatedDemoclesPatterns.containsKey(type)) {
 			createPattern(pattern, type);
 		}
-		final PatternBody body = PatternUtil.getBody(this.generatedDemoclesPatterns.get(type));
+		final PatternBody body = PatternUtil.getBody(getPatternByType(type));
 
 		final ConstraintParameter rhs = patternFactoty.createConstraintParameter();
 		final EditorExpression expr = editorAttribute.getValue();
@@ -177,7 +166,8 @@ public class PatternBuilderVisitor {
 
 		emfAttribute.getParameters().add(tmpAttrVal);
 
-		final Optional<Attribute> existingConstraint = findAttributeConstraintInPatternBody(emfAttribute, body);
+		final Optional<Attribute> existingConstraint = AttributeUtil.findAttributeConstraintInPatternBody(emfAttribute,
+				body);
 		if (!existingConstraint.isPresent()) {
 			body.getConstraints().add(emfAttribute);
 		}
@@ -214,7 +204,7 @@ public class PatternBuilderVisitor {
 		if (!variableLookup.containsKey(editorNode, type)) {
 			final EMFVariable nodeVariable = variableLookup.getOrCreateEMFVariable(editorNode, type);
 			nodeVariable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(editorNode.getType()));
-			this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(nodeVariable);
+			getPatternByType(type).getSymbolicParameters().add(nodeVariable);
 		}
 		fromNodeOfAttributeExpression.setReference(variableLookup.get(editorNode, type));
 
@@ -229,8 +219,8 @@ public class PatternBuilderVisitor {
 		attributeReference.getParameters().add(fromNodeOfAttributeExpression);
 		attributeReference.getParameters().add(toAttribute);
 
-		final Optional<Attribute> existingConstraint = findAttributeConstraintInPatternBody(attributeReference,
-				patternBody);
+		final Optional<Attribute> existingConstraint = AttributeUtil
+				.findAttributeConstraintInPatternBody(attributeReference, patternBody);
 		if (!existingConstraint.isPresent()) {
 			patternBody.getConstraints().add(attributeReference);
 		}
@@ -245,42 +235,6 @@ public class PatternBuilderVisitor {
 		constraintParameter.setReference(newReference);
 	}
 
-	private Optional<Attribute> findAttributeConstraintInPatternBody(final Attribute attributeReference,
-			final PatternBody patternBody) {
-		final Optional<Attribute> existingAttributeConstraint = patternBody.getConstraints().stream()
-				.filter(constraint -> constraint instanceof Attribute).map(Attribute.class::cast)
-				.filter(attribute -> areEqual(attribute, attributeReference)).findAny();
-		return existingAttributeConstraint;
-	}
-
-	private boolean areEqual(final Attribute attributeReferenceConstraint1,
-			final Attribute attributeReferenceConstraint2) {
-		final List<ConstraintParameter> parameters1 = attributeReferenceConstraint1.getParameters();
-		final List<ConstraintParameter> parameters2 = attributeReferenceConstraint2.getParameters();
-		final int parameterCount1 = parameters1.size();
-		final int parameterCount2 = parameters2.size();
-		if (parameterCount1 != 2)
-			throw new IllegalArgumentException(
-					String.format("Attribute constraint must have two parameters but given are '%s'", parameterCount1));
-
-		if (parameterCount2 != 2)
-			throw new IllegalArgumentException(
-					String.format("Attribute constraint must have two parameters but given are '%s'", parameterCount2));
-
-		if (!attributeReferenceConstraint1.getEModelElement().equals(attributeReferenceConstraint2.getEModelElement()))
-			return false;
-
-		for (int i = 0; i < parameterCount1; ++i) {
-			final ConstraintParameter parameter1 = parameters1.get(i);
-			final ConstraintParameter parameter2 = parameters2.get(i);
-			if (!parameter1.getReference().equals(parameter2.getReference())) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	private void visit(final EditorReference editorReference, final EditorNode source,
 			final EditorPattern editorPattern, final MultiStatus transformationStatus) {
 		final List<PatternType> patternTypes = PatternUtil.mapOperatorToPatternTypes(editorReference,
@@ -292,13 +246,13 @@ public class PatternBuilderVisitor {
 			if (!this.generatedDemoclesPatterns.containsKey(type)) {
 				createPattern(editorPattern, type);
 			}
-			final PatternBody patternBody = this.generatedDemoclesPatterns.get(type).getBodies().get(0);
+			final PatternBody patternBody = getPatternByType(type).getBodies().get(0);
 
 			final ConstraintParameter from = patternFactoty.createConstraintParameter();
 			if (!variableLookup.containsKey(source, type)) {
 				final EMFVariable nodeVariable = variableLookup.getOrCreateEMFVariable(source, type);
 				nodeVariable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(source.getType()));
-				this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(nodeVariable);
+				getPatternByType(type).getSymbolicParameters().add(nodeVariable);
 			}
 
 			from.setReference(variableLookup.get(source, type));
@@ -309,7 +263,7 @@ public class PatternBuilderVisitor {
 				final EMFVariable newVariable = variableLookup.getOrCreateEMFVariable(editorReferenceTarget, type);
 				newVariable.setEClassifier(
 						contextController.getClassifierFromConfiguredEPackage(editorReferenceTarget.getType()));
-				this.generatedDemoclesPatterns.get(type).getSymbolicParameters().add(newVariable);
+				getPatternByType(type).getSymbolicParameters().add(newVariable);
 			}
 			to.setReference(variableLookup.get(editorReferenceTarget, type));
 
@@ -324,13 +278,17 @@ public class PatternBuilderVisitor {
 
 	private Pattern buildApplicationConditionPattern(final EditorPattern applicationCondition,
 			final MultiStatus transformationStatus) {
+
 		// Store the current state to restore it after constraint has been processed
 		final Map<PatternType, Pattern> patternCache = this.generatedDemoclesPatterns;
 		this.generatedDemoclesPatterns = new HashMap<PatternType, Pattern>();
+
 		final VariableLookupTable variableCache = this.variableLookup;
 		this.variableLookup = new VariableLookupTable();
+
 		visit(applicationCondition, transformationStatus);
-		final Pattern newInvokedPattern = this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN);
+		final Pattern newInvokedPattern = getBlackPattern();
+
 		// Restore lookup tables
 		this.generatedDemoclesPatterns = patternCache;
 		this.variableLookup = variableCache;
@@ -339,13 +297,11 @@ public class PatternBuilderVisitor {
 
 	private void createPatternInvocation(final EditorApplicationConditionType type, final Pattern newInvokedPattern) {
 		final PatternInvocationConstraint invocationConstraint = patternFactoty.createPatternInvocationConstraint();
-		final EList<Variable> symbolicParamsInvoker = this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN)
-				.getSymbolicParameters();
+		final EList<Variable> symbolicParamsInvoker = getBlackPattern().getSymbolicParameters();
 		invocationConstraint.setPositive(type == EditorApplicationConditionType.POSITIVE ? true : false);
 		invocationConstraint.setInvokedPattern(newInvokedPattern);
 		createConstraintParameters(newInvokedPattern, invocationConstraint, symbolicParamsInvoker);
-		this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getBodies().get(0).getConstraints()
-				.add(invocationConstraint);
+		getBlackPattern().getBodies().get(0).getConstraints().add(invocationConstraint);
 	}
 
 	private void createConstraintParameters(final Pattern newInvokedPattern,
@@ -408,7 +364,7 @@ public class PatternBuilderVisitor {
 		bindingAndBlack.getSymbolicParameters().add(emfVarSource);
 
 		final EMFVariable toBeRemoved = variableLookup.getOrCreateEMFVariable(source, PatternType.BLACK_PATTERN);
-		this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN).getSymbolicParameters().remove(toBeRemoved);
+		getBlackPattern().getSymbolicParameters().remove(toBeRemoved);
 		this.generatedDemoclesPatterns.put(PatternType.BINDING_AND_BLACK_PATTERN, bindingAndBlack);
 		body.setHeader(bindingAndBlack);
 		body.getLocalVariables().add(emfVarTarget);
@@ -421,7 +377,7 @@ public class PatternBuilderVisitor {
 
 		final PatternInvocationConstraint bindingConstraint = patternFactoty.createPatternInvocationConstraint();
 		bindingConstraint.setPositive(true);
-		bindingConstraint.setInvokedPattern(this.generatedDemoclesPatterns.get(PatternType.BINDING_PATTERN));
+		bindingConstraint.setInvokedPattern(getBindingPattern());
 		bindingConstraint.getParameters().add(targetConstr);
 		bindingConstraint.getParameters().add(sourceConstr);
 
@@ -430,7 +386,7 @@ public class PatternBuilderVisitor {
 
 		final PatternInvocationConstraint singleConstraint = patternFactoty.createPatternInvocationConstraint();
 		singleConstraint.setPositive(true);
-		singleConstraint.setInvokedPattern(this.generatedDemoclesPatterns.get(PatternType.BLACK_PATTERN));
+		singleConstraint.setInvokedPattern(getBlackPattern());
 		singleConstraint.getParameters().add(singleTargetConstr);
 
 		body.getConstraints().add(bindingConstraint);
@@ -565,7 +521,7 @@ public class PatternBuilderVisitor {
 			final EClassifier type = determineTypeOfEditorElement(editorElement);
 
 			variable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(type));
-			this.generatedDemoclesPatterns.get(patternType).getSymbolicParameters().add(variable);
+			getPatternByType(patternType).getSymbolicParameters().add(variable);
 		}
 	}
 
@@ -574,7 +530,7 @@ public class PatternBuilderVisitor {
 		if (!variableLookup.containsKey(eAttribute, editorNode, type)) {
 			final EMFVariable newAttribute = variableLookup.getOrCreateEMFVariable(eAttribute, editorNode, type);
 			newAttribute.setEClassifier(contextController.getClassifierFromConfiguredEPackage(eAttribute.getEType()));
-			PatternUtil.getBody(this.generatedDemoclesPatterns.get(type)).getLocalVariables().add(newAttribute);
+			PatternUtil.getBody(getPatternByType(type)).getLocalVariables().add(newAttribute);
 		}
 	}
 
@@ -588,5 +544,17 @@ public class PatternBuilderVisitor {
 		}
 
 		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", editorElement));
+	}
+
+	private Pattern getBlackPattern() {
+		return getPatternByType(PatternType.BLACK_PATTERN);
+	}
+
+	private Pattern getBindingPattern() {
+		return getPatternByType(PatternType.BINDING_PATTERN);
+	}
+
+	private Pattern getPatternByType(final PatternType patternType) {
+		return this.generatedDemoclesPatterns.get(patternType);
 	}
 }

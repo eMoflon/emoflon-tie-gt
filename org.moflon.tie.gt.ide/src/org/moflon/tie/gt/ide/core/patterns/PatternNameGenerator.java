@@ -28,23 +28,29 @@ public class PatternNameGenerator {
 	private PatternType patternType;
 
 	public String generateName() {
-		return generateName(false, true);
+		return generateName(false, true, null);
 	}
 
-	public String generateName(boolean isAC, boolean isPositive) {
+	public String generateApplicationConditionName(final boolean positive, final Integer index) {
+		return generateName(true, positive, index);
+	}
+
+	public String generateName(final boolean isApplicationCondition, final boolean isPositive, final Integer index) {
 		final String descriptiveName = (this.patternDefinition != null && this.patternDefinition.getName() != null
 				? this.patternDefinition.getName().trim()
 				: "").replaceAll("\\s+", "");
-		if (patternType == PatternType.EXPRESSION_PATTERN)
-			return String.format("pattern_%s_%d_%d_%s", this.eContainingClass.getName(), this.eOperationIndex,
-					this.cfNode.getId(), this.patternType.getSuffix());
-		if (isAC)
-			return String.format("pattern_%s_%d_%d_%s_%s_" + (isPositive ? "p" : "n") + "ac",
-					this.eContainingClass.getName(), this.eOperationIndex, this.cfNode.getId(), descriptiveName,
-					this.patternType.getSuffix());
-		else
-			return String.format("pattern_%s_%d_%d_%s_%s", this.eContainingClass.getName(), this.eOperationIndex,
-					this.cfNode.getId(), descriptiveName, this.patternType.getSuffix());
+		final String suffix = this.patternType.getSuffix();
+		final int cfNodeId = cfNode.getId();
+		if (patternType == PatternType.EXPRESSION_PATTERN) {
+			return String.format("pattern_%s_%d_%d_%s", eContainingClass.getName(), eOperationIndex, cfNodeId, suffix);
+		} else if (isApplicationCondition) {
+			final int acIndex = index == null ? 0 : index;
+			final String applicationConditionSuffix = (isPositive ? "p" : "n") + "ac";
+			return String.format("pattern_%s_%d_%d_%s_%s_%s%d", eContainingClass.getName(), eOperationIndex, cfNodeId,
+					descriptiveName, suffix, applicationConditionSuffix, acIndex);
+		} else
+			return String.format("pattern_%s_%d_%d_%s_%s", eContainingClass.getName(), eOperationIndex, cfNodeId,
+					descriptiveName, suffix);
 	}
 
 	/**
@@ -98,11 +104,11 @@ public class PatternNameGenerator {
 	 * ascending order by name
 	 */
 	private List<EOperation> getOperationsSortedByName(final EClass eClass) {
-		List<EOperation> operations = new ArrayList<>(eClass.getEOperations());
+		final List<EOperation> operations = new ArrayList<>(eClass.getEOperations());
 		operations.sort(new Comparator<EOperation>() {
 
 			@Override
-			public int compare(EOperation o1, EOperation o2) {
+			public int compare(final EOperation o1, final EOperation o2) {
 				return o1.getName().compareTo(o2.getName());
 			}
 		});
