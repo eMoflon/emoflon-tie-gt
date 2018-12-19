@@ -27,7 +27,6 @@ import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.GenericMoflonProcess;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
@@ -68,13 +67,13 @@ public class MoflonCodeGenerator extends GenericMoflonProcess {
 			final String fullProjectName = getFullProjectName(moflonProperties);
 			logger.info("Generating code for: " + fullProjectName);
 
-			long toc = System.nanoTime();
+			final long toc = System.nanoTime();
 
 			final Resource resource = getEcoreResource();
 			final EPackage ePackage = (EPackage) resource.getContents().get(0);
 
+			final String engineID = "org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig";
 			// (1) Instantiate code generation engine
-			final String engineID = MoflonPropertiesContainerHelper.getMethodBodyHandler(getMoflonProperties());
 			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
 			subMon.worked(5);
@@ -191,7 +190,7 @@ public class MoflonCodeGenerator extends GenericMoflonProcess {
 			}
 			subMon.worked(5);
 
-			long tic = System.nanoTime();
+			final long tic = System.nanoTime();
 
 			logger.info(String.format(Locale.US, "Completed in %.3fs", (tic - toc) / 1e9));
 
@@ -225,12 +224,12 @@ public class MoflonCodeGenerator extends GenericMoflonProcess {
 	 * Loads the injections from the /injection folder
 	 */
 	private IStatus createInjections(final IProject project, final GenModel genModel) throws CoreException {
-		IFolder injectionFolder = WorkspaceHelper.addFolder(project, WorkspaceHelper.INJECTION_FOLDER,
+		final IFolder injectionFolder = WorkspaceHelper.addFolder(project, WorkspaceHelper.INJECTION_FOLDER,
 				new NullProgressMonitor());
-		CodeInjector injector = new CodeInjectorImpl(project.getLocation().toOSString());
+		final CodeInjector injector = new CodeInjectorImpl(project.getLocation().toOSString());
 
-		InjectionExtractor injectionExtractor = new XTextInjectionExtractor(injectionFolder, genModel);
-		CompilerInjectionExtractorImpl compilerInjectionExtractor = new CompilerInjectionExtractorImpl(project,
+		final InjectionExtractor injectionExtractor = new XTextInjectionExtractor(injectionFolder, genModel);
+		final CompilerInjectionExtractorImpl compilerInjectionExtractor = new CompilerInjectionExtractorImpl(project,
 				genModel);
 
 		injectionManager = new InjectionManager(injectionExtractor, compilerInjectionExtractor, injector);

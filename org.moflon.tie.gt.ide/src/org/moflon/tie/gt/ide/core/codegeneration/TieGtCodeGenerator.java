@@ -27,8 +27,6 @@ import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.DemoclesGeneratorAdapterFactory;
 import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainer;
-import org.moflon.core.propertycontainer.SDMCodeGeneratorIds;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
@@ -47,11 +45,6 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	}
 
 	@Override
-	protected String getFullProjectName(final MoflonPropertiesContainer moflonProperties) {
-		return moflonProperties.getProjectName();
-	}
-
-	@Override
 	public IStatus processResource(final IProgressMonitor monitor) {
 		try {
 			final int totalWork = 5 + 10 + 10 + 15 + 35 + 30 + 5;
@@ -65,7 +58,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 			final EPackage ePackage = (EPackage) resource.getContents().get(0);
-			final String engineID = SDMCodeGeneratorIds.DEMOCLES_ATTRIBUTES.getLiteral();
+			final String engineID = "org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig";
 			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
 			subMon.worked(5);

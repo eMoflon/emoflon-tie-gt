@@ -13,7 +13,6 @@ import org.gervarro.eclipse.task.ITask;
 import org.moflon.compiler.sdm.democles.DefaultValidatorConfig;
 import org.moflon.compiler.sdm.democles.ScopeValidationConfigurator;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
-import org.moflon.core.propertycontainer.MoflonPropertiesContainerHelper;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.GenericMoflonProcess;
 
@@ -25,8 +24,8 @@ public class DemoclesValidationProcess extends GenericMoflonProcess {
 		this(ecoreFile, resourceSet, false, preferencesStorage);
 	}
 
-	public DemoclesValidationProcess(IFile ecoreFile, ResourceSet resourceSet, boolean shallSaveIntermediateModels,
-			EMoflonPreferencesStorage preferencesStorage) {
+	public DemoclesValidationProcess(final IFile ecoreFile, final ResourceSet resourceSet,
+			final boolean shallSaveIntermediateModels, final EMoflonPreferencesStorage preferencesStorage) {
 		super(ecoreFile, resourceSet, preferencesStorage);
 		this.shallSaveIntermediateModels = shallSaveIntermediateModels;
 	}
@@ -43,7 +42,7 @@ public class DemoclesValidationProcess extends GenericMoflonProcess {
 			final Resource resource = getEcoreResource();
 			final EPackage ePackage = (EPackage) resource.getContents().get(0);
 
-			final String engineID = MoflonPropertiesContainerHelper.getMethodBodyHandler(getMoflonProperties());
+			final String engineID = "org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig";
 			ScopeValidationConfigurator validatorConfig = (ScopeValidationConfigurator) Platform.getAdapterManager()
 					.loadAdapter(this, engineID);
 
