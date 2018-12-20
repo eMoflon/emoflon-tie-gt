@@ -47,8 +47,6 @@ public enum PatternType {
 		switch (this) {
 		case BLACK_PATTERN:
 			return DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION;
-		case EXPRESSION_PATTERN:
-			return DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION;
 		case GREEN_PATTERN:
 			return DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION;
 		case RED_PATTERN:
@@ -57,8 +55,34 @@ public enum PatternType {
 			return DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION;
 		case BINDING_AND_BLACK_PATTERN:
 			return DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION;
+		case EXPRESSION_PATTERN:
+			return DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION;
 		default:
-			return null;
+			throw new IllegalArgumentException(String.format("No suffix registered for %s.", this));
 		}
+	}
+
+	public boolean isBlack() {
+		return this == BLACK_PATTERN;
+	}
+
+	public boolean isRed() {
+		return this == RED_PATTERN;
+	}
+
+	public boolean isGreen() {
+		return this == GREEN_PATTERN;
+	}
+
+	public boolean isBinding() {
+		return this == BINDING_PATTERN;
+	}
+
+	public boolean isBindingAndBlack() {
+		return this == BINDING_AND_BLACK_PATTERN;
+	}
+
+	public boolean isExpression() {
+		return this == EXPRESSION_PATTERN;
 	}
 }

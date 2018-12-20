@@ -28,27 +28,27 @@ public class PatternNameGenerator {
 	private PatternType patternType;
 
 	public String generateName() {
-		return generateName(false, true, null);
+		final String descriptiveName = getDescriptiveName();
+		final String suffix = this.patternType.getSuffix();
+		final int cfNodeId = cfNode.getId();
+		return String.format("pattern_%s_%d_%d_%s_%s", eContainingClass.getName(), eOperationIndex, cfNodeId,
+				descriptiveName, suffix);
 	}
 
-	public String generateApplicationConditionName(final boolean positive, final Integer index) {
-		return generateName(true, positive, index);
+	public String generateApplicationConditionName(final boolean positive, final int index) {
+		final String descriptiveName = getDescriptiveName();
+		final String suffix = this.patternType.getSuffix();
+		final int cfNodeId = cfNode.getId();
+		final String applicationConditionSuffix = (positive ? "p" : "n") + "ac";
+		return String.format("pattern_%s_%d_%d_%s_%s_%s%d", eContainingClass.getName(), eOperationIndex, cfNodeId,
+				descriptiveName, suffix, applicationConditionSuffix, index);
 	}
 
-	public String generateName(final boolean isApplicationCondition, final boolean isPositive, final Integer index) {
+	public String getDescriptiveName() {
 		final String descriptiveName = (this.patternDefinition != null && this.patternDefinition.getName() != null
 				? this.patternDefinition.getName().trim()
 				: "").replaceAll("\\s+", "");
-		final String suffix = this.patternType.getSuffix();
-		final int cfNodeId = cfNode.getId();
-		if (isApplicationCondition) {
-			final int acIndex = index == null ? 0 : index;
-			final String applicationConditionSuffix = (isPositive ? "p" : "n") + "ac";
-			return String.format("pattern_%s_%d_%d_%s_%s_%s%d", eContainingClass.getName(), eOperationIndex, cfNodeId,
-					descriptiveName, suffix, applicationConditionSuffix, acIndex);
-		} else
-			return String.format("pattern_%s_%d_%d_%s_%s", eContainingClass.getName(), eOperationIndex, cfNodeId,
-					descriptiveName, suffix);
+		return descriptiveName;
 	}
 
 	/**
