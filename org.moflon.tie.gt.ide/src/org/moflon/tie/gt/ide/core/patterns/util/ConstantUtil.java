@@ -12,7 +12,9 @@ public final class ConstantUtil {
 	}
 
 	public static void setConstantValueWithAdjustedType(final Constant constant, final Object valueObject) {
-		if (valueObject instanceof Integer) {
+		if (valueObject == null) {
+			constant.setValue(null);
+		} else if (valueObject instanceof Integer) {
 			final Integer value = (Integer) valueObject;
 			constant.setValue(value);
 		} else if (valueObject instanceof String) {
@@ -42,9 +44,11 @@ public final class ConstantUtil {
 		if (type instanceof EDataType) {
 			final EDataType dataType = (EDataType) type;
 			return dataType.getEPackage().getEFactoryInstance().createFromString(dataType, val);
-		} else
-			return val;
-
+		} else if ("null".equals(val)) {
+			return null;
+		} else {
+			throw new IllegalArgumentException(String.format("Cannot handle value %s for EClassifier %s", val, type));
+		}
 	}
 
 }

@@ -17,20 +17,19 @@ public class ContextController {
 
 	private ResourceSet resourceSet;
 
-	public void setEPackages(final Collection<EPackage> contextEPackage) {
-		this.contextEPackages = new ArrayList<EPackage>(contextEPackage);
-	}
-
-	public void setResourceSet(final ResourceSet resourceSet) {
-		this.resourceSet = resourceSet;
-	}
-
-	public <EC extends EClassifier> EC getClassifierFromConfiguredEPackage(final EC eClassifier) {
+	/**
+	 * Returns a classifier from the set of configured {@link EPackage}s having the
+	 * same name as the given {@link EClassifier}
+	 * 
+	 * @param eClassifier the {@link EClassifier}
+	 * @return an eClassifier having the same name in #getEPackage
+	 */
+	public <EC extends EClassifier> EC getEClassifier(final EC eClassifier) {
 		if (eClassifier == null)
 			throw new IllegalArgumentException("Expect non-null EClassifier");
 
 		@SuppressWarnings("unchecked")
-		final Optional<EC> contextEClassMonad = contextEPackages.stream()
+		final Optional<EC> contextEClassMonad = getEPackages().stream()
 				.flatMap(ePackage -> ePackage.getEClassifiers().stream()) //
 				.filter(classifier -> classifier.getName().equals(eClassifier.getName())) //
 				.filter(classifier -> eClassifier.getClass().isAssignableFrom(classifier.getClass())) //
@@ -53,7 +52,7 @@ public class ContextController {
 	 * @return the {@link EReference} from the {@link EClass}
 	 * @throws Exception if not such {@link EReference} exists
 	 */
-	public EReference getEReferenceContext(final EReference eReference, final EClass eClass) {
+	public EReference getEReference(final EReference eReference, final EClass eClass) {
 		final Optional<EReference> contextEReferenceMonad = eClass.getEAllReferences().stream()
 				.filter(reference -> reference.getName().equals(eReference.getName())).findFirst();
 		if (contextEReferenceMonad.isPresent())
@@ -72,14 +71,26 @@ public class ContextController {
 	 * @return the {@link EAttribute} from the {@link EClass}
 	 * @throws Exception if not such {@link EAttribute} exists
 	 */
-	public EAttribute getEAttributeContext(final EAttribute eAttribute, final EClass eClass) {
-		final Optional<EAttribute> contextEAttributeMonad = eClass.getEAllAttributes().stream()
+	public EAttribute getEAttribute(final EAttribute eAttribute, final EClass eClass) {
+		final Optional<EAttribute> foundEAttribute = eClass.getEAllAttributes().stream()
 				.filter(attribute -> attribute.getName().equals(eAttribute.getName())).findFirst();
-		if (contextEAttributeMonad.isPresent())
-			return contextEAttributeMonad.get();
+		if (foundEAttribute.isPresent())
+			return foundEAttribute.get();
 		else
 			throw new IllegalArgumentException(String.format("Cannot find EAttribute with name '%s' in EClass '%s'",
 					eAttribute.getName(), eClass));
+	}
+
+	public void setEPackages(final Collection<EPackage> contextEPackage) {
+		this.contextEPackages = new ArrayList<EPackage>(contextEPackage);
+	}
+
+	public Collection<EPackage> getEPackages() {
+		return contextEPackages;
+	}
+
+	public void setResourceSet(final ResourceSet resourceSet) {
+		this.resourceSet = resourceSet;
 	}
 
 	/**

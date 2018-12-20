@@ -159,7 +159,7 @@ public class PatternBuilderVisitor {
 					type);
 			body.getLocalVariables().add(tmpAttrVar);
 			tmpAttrVar.setEClassifier(
-					contextController.getClassifierFromConfiguredEPackage(editorAttributeEAttribute.getEType()));
+					contextController.getEClassifier(editorAttributeEAttribute.getEType()));
 		}
 
 		tmpAttrVal.setReference(variableLookup.get(editorAttributeEAttribute, source, type));
@@ -201,11 +201,7 @@ public class PatternBuilderVisitor {
 
 		// Create LHS variable ('from')
 		final ConstraintParameter fromNodeOfAttributeExpression = patternFactoty.createConstraintParameter();
-		if (!variableLookup.containsKey(editorNode, type)) {
-			final EMFVariable nodeVariable = variableLookup.getOrCreateEMFVariable(editorNode, type);
-			nodeVariable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(editorNode.getType()));
-			getPatternByType(type).getSymbolicParameters().add(nodeVariable);
-		}
+		registerEmfVariableAndSymbolicParameter(editorNode, type);
 		fromNodeOfAttributeExpression.setReference(variableLookup.get(editorNode, type));
 
 		final Attribute attributeReference = AttributeUtil.createAttribute();
@@ -249,27 +245,18 @@ public class PatternBuilderVisitor {
 			final PatternBody patternBody = getPatternByType(type).getBodies().get(0);
 
 			final ConstraintParameter from = patternFactoty.createConstraintParameter();
-			if (!variableLookup.containsKey(source, type)) {
-				final EMFVariable nodeVariable = variableLookup.getOrCreateEMFVariable(source, type);
-				nodeVariable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(source.getType()));
-				getPatternByType(type).getSymbolicParameters().add(nodeVariable);
-			}
+			registerEmfVariableAndSymbolicParameter(source, type);
 
 			from.setReference(variableLookup.get(source, type));
 
 			final ConstraintParameter to = patternFactoty.createConstraintParameter();
 			final EditorNode editorReferenceTarget = editorReference.getTarget();
-			if (!variableLookup.containsKey(editorReferenceTarget, type)) {
-				final EMFVariable newVariable = variableLookup.getOrCreateEMFVariable(editorReferenceTarget, type);
-				newVariable.setEClassifier(
-						contextController.getClassifierFromConfiguredEPackage(editorReferenceTarget.getType()));
-				getPatternByType(type).getSymbolicParameters().add(newVariable);
-			}
+			registerEmfVariableAndSymbolicParameter(editorReferenceTarget, type);
 			to.setReference(variableLookup.get(editorReferenceTarget, type));
 
 			final Reference referenceConstraint = emfHelper.createReference();
 			referenceConstraint.setEModelElement(
-					this.contextController.getEReferenceContext(editorReference.getType(), source.getType()));
+					this.contextController.getEReference(editorReference.getType(), source.getType()));
 			referenceConstraint.getParameters().add(from);
 			referenceConstraint.getParameters().add(to);
 			patternBody.getConstraints().add(referenceConstraint);
@@ -422,8 +409,8 @@ public class PatternBuilderVisitor {
 			final PatternBody patternBody, final EditorNode source, final ConstraintParameter to,
 			final EditorLiteralExpression literalExpression) {
 		final Constant constant = patternFactoty.createConstant();
-		final EClass eClass = contextController.getClassifierFromConfiguredEPackage(source.getType());
-		final EAttribute eAttribute = contextController.getEAttributeContext(editorAttribute.getAttribute(), eClass);
+		final EClass eClass = contextController.getEClassifier(source.getType());
+		final EAttribute eAttribute = contextController.getEAttribute(editorAttribute.getAttribute(), eClass);
 		final Optional<Object> value = GTEditorAttributeUtils
 				.convertLiteralValueToObject(eAttribute.getEAttributeType(), literalExpression);
 		if (value.isPresent()) {
@@ -452,10 +439,10 @@ public class PatternBuilderVisitor {
 
 		final EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
-		target.setEClassifier(contextController.getClassifierFromConfiguredEPackage(returnVariable.getType()));
+		target.setEClassifier(contextController.getEClassifier(returnVariable.getType()));
 		final EMFVariable source = emfHelper.createEMFVariable();
 		source.setName(returnVariable.getName());
-		source.setEClassifier(contextController.getClassifierFromConfiguredEPackage(returnVariable.getType()));
+		source.setEClassifier(contextController.getEClassifier(returnVariable.getType()));
 		exprPattern.getSymbolicParameters().add(target);
 		exprPattern.getSymbolicParameters().add(source);
 
@@ -483,7 +470,7 @@ public class PatternBuilderVisitor {
 
 		final EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
-		target.setEClassifier(contextController.getClassifierFromConfiguredEPackage(returnVariable.getType()));
+		target.setEClassifier(contextController.getEClassifier(returnVariable.getType()));
 		expressionPattern.getSymbolicParameters().add(target);
 
 		final Equal equal = RelationalConstraintUtil.createEqualConstraint(source, target);
@@ -501,7 +488,7 @@ public class PatternBuilderVisitor {
 		final EClassifier returnType = returnVariable.getType();
 		final EMFVariable target = emfHelper.createEMFVariable();
 		target.setName("_result");
-		target.setEClassifier(contextController.getClassifierFromConfiguredEPackage(returnType));
+		target.setEClassifier(contextController.getEClassifier(returnType));
 
 		final Constant source = patternFactoty.createConstant();
 		ConstantUtil.setConstantValueWithAdjustedType(source, enumLiteral);
@@ -520,7 +507,7 @@ public class PatternBuilderVisitor {
 
 			final EClassifier type = determineTypeOfEditorElement(editorElement);
 
-			variable.setEClassifier(contextController.getClassifierFromConfiguredEPackage(type));
+			variable.setEClassifier(contextController.getEClassifier(type));
 			getPatternByType(patternType).getSymbolicParameters().add(variable);
 		}
 	}
@@ -529,7 +516,7 @@ public class PatternBuilderVisitor {
 			final PatternType type) {
 		if (!variableLookup.containsKey(eAttribute, editorNode, type)) {
 			final EMFVariable newAttribute = variableLookup.getOrCreateEMFVariable(eAttribute, editorNode, type);
-			newAttribute.setEClassifier(contextController.getClassifierFromConfiguredEPackage(eAttribute.getEType()));
+			newAttribute.setEClassifier(contextController.getEClassifier(eAttribute.getEType()));
 			PatternUtil.getBody(getPatternByType(type)).getLocalVariables().add(newAttribute);
 		}
 	}

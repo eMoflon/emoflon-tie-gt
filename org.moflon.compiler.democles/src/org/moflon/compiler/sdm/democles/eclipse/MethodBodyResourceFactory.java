@@ -19,12 +19,12 @@ import org.moflon.core.utilities.EcoreUtils;
 
 public class MethodBodyResourceFactory extends AdapterResourceFactory<EOperation> {
 
-	public MethodBodyResourceFactory(String extensionName) {
+	public MethodBodyResourceFactory(final String extensionName) {
 		super(extensionName, EcorePackage.eINSTANCE.getEOperation());
 	}
 
 	@Override
-	protected final URI getURI(EOperation eOperation, String type) {
+	protected final URI getURI(final EOperation eOperation, final String type) {
 		return getOperationURI(eOperation).appendFileExtension(type);
 	}
 
@@ -35,7 +35,7 @@ public class MethodBodyResourceFactory extends AdapterResourceFactory<EOperation
 	private static final String getOperationID(final EOperation eOperation) {
 		String signature = EcoreUtils.getFQN(eOperation.getEContainingClass()) + "_" + eOperation.getName();
 		for (final EParameter param : eOperation.getEParameters()) {
-			signature += "_" + param.getName() + "_" + getNameOfClassifier(param.getEType());
+			signature += "_" + param.getName() + "_" + getNameOfClassifier(param);
 		}
 		return signature;
 	}
@@ -43,9 +43,10 @@ public class MethodBodyResourceFactory extends AdapterResourceFactory<EOperation
 	/**
 	 * Returns the name of the associated Java class of the given type.
 	 */
-	private static final String getNameOfClassifier(final EClassifier type) {
-		if (type == null)
-			throw new IllegalArgumentException("type may not be null");
-		return type.getInstanceTypeName() != null ? type.getInstanceTypeName() : type.getName();
+	private static final String getNameOfClassifier(final EParameter param) {
+		final EClassifier eType = param.getEType();
+		if (eType == null)
+			throw new IllegalArgumentException(String.format("Type of %s is null.", param));
+		return eType.getInstanceTypeName() != null ? eType.getInstanceTypeName() : eType.getName();
 	}
 }

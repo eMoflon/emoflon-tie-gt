@@ -41,9 +41,7 @@ public class PatternNameGenerator {
 				: "").replaceAll("\\s+", "");
 		final String suffix = this.patternType.getSuffix();
 		final int cfNodeId = cfNode.getId();
-		if (patternType == PatternType.EXPRESSION_PATTERN) {
-			return String.format("pattern_%s_%d_%d_%s", eContainingClass.getName(), eOperationIndex, cfNodeId, suffix);
-		} else if (isApplicationCondition) {
+		if (isApplicationCondition) {
 			final int acIndex = index == null ? 0 : index;
 			final String applicationConditionSuffix = (isPositive ? "p" : "n") + "ac";
 			return String.format("pattern_%s_%d_%d_%s_%s_%s%d", eContainingClass.getName(), eOperationIndex, cfNodeId,

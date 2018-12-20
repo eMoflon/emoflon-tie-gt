@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -84,6 +83,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStat
 
 public class EditorToControlFlowTransformation {
 
+	private static final String GENERATED_VARIABLE_NAME_PREFIX = "temp_";
 	private static final DemoclesFactory DEMOCLES_CF_FACTORY = DemoclesFactory.eINSTANCE;
 	private static final String THIS_VARIABLE_NAME = "this";
 	private static final Action THIS_VARIABLE_DUMMY_ACTION = DEMOCLES_CF_FACTORY.createAction();
@@ -143,10 +143,12 @@ public class EditorToControlFlowTransformation {
 		for (final MethodDec editorEOperation : editorEClass.getOperations()) {
 			if (editorEOperation.getStartStatement() != null) {
 				final EOperation eOperation = findEOperation(correspondingEClass, editorEOperation);
-				if (eOperation == null)
-					throw new IllegalStateException(
-							String.format("Cannot find EOperation for %s (from editor) in EClass %s ", editorEOperation,
-									correspondingEClass));
+				if (eOperation == null) {
+					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+							"Cannot find EOperation for %s (from editor) in EClass %s ", editorEOperation,
+							correspondingEClass);
+					return;
+				}
 				patternNameGenerator.setEOperation(eOperation);
 
 				final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
@@ -225,7 +227,7 @@ public class EditorToControlFlowTransformation {
 			final EOperation currentEOperation) {
 		final org.moflon.sdm.runtime.democles.ReturnStatement returnStmtDemocles = DEMOCLES_CF_FACTORY
 				.createReturnStatement();
-		returnStmtDemocles.setId(this.cfNodeIdCounter++);
+		returnStmtDemocles.setId(getAndIncrementalControlFlowNodeIdCounter());
 		returnStmtDemocles.setPrev(this.recentControlFlowNode);
 		returnStmtDemocles.setScope(scope);
 		final ReturnObject returnObject = returnStmt.getObj();
@@ -252,8 +254,7 @@ public class EditorToControlFlowTransformation {
 				returnVariable.setScope(scope);
 				returnVariable.setLocal(true);
 				returnVariable.setConstructor(resultPatternInvocation);
-				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(
-						Arrays.asList(this.ecorePackage, ePackage), resourceSet);
+				final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 				pattern = patternBuilderVisitor.createExpressionPatternForLiteralValues(returnVariable, val.getVal());
 				final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
 				final VariableReference ref = DEMOCLES_CF_FACTORY.createVariableReference();
@@ -264,8 +265,9 @@ public class EditorToControlFlowTransformation {
 				final TypedNamedObject namedObject = (TypedNamedObject) returnObject;
 				final ObjectVariableStatement oVarStmt = namedObject.getObj();
 				resultPatternInvocation.setReturnType(lookupTypeInEcoreFile(oVarStmt.getEType(), ePackage));
-				final Optional<CFVariable> returnVariableCandidate = scope.getVariables().stream()
-						.filter(cfVar -> cfVar.getName().contentEquals(oVarStmt.getName())).findFirst();
+				final String nameOfRequiredControlFlowVariable = oVarStmt.getName();
+				final Optional<CFVariable> returnVariableCandidate = findControlFlowVariableByName(scope,
+						nameOfRequiredControlFlowVariable);
 				if (returnVariableCandidate.isPresent()) {
 					final CFVariable cfReturnVariable = returnVariableCandidate.get();
 					final CFVariable tempCFReturnVariable = DEMOCLES_CF_FACTORY.createCFVariable();
@@ -274,8 +276,7 @@ public class EditorToControlFlowTransformation {
 					tempCFReturnVariable.setScope(scope);
 					tempCFReturnVariable.setLocal(true);
 					tempCFReturnVariable.setType(cfReturnVariable.getType());
-					final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(ePackage,
-							resourceSet);
+					final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 					pattern = patternBuilderVisitor.createExpressionPatternForObjectVariables(cfReturnVariable);
 					final Variable source = pattern.getSymbolicParameters().get(1);
 					final Variable target = pattern.getSymbolicParameters().get(0);
@@ -288,8 +289,8 @@ public class EditorToControlFlowTransformation {
 					varRefTarget.setInvocation(resultPatternInvocation);
 					varRefSource.setInvocation(resultPatternInvocation);
 				} else {
-					transformationStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-							"Cannot resolve variable to be returned: " + namedObject));
+					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+							"Cannot resolve variable to be returned: %s", namedObject.getObj().getName());
 					return;
 				}
 			} else if (returnObject instanceof EnumExpression) {
@@ -303,8 +304,7 @@ public class EditorToControlFlowTransformation {
 				returnVariable.setScope(scope);
 				returnVariable.setLocal(true);
 				returnVariable.setConstructor(resultPatternInvocation);
-				final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(
-						Arrays.asList(ePackage, this.ecorePackage), resourceSet);
+				final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 				pattern = patternBuilderVisitor.createExpressionPatternForEnumValues(returnVariable,
 						enumExpression.getLiteral());
 				final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
@@ -333,12 +333,38 @@ public class EditorToControlFlowTransformation {
 
 	}
 
+	private Optional<CFVariable> findControlFlowVariableByName(final Scope scope,
+			final String nameOfRequiredControlFlowVariable) {
+		Scope currentScope = scope;
+		while (currentScope != null) {
+			final Optional<CFVariable> searchResult = currentScope.getVariables().stream()
+					.filter(cfVar -> cfVar.getName().contentEquals(nameOfRequiredControlFlowVariable)).findFirst();
+			if (searchResult.isPresent()) {
+				return searchResult;
+			}
+
+			currentScope = identifyNextHigherScope(currentScope);
+		}
+		return Optional.empty();
+	}
+
+	private Scope identifyNextHigherScope(final Scope scope) {
+		final EObject scopeContainer = scope.eContainer();
+		if (scopeContainer != null) {
+			final EObject scopeContainerContainer = scopeContainer.eContainer();
+			if (scopeContainerContainer instanceof Scope) {
+				return (Scope) scopeContainerContainer;
+			}
+		}
+		return null;
+	}
+
 	private void visitStatement(final ConditionStatement ifStatement, final Scope scope, final EClass currentEClass,
 			final EOperation currentEOperation) {
 		final IfStatement ifStmtDemocles = DemoclesFactory.eINSTANCE.createIfStatement();
 		ifStmtDemocles.setPrev(this.recentControlFlowNode);
 		ifStmtDemocles.setScope(scope);
-		ifStmtDemocles.setId(this.cfNodeIdCounter++);
+		ifStmtDemocles.setId(getAndIncrementalControlFlowNodeIdCounter());
 		patternNameGenerator.setCFNode(ifStmtDemocles);
 		final Condition cond = ifStatement.getCond();
 		final List<CFVariable> createdVariables = new ArrayList<>();
@@ -380,7 +406,7 @@ public class EditorToControlFlowTransformation {
 		whileLoopDemocles.setPrev(this.recentControlFlowNode);
 		whileLoopDemocles.setScope(scope);
 		whileLoopDemocles.setLoopAlongTrue(true);
-		whileLoopDemocles.setId(this.cfNodeIdCounter++);
+		whileLoopDemocles.setId(getAndIncrementalControlFlowNodeIdCounter());
 		final Condition cond = whileLoopStatement.getCond();
 		patternNameGenerator.setCFNode(whileLoopDemocles);
 		final List<CFVariable> createdVariables = new ArrayList<CFVariable>();
@@ -416,7 +442,7 @@ public class EditorToControlFlowTransformation {
 		final ForEach forLoopDemocles = DemoclesFactory.eINSTANCE.createForEach();
 		forLoopDemocles.setPrev(this.recentControlFlowNode);
 		forLoopDemocles.setScope(scope);
-		forLoopDemocles.setId(this.cfNodeIdCounter++);
+		forLoopDemocles.setId(getAndIncrementalControlFlowNodeIdCounter());
 		final Condition cond = forLoopStatement.getCond();
 		patternNameGenerator.setCFNode(forLoopDemocles);
 		final List<CFVariable> createdVariables = new ArrayList<CFVariable>();
@@ -445,7 +471,7 @@ public class EditorToControlFlowTransformation {
 		doLoopDemocles.setPrev(this.recentControlFlowNode);
 		doLoopDemocles.setScope(scope);
 		doLoopDemocles.setLoopAlongTrue(true);
-		doLoopDemocles.setId(this.cfNodeIdCounter++);
+		doLoopDemocles.setId(getAndIncrementalControlFlowNodeIdCounter());
 		final Condition cond = doLoopStatement.getCond();
 		patternNameGenerator.setCFNode(doLoopDemocles);
 		final List<CFVariable> createdVariables = new ArrayList<CFVariable>();
@@ -483,8 +509,7 @@ public class EditorToControlFlowTransformation {
 
 		patternNameGenerator.setPatternDefinition(editorPattern);
 
-		final PatternBuilderVisitor patternBuilderVisitor = new PatternBuilderVisitor(
-				Arrays.asList(ePackage, ecorePackage), resourceSet);
+		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern, transformationStatus);
 		final Map<PatternType, PatternInvocation> invocations = new HashMap<>();
 
@@ -556,6 +581,7 @@ public class EditorToControlFlowTransformation {
 					resourceSet, patternType.getSuffix());
 
 			DemoclesValidationUtils.saveResource(adapterResource);
+
 			final PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
 					democlesPattern);
 			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
@@ -629,13 +655,14 @@ public class EditorToControlFlowTransformation {
 		DemoclesValidationUtils.saveResource(adapterResource);
 		final PatternMatcher patternMatcher;
 		if (constraintType == null) {
-			patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
+			patternMatcher = getPatternMatcher(patternType);
 		} else {
-			patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(constraintType);
+			patternMatcher = getPatternMatcher(constraintType);
 		}
-		final Adornment adornment = calculateAdornmentForApplicationCondition(
-				((PatternInvocationConstraint) constraint).getParameters(), invokingPattern.getSymbolicParameters(),
-				invokingPattern.getBodies().get(0).getLocalVariables(), constraintType == PatternType.BINDING_PATTERN);
+		final PatternInvocationConstraint invocationConstraint = (PatternInvocationConstraint) constraint;
+		final Adornment adornment = calculateAdornmentForApplicationCondition(invocationConstraint.getParameters(),
+				invokingPattern.getSymbolicParameters(), invokingPattern.getBodies().get(0).getLocalVariables(),
+				constraintType == PatternType.BINDING_PATTERN);
 
 		final boolean isMultipleMatch = false;
 
@@ -674,7 +701,7 @@ public class EditorToControlFlowTransformation {
 
 	private CFNode createCFNode(final Scope scope, final CFNode previousCFNode) {
 		final CFNode cfNode = DEMOCLES_CF_FACTORY.createCFNode();
-		cfNode.setId(this.cfNodeIdCounter++);
+		cfNode.setId(getAndIncrementalControlFlowNodeIdCounter());
 		cfNode.setScope(scope);
 		cfNode.setPrev(previousCFNode);
 		if (scope.getParent() instanceof Loop) {
@@ -688,7 +715,7 @@ public class EditorToControlFlowTransformation {
 
 	private void createAndSaveSearchPlan(final PatternInvocation patternInvocation, final Pattern democlesPattern,
 			final PatternType patternType) {
-		final PatternMatcher patternMatcher = this.patternMatcherConfiguration.getPatternMatcher(patternType);
+		final PatternMatcher patternMatcher = getPatternMatcher(patternType);
 		final Adornment adornment = calculateAdornment(patternInvocation, patternType);
 
 		if (patternType == PatternType.RED_PATTERN && !PatternUtil.isOnlyBound(adornment))
@@ -720,31 +747,38 @@ public class EditorToControlFlowTransformation {
 		return adapterResource;
 	}
 
-	private void createAndCheckParameterVariables(final EOperation eOperation, final MethodDec editorEOp,
+	private void createAndCheckParameterVariables(final EOperation eOperation, final MethodDec editorEOperation,
 			final Scope rootscope) {
-		if (eOperation.getEParameters().size() != editorEOp.getEParameters().size()) {
-			throw new IllegalArgumentException(String.format(
-					"Number of parameters given in Controlflow does not match that of Method declaration in .ecore for method %s",
-					eOperation));
+		final EList<EParameter> editorOperationParameters = editorEOperation.getEParameters();
+		final int parameterCountInEcore = eOperation.getEParameters().size();
+		final int parameterCountInMcf = editorOperationParameters.size();
+		if (parameterCountInEcore != parameterCountInMcf) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Parameter count mismatches for EOperation %s.%s (%d in .ecore, %d in .mcf)",
+					eOperation.getEContainingClass().getName(), eOperation.getName(), parameterCountInEcore,
+					parameterCountInMcf);
+			return;
 		}
-		for (int i = 0; i < editorEOp.getEParameters().size(); i++) {
-			final EParameter editorEParam = editorEOp.getEParameters().get(i);
+
+		for (int i = 0; i < parameterCountInMcf; i++) {
+			final EParameter editorEParam = editorOperationParameters.get(i);
 			final EParameter ecoreEParam = eOperation.getEParameters().get(i);
 			if (!(editorEParam.getName().equals(ecoreEParam.getName()))) {
-				throw new IllegalArgumentException(String.format(
-						"Parameter name or position given in Controlflow does not match that of Method declaration in .ecore for method %s",
-						eOperation));
+				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+						"Cannot find parameter with name %s in EOperation %s", editorEParam.getName(),
+						eOperation.getName());
+				return;
 			}
 		}
-		// After everything is matched accordingly we can create a new control flow
-		// Variable
+
 		for (final EParameter eParameter : eOperation.getEParameters()) {
 			final CFVariable parameter = DEMOCLES_CF_FACTORY.createCFVariable();
-			rootscope.getVariables().add(parameter);
 			parameter.setName(eParameter.getName());
 			parameter.setType(eParameter.getEType());
 			parameter.setLocal(false);
 			parameter.setConstructor(THIS_VARIABLE_DUMMY_ACTION);
+
+			rootscope.getVariables().add(parameter);
 		}
 	}
 
@@ -782,17 +816,23 @@ public class EditorToControlFlowTransformation {
 
 	private CFVariable createTemporaryCFVariable(final Scope currentScope, final Variable var,
 			final EPackage epackage) {
-		final CFVariable temp = DEMOCLES_CF_FACTORY.createCFVariable();
-		temp.setName("temp_" + var.getName());
 		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
-		if (editorObjectVariableType == null)
-			throw new IllegalArgumentException(String.format("Variable %s has no type.", var));
-		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, epackage);
-		if (properCfVariableType == null)
-			throw new IllegalArgumentException(
-					String.format("Cannot translate the type %s (from the editor) to an EClassifier in %s",
-							editorObjectVariableType, epackage));
+		if (editorObjectVariableType == null) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Variable %s has no type.", var);
+			return null;
+		}
 
+		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, epackage);
+		if (properCfVariableType == null) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Cannot translate the type %s (from the editor) to an EClassifier in %s", editorObjectVariableType,
+					epackage);
+			return null;
+		}
+
+		final CFVariable temp = DEMOCLES_CF_FACTORY.createCFVariable();
+		temp.setName(GENERATED_VARIABLE_NAME_PREFIX + var.getName());
 		temp.setType(editorObjectVariableType);
 		temp.setScope(currentScope);
 		temp.setLocal(false);
@@ -868,8 +908,8 @@ public class EditorToControlFlowTransformation {
 				searchedScope = currentScope.getContents().get(0).getScope();
 			}
 			while (searchedScope != null) {
-				final Optional<CFVariable> candidate = searchedScope.getVariables().stream()
-						.filter(cfVar -> cfVar.getName().equals("temp_" + symbolicParam.getName())
+				final Optional<CFVariable> candidate = searchedScope.getVariables().stream().filter(
+						cfVar -> cfVar.getName().equals(GENERATED_VARIABLE_NAME_PREFIX + symbolicParam.getName())
 								|| cfVar.getName().equals(symbolicParam.getName()))
 						.findFirst();
 				if (candidate.isPresent()) {
@@ -933,10 +973,12 @@ public class EditorToControlFlowTransformation {
 	private void createCFVariableFromObjectVariable(final Scope rootscope, final ObjectVariableStatement statement) {
 		final EClassifier editorObjectVariableType = statement.getEType();
 		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage);
-		if (properCfVariableType == null)
-			throw new IllegalArgumentException(
-					String.format("Cannot translate the type %s (from the editor) to an EClassifier in %s",
-							editorObjectVariableType, ePackage));
+		if (properCfVariableType == null) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Cannot translate the type %s (from the editor) to an EClassifier in %s", editorObjectVariableType,
+					ePackage);
+			return;
+		}
 
 		final CFVariable cfVariable = DEMOCLES_CF_FACTORY.createCFVariable();
 		cfVariable.setScope(rootscope);
@@ -959,5 +1001,17 @@ public class EditorToControlFlowTransformation {
 			return properEClassifierFromEPackage;
 		else
 			return this.ecorePackage.getEClassifier(statementEType.getName());
+	}
+
+	private PatternMatcher getPatternMatcher(final PatternType patternType) {
+		return this.patternMatcherConfiguration.getPatternMatcher(patternType);
+	}
+
+	private int getAndIncrementalControlFlowNodeIdCounter() {
+		return this.cfNodeIdCounter++;
+	}
+
+	private PatternBuilderVisitor createPatternBuilderVisitor() {
+		return new PatternBuilderVisitor(Arrays.asList(ecorePackage, ePackage), resourceSet);
 	}
 }
