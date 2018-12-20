@@ -24,6 +24,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.emoflon.ibex.gt.editor.utils.GTFlattener;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
@@ -458,8 +459,12 @@ public class EditorToControlFlowTransformation {
 
 		patternNameGenerator.setPatternDefinition(editorPattern);
 
+		final EditorPattern flattenedPattern = flattenPattern(editorPattern);
+		if (hasErrors())
+			return;
+
 		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
-		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(editorPattern, transformationStatus);
+		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(flattenedPattern, transformationStatus);
 		final Map<PatternType, PatternInvocation> invocations = new HashMap<>();
 
 		final Collection<CFVariable> destructedVariables = new ArrayList<>();
@@ -550,6 +555,17 @@ public class EditorToControlFlowTransformation {
 
 		chainPatternInvocations(invocations, destructedVariables, invokingCFNode);
 
+	}
+
+	public EditorPattern flattenPattern(final EditorPattern editorPattern) {
+		final GTFlattener flattener = new GTFlattener(editorPattern);
+		final List<String> flatteningErrors = flattener.getErrors();
+		for (final String errorMessage : flatteningErrors) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Flattening of %s failed: %s", editorPattern.getName(), errorMessage);
+		}
+		final EditorPattern flattenedPattern = flattener.getFlattenedPattern();
+		return flattenedPattern;
 	}
 
 	/**
