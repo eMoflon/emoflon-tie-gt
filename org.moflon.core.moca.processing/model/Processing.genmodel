@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/org.moflon.core.moca.processing/gen" modelPluginID="org.moflon.core.moca.processing"
+    modelName="Processing" updateClasspath="false" codeFormatting="true" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="8.0" copyrightFields="false" usedGenPackages="platform:/plugin/MocaTree/model/MocaTree.genmodel#//MocaTree"
+    operationReflection="true">
+  <foreignModel>Processing.ecore</foreignModel>
+  <genPackages prefix="Processing" basePackage="org.moflon.core.moca" disposableProviderFactory="true"
+      ecorePackage="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#/">
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//ProblemType">
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//ProblemType/ERROR"/>
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//ProblemType/WARNING"/>
+      <genEnumLiterals ecoreEnumLiteral="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//ProblemType/INFO"/>
+    </genEnums>
+    <genDataTypes ecoreDataType="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Directory"/>
+    <genDataTypes ecoreDataType="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//File"/>
+    <genDataTypes ecoreDataType="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Reader"/>
+    <genClasses ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparser"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/problems"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/parser"/>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/parse">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/parse/dir"/>
+      </genOperations>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparse">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparse/path"/>
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparse/folder"/>
+      </genOperations>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/parseFile">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/parseFile/file"/>
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/parseFile/parent"/>
+      </genOperations>
+      <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparseFile">
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparseFile/eFile"/>
+        <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//CodeAdapter/unparseFile/dir"/>
+      </genOperations>
+    </genClasses>
+    <genClasses ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem">
+      <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/codeAdapter"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/characterPositionEnd"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/characterPositionStart"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/line"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/message"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/source"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//Problem/type"/>
+    </genClasses>
+    <nestedGenPackages prefix="Compare" disposableProviderFactory="true" ecorePackage="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare">
+      <genClasses ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/Addition"/>
+      <genClasses ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/Deletion"/>
+      <genClasses ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/addition"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/deletion"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/foundRightRlements"/>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/cacheRightFolder">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/cacheRightFolder/right"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/collectAddition">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/collectAddition/element"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/collectAddition/leftParent"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/collectDeletion">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/collectDeletion/element"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/collectDeletion/leftParent"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compare">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compare/left"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compare/right"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareFile">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareFile/left"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareFile/right"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareFolder">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareFolder/left"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareFolder/right"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareNode">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareNode/left"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/compareNode/right"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/getTreeElement">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/getTreeElement/parent"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/getTreeElement/name"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaCompare/getTreeElement/index"/>
+        </genOperations>
+      </genClasses>
+      <genClasses image="false" ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaDiff">
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaDiff/element"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//compare/MocaDiff/leftParent"/>
+      </genClasses>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="Parser" disposableProviderFactory="true" ecorePackage="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser">
+      <genClasses image="false" ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/codeAdapter"/>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/canParseFile">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/canParseFile/fileName"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/parse">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/parse/reader"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/parse.1">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/parse.1/file"/>
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/Parser/parse.1/reader"/>
+        </genOperations>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/XMLParser">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/XMLParser/ignoreWhitespaces"/>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/XMLParser/canParseFile">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/XMLParser/canParseFile/fileName"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/XMLParser/parse">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//parser/XMLParser/parse/reader"/>
+        </genOperations>
+      </genClasses>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="Unparser" disposableProviderFactory="true" ecorePackage="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser">
+      <genClasses image="false" ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/TemplateUnparser">
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/TemplateUnparser/unparse">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/TemplateUnparser/unparse/node"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/TemplateUnparser/canUnparseFile">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/TemplateUnparser/canUnparseFile/fileName"/>
+        </genOperations>
+      </genClasses>
+      <genClasses image="false" ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/Unparser">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/Unparser/codeAdapter"/>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/Unparser/unparse">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/Unparser/unparse/node"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/Unparser/canUnparseFile">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/Unparser/canUnparseFile/fileName"/>
+        </genOperations>
+      </genClasses>
+      <genClasses image="false" ecoreClass="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/XMLUnparser">
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/XMLUnparser/unparse">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/XMLUnparser/unparse/node"/>
+        </genOperations>
+        <genOperations ecoreOperation="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/XMLUnparser/canUnparseFile">
+          <genParameters ecoreParameter="platform:/plugin/org.moflon.core.moca.processing/model/Processing.ecore#//unparser/XMLUnparser/canUnparseFile/fileName"/>
+        </genOperations>
+      </genClasses>
+    </nestedGenPackages>
+  </genPackages>
+</genmodel:GenModel>

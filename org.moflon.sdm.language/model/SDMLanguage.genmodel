@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/SDMLanguage/gen" modelPluginID="SDMLanguage" modelName="SDMLanguage"
+    updateClasspath="false" codeFormatting="true" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="8.0" copyrightFields="false" operationReflection="true">
+  <foreignModel>SDMLanguage.ecore</foreignModel>
+  <genPackages prefix="SDMLanguage" disposableProviderFactory="true" ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#/">
+    <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//CommentableElement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//CommentableElement/comment"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//NamedElement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//NamedElement/name"/>
+    </genClasses>
+    <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//TypedElement">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//TypedElement/type"/>
+    </genClasses>
+    <nestedGenPackages prefix="Activities" disposableProviderFactory="true" ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities">
+      <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/EdgeGuard">
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/EdgeGuard/NONE"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/EdgeGuard/SUCCESS"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/EdgeGuard/FAILURE"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/EdgeGuard/EACH_TIME"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/EdgeGuard/END"/>
+      </genEnums>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/Activity">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/Activity/ownedActivityEdge"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/Activity/ownedActivityNode"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/Activity/owningOperation"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityEdge">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityEdge/owningActivity"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityEdge/source"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityEdge/target"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityEdge/guard"/>
+      </genClasses>
+      <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityNode">
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityNode/outgoing"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityNode/incoming"/>
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/ActivityNode/owningActivity"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/MoflonEOperation">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/MoflonEOperation/activity"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StartNode"/>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StatementNode">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StatementNode/statementExpression"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StopNode">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StopNode/returnValue"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StoryNode">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StoryNode/storyPattern"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities/StoryNode/forEach"/>
+      </genClasses>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="SdmUtil" disposableProviderFactory="true" ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil">
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjection">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjection/importInjectionEntries"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjection/compilerInjectionEntries"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjectionEntry">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjectionEntry/compilerInjection"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjectionEntry/eOperation"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/CompilerInjectionEntry/content"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/ImportInjectionEntry">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/ImportInjectionEntry/compilerInjection"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/ImportInjectionEntry/eClass"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/ImportInjectionEntry/content"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/SDMPrecompiler">
+        <genOperations ecoreOperation="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/SDMPrecompiler/processActivity">
+          <genParameters ecoreParameter="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//sdmUtil/SDMPrecompiler/processActivity/activity"/>
+        </genOperations>
+      </genClasses>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="Calls" disposableProviderFactory="true" ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls">
+      <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/Invocation">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/Invocation/ownedParameterBindings"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/Invocation/callee"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/ParameterBinding">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/ParameterBinding/valueExpression"/>
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/ParameterBinding/invocation"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/ParameterBinding/parameter"/>
+      </genClasses>
+      <nestedGenPackages prefix="CallExpressions" disposableProviderFactory="true"
+          ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/callExpressions">
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/callExpressions/MethodCallExpression">
+          <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/callExpressions/MethodCallExpression/target"/>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/callExpressions/ParameterExpression">
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/callExpressions/ParameterExpression/parameter"/>
+        </genClasses>
+      </nestedGenPackages>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="Expressions" disposableProviderFactory="true" ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions">
+      <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator">
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator/LESS"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator/LESS_OR_EQUAL"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator/EQUAL"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator/GREATER_OR_EQUAL"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator/GREATER"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparingOperator/UNEQUAL"/>
+      </genEnums>
+      <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/BinaryExpression">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/BinaryExpression/rightExpression"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/BinaryExpression/leftExpression"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparisonExpression">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/ComparisonExpression/operator"/>
+      </genClasses>
+      <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/Expression">
+        <genOperations ecoreOperation="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/Expression/compare">
+          <genParameters ecoreParameter="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/Expression/compare/expression"/>
+        </genOperations>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/LiteralExpression">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/LiteralExpression/value"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/TextualExpression">
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/TextualExpression/expressionText"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/TextualExpression/language"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/TextualExpression/languageVersion"/>
+      </genClasses>
+    </nestedGenPackages>
+    <nestedGenPackages prefix="Patterns" disposableProviderFactory="true" ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns">
+      <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingOperator">
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingOperator/CHECK_ONLY"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingOperator/CREATE"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingOperator/DESTROY"/>
+      </genEnums>
+      <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingSemantics">
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingSemantics/MANDATORY"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingSemantics/OPTIONAL"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingSemantics/NEGATIVE"/>
+      </genEnums>
+      <genEnums typeSafeEnumCompatible="false" ecoreEnum="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingState">
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingState/UNBOUND"/>
+        <genEnumLiterals ecoreEnumLiteral="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/BindingState/BOUND"/>
+      </genEnums>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ApplicationConditionStoryPattern">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ApplicationConditionStoryPattern/storyPattern"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeAssignment">
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeAssignment/objectVariable"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeAssignment/valueExpression"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeAssignment/attribute"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/Constraint">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/Constraint/constraintExpression"/>
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/Constraint/objectVariable"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable">
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable/target"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable/source"/>
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable/pattern"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable/type"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable/bindingOperator"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/LinkVariable/bindingSemantics"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/constraint"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/bindingExpression"/>
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/pattern"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/incomingLink"/>
+        <genFeatures notify="false" createChild="false" propertySortChoices="true"
+            ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/outgoingLink"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/attributeAssignment"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/bindingOperator"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/bindingSemantics"/>
+        <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/ObjectVariable/bindingState"/>
+      </genClasses>
+      <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern">
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern/objectVariable"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern/linkVariable"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern/constraints"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern/variables"/>
+        <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern/applicationConditions"/>
+        <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/StoryPattern/storyNode"/>
+      </genClasses>
+      <nestedGenPackages prefix="AttributeConstraints" disposableProviderFactory="true"
+          ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints">
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AssignmentConstraint"/>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraint">
+          <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraint/storyPattern"/>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintExpression">
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintExpression/targetVariable"/>
+          <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintExpression/containedVariables"/>
+          <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintExpression/containedConstraints"/>
+          <genOperations ecoreOperation="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintExpression/compare">
+            <genParameters ecoreParameter="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintExpression/compare/expression"/>
+          </genOperations>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintVariable">
+          <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintVariable/storyPattern"/>
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintVariable/attributeValueConstraints"/>
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintVariable/type"/>
+          <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeConstraintVariable/name"/>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeLookupConstraint"/>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeValueConstraint">
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeValueConstraint/parameter"/>
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeValueConstraint/objectVariable"/>
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/AttributeValueConstraint/type"/>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/CspConstraint">
+          <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/CspConstraint/parameters"/>
+          <genFeatures createChild="false" ecoreFeature="ecore:EAttribute platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/CspConstraint/name"/>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/LiteralVariable"/>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/PrimitiveVariable"/>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/CspConstraintVariableReference">
+          <genFeatures property="None" notify="false" createChild="false" ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/CspConstraintVariableReference/cspConstraint"/>
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/AttributeConstraints/CspConstraintVariableReference/attributeConstraintVariable"/>
+        </genClasses>
+      </nestedGenPackages>
+      <nestedGenPackages prefix="PatternExpressions" disposableProviderFactory="true"
+          ecorePackage="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions">
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions/AttributeValueExpression">
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions/AttributeValueExpression/attribute"/>
+        </genClasses>
+        <genClasses image="false" ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions/ObjectRefExpression">
+          <genFeatures notify="false" createChild="false" propertySortChoices="true"
+              ecoreFeature="ecore:EReference platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions/ObjectRefExpression/object"/>
+        </genClasses>
+        <genClasses ecoreClass="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions/ObjectVariableExpression"/>
+      </nestedGenPackages>
+    </nestedGenPackages>
+  </genPackages>
+</genmodel:GenModel>

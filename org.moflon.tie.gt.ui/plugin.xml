@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+    <extension id="org.moflon.textualEditor.contentTypes" name="MoflonContentTypes" point="org.eclipse.core.contenttype.contentTypes">
+        <!-- SDM-specific content types -->
+        <content-type id="org.moflon.contenttype.sdm" name="eMoflon SDM" file-extensions="sdm" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.cf" name="eMoflon CF" file-extensions="cf" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.dfs" name="eMoflon DFS" file-extensions="dfs" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.binding" name="eMoflon Binding" file-extensions="binding" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.black" name="eMoflon Black" file-extensions="black" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.bindingAndBlack" name="eMoflon Binding and Black" file-extensions="bindingAndBlack" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.expression" name="eMoflon Expression" file-extensions="expression" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.red" name="eMoflon Red" file-extensions="red" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <content-type id="org.moflon.contenttype.green" name="eMoflon Green" file-extensions="gren" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
+        <file-association content-type="org.moflon.contenttype.sdm" file-extensions="sdm"></file-association>
+        <file-association content-type="org.moflon.contenttype.cf" file-extensions="cf"></file-association>
+        <file-association content-type="org.moflon.contenttype.dfs" file-extensions="dfs"></file-association>
+        <file-association content-type="org.moflon.contenttype.binding" file-extensions="binding"></file-association>
+        <file-association content-type="org.moflon.contenttype.black" file-extensions="black"></file-association>
+        <file-association content-type="org.moflon.contenttype.bindingAndBlack" file-extensions="bindingAndBlack"></file-association>
+        <file-association content-type="org.moflon.contenttype.expression" file-extensions="expression"></file-association>
+        <file-association content-type="org.moflon.contenttype.red" file-extensions="red"></file-association>
+        <file-association content-type="org.moflon.contenttype.green" file-extensions="green"></file-association>
+    </extension>
+    <extension  
+         point="org.eclipse.ui.newWizards">
+        <category
+            id="org.moflon.ide.ui.category"
+            name="eMoflon"></category>
+        <wizard
+            canFinishEarly="false"
+            category="org.moflon.ide.ui.category"
+            class="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
+            finalPerspective="org.moflon.ide.ui.MoflonPerspective"
+            hasPages="true"
+            id="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
+            name="New eMoflon::TIE-GT Project Wizard"
+            preferredPerspectives="org.moflon.ide.ui.perspective"
+            project="true"></wizard>
+    </extension>
+</plugin>

@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="ASCII"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:activities="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//activities" xmlns:callExpressions="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//calls/callExpressions" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:expressions="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions" xmlns:patternExpressions="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//patterns/patternExpressions" name="literalexpressionsolver" nsURI="platform:/plugin/org.moflon.sdm.democles.literalexpressionsolver/model/Literalexpressionsolver.ecore" nsPrefix="org.moflon.sdm.democles.literalexpressionsolver">
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="basePackage" value="org.moflon.sdm.democles"/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EClass" name="ConstantTransformer">
+    <eOperations xsi:type="activities:MoflonEOperation" name="parse">
+      <eType xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+      <eParameters name="string">
+        <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      </eParameters>
+    </eOperations>
+    <eOperations xsi:type="activities:MoflonEOperation" name="transformLiteralExpression">
+      <eType xsi:type="ecore:EClass" href="http://gervarro.org/democles/specification.ecore#//Constant"/>
+      <eParameters name="literalExpression">
+        <eType xsi:type="ecore:EClass" href="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/LiteralExpression"/>
+      </eParameters>
+      <eParameters name="expectedType">
+        <eType xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EClassifier"/>
+      </eParameters>
+      <activity owningOperation="//ConstantTransformer/transformLiteralExpression">
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.24" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.27" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.2" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.2" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.11" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.3" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.2" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.3" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.4" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.10" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.4" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.8" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.8" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.5"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.9" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.16" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.9" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.11" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.11" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.13" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.14" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.6"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.17" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.9" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.16" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.25" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.16" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.18" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.18" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.7" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.18" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.4" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.20" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.21"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.21" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.21" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.3" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.24" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.19"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.25" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.23" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.25" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.14" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.26" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.27" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.24" guard="SUCCESS"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.27" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.22" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.0" guard="FAILURE"/>
+        <ownedActivityEdge source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.20" guard="SUCCESS"/>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.30">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsJavaObject" comment="IsJavaObject" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.0 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.1" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.10">
+          <storyPattern comment="IsJavaObject">
+            <objectVariable name="ePackage" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EPackage"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;ecore&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1/@storyPattern/@objectVariable.0">
+                    <attribute href="http://www.eclipse.org/emf/2002/Ecore#//ENamedElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;http://www.eclipse.org/emf/2002/Ecore&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1/@storyPattern/@objectVariable.0">
+                    <attribute href="http://www.eclipse.org/emf/2002/Ecore#//EPackage/nsURI"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;ecore&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1/@storyPattern/@objectVariable.0">
+                    <attribute href="http://www.eclipse.org/emf/2002/Ecore#//EPackage/nsPrefix"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+            <objectVariable name="expectedType" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EClassifier"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;EJavaObject&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.1/@storyPattern/@objectVariable.1">
+                    <attribute href="http://www.eclipse.org/emf/2002/Ecore#//ENamedElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsNumber" comment="IsNumber" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.2 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.3" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.4">
+          <storyPattern comment="IsNumber">
+            <objectVariable name="rootNode" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;NUMBER&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.2/@storyPattern/@objectVariable.0">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsConstant" comment="IsConstant" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.4 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.5" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.23">
+          <storyPattern comment="IsConstant">
+            <objectVariable name="rootNode" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;CONSTANT&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.3/@storyPattern/@objectVariable.0">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StatementNode" name="CanCreateDataTypeFromString" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.6 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.7" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.20">
+          <statementExpression xsi:type="callExpressions:MethodCallExpression" callee="//ConstantTransformer/canCreateDataTypeFromString">
+            <ownedParameterBindings parameter="//ConstantTransformer/canCreateDataTypeFromString/factory">
+              <valueExpression xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.1"/>
+            </ownedParameterBindings>
+            <ownedParameterBindings parameter="//ConstantTransformer/canCreateDataTypeFromString/dataType">
+              <valueExpression xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.18/@storyPattern/@objectVariable.0"/>
+            </ownedParameterBindings>
+            <ownedParameterBindings parameter="//ConstantTransformer/canCreateDataTypeFromString/value">
+              <valueExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.0">
+                <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+              </valueExpression>
+            </ownedParameterBindings>
+            <target xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28/@storyPattern/@objectVariable.1"/>
+          </statementExpression>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.8">
+          <returnValue xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.8/@storyPattern/@objectVariable.0"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.14">
+          <returnValue xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.14/@storyPattern/@objectVariable.0"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.19">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="CreateConstant" comment="CreateConstant" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.8" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.7">
+          <storyPattern comment="CreateConstant">
+            <objectVariable name="constant" bindingOperator="CREATE">
+              <type xsi:type="ecore:EClass" href="http://gervarro.org/democles/specification.ecore#//Constant"/>
+              <attributeAssignment>
+                <valueExpression xsi:type="callExpressions:MethodCallExpression">
+                  <ownedParameterBindings>
+                    <valueExpression xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.18/@storyPattern/@objectVariable.0"/>
+                    <parameter href="http://www.eclipse.org/emf/2002/Ecore#//EFactory/createFromString/eDataType"/>
+                  </ownedParameterBindings>
+                  <ownedParameterBindings>
+                    <valueExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.0">
+                      <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                    </valueExpression>
+                    <parameter href="http://www.eclipse.org/emf/2002/Ecore#//EFactory/createFromString/literalValue"/>
+                  </ownedParameterBindings>
+                  <callee href="http://www.eclipse.org/emf/2002/Ecore#//EFactory/createFromString"/>
+                  <target xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.1"/>
+                </valueExpression>
+                <attribute href="http://gervarro.org/democles/specification.ecore#//Constant/value"/>
+              </attributeAssignment>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsNull" comment="IsNull" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.9 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.10" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.16">
+          <storyPattern comment="IsNull">
+            <objectVariable name="rootNode" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;CONSTANT&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.9/@storyPattern/@objectVariable.0">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+            <objectVariable name="child" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;null&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.9/@storyPattern/@objectVariable.1">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.6">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsLiteral" comment="IsLiteral" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.11 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.12" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.3">
+          <storyPattern comment="IsLiteral">
+            <objectVariable name="rootNode" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;LITERAL&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.11/@storyPattern/@objectVariable.0">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="LookupChild" comment="LookupChild" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.13" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.2 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.5 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.11 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.22">
+          <storyPattern comment="LookupChild">
+            <objectVariable name="child" outgoingLink="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@linkVariable.0">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="0"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.0">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/index"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+            <objectVariable name="rootNode" incomingLink="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@linkVariable.0" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+            </objectVariable>
+            <linkVariable name="parentNode" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.1" source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.0">
+              <type href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Text/parentNode"/>
+            </linkVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.12">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="CreateEnumConstant" comment="CreateEnumConstant" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.14" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.26">
+          <storyPattern comment="CreateEnumConstant">
+            <objectVariable name="enumConstant" bindingOperator="CREATE">
+              <type xsi:type="ecore:EClass" href="http://gervarro.org/democles/specification.ecore#//Constant"/>
+              <attributeAssignment>
+                <valueExpression xsi:type="callExpressions:MethodCallExpression">
+                  <ownedParameterBindings>
+                    <valueExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.0">
+                      <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                    </valueExpression>
+                    <parameter href="http://www.eclipse.org/emf/2002/Ecore#//EEnum/getEEnumLiteralByLiteral/literal"/>
+                  </ownedParameterBindings>
+                  <callee href="http://www.eclipse.org/emf/2002/Ecore#//EEnum/getEEnumLiteralByLiteral"/>
+                  <target xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.16/@storyPattern/@objectVariable.0"/>
+                </valueExpression>
+                <attribute href="http://gervarro.org/democles/specification.ecore#//Constant/value"/>
+              </attributeAssignment>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="LookupFactoryClass" comment="LookupFactoryClass" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.15 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.16" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.13">
+          <storyPattern comment="LookupFactoryClass">
+            <objectVariable name="ePackage" outgoingLink="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@linkVariable.0 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@linkVariable.1">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EPackage"/>
+            </objectVariable>
+            <objectVariable name="eFactory" incomingLink="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@linkVariable.0">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EFactory"/>
+            </objectVariable>
+            <objectVariable name="expectedType" incomingLink="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@linkVariable.1" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EClassifier"/>
+            </objectVariable>
+            <linkVariable name="eFactoryInstance" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.1" source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.0">
+              <type href="http://www.eclipse.org/emf/2002/Ecore#//EPackage/eFactoryInstance"/>
+            </linkVariable>
+            <linkVariable name="eClassifiers" target="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.2" source="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.0">
+              <type href="http://www.eclipse.org/emf/2002/Ecore#//EPackage/eClassifiers"/>
+            </linkVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsEnum" comment="IsEnum" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.17 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.18" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.9">
+          <storyPattern comment="IsEnum">
+            <objectVariable name="eEnum" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EEnum"/>
+              <bindingExpression xsi:type="callExpressions:ParameterExpression" parameter="//ConstantTransformer/transformLiteralExpression/expectedType"/>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.15">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsDataType" comment="IsDataType" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.19 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.20" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.18">
+          <storyPattern comment="IsDataType">
+            <objectVariable name="eDataType" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EDataType"/>
+              <bindingExpression xsi:type="callExpressions:ParameterExpression" parameter="//ConstantTransformer/transformLiteralExpression/expectedType"/>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.24">
+          <returnValue xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.24/@storyPattern/@objectVariable.0"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="ParseLiteralExpressionString" comment="ParseLiteralExpressionString" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.21" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.31">
+          <storyPattern comment="ParseLiteralExpressionString">
+            <objectVariable name="rootNode" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <bindingExpression xsi:type="callExpressions:MethodCallExpression" callee="//ConstantTransformer/parse">
+                <ownedParameterBindings parameter="//ConstantTransformer/parse/string">
+                  <valueExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28/@storyPattern/@objectVariable.2">
+                    <attribute href="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/LiteralExpression/value"/>
+                  </valueExpression>
+                </ownedParameterBindings>
+                <target xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28/@storyPattern/@objectVariable.1"/>
+              </bindingExpression>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsEnumLiteral" comment="IsEnumLiteral" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.22 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.23" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.21">
+          <storyPattern comment="IsEnumLiteral">
+            <objectVariable name="rootNode" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/MocaTree/model/MocaTree.ecore#//Node"/>
+              <constraint>
+                <constraintExpression xsi:type="expressions:ComparisonExpression" operator="EQUAL">
+                  <rightExpression xsi:type="expressions:LiteralExpression" value="&quot;ENUMLITERAL&quot;"/>
+                  <leftExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.21/@storyPattern/@objectVariable.0">
+                    <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+                  </leftExpression>
+                </constraintExpression>
+              </constraint>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.29">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StopNode" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.25">
+          <returnValue xsi:type="expressions:LiteralExpression" value="null"/>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="CreateNullConstant" comment="CreateNullConstant" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.24" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.0 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.28">
+          <storyPattern comment="CreateNullConstant">
+            <objectVariable name="nullConstant" bindingOperator="CREATE">
+              <type xsi:type="ecore:EClass" href="http://gervarro.org/democles/specification.ecore#//Constant"/>
+              <attributeAssignment>
+                <valueExpression xsi:type="expressions:LiteralExpression" value="null"/>
+                <attribute href="http://gervarro.org/democles/specification.ecore#//Constant/value"/>
+              </attributeAssignment>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StatementNode" name="CanCreateEnumLiteralFromString" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.25 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.26" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.17">
+          <statementExpression xsi:type="callExpressions:MethodCallExpression" callee="//ConstantTransformer/canCreateEnumLiteralFromString">
+            <ownedParameterBindings parameter="//ConstantTransformer/canCreateEnumLiteralFromString/eEnum">
+              <valueExpression xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.16/@storyPattern/@objectVariable.0"/>
+            </ownedParameterBindings>
+            <ownedParameterBindings parameter="//ConstantTransformer/canCreateEnumLiteralFromString/value">
+              <valueExpression xsi:type="patternExpressions:AttributeValueExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.12/@storyPattern/@objectVariable.0">
+                <attribute href="platform:/plugin/MocaTree/model/MocaTree.ecore#//TreeElement/name"/>
+              </valueExpression>
+            </ownedParameterBindings>
+            <target xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.28/@storyPattern/@objectVariable.1"/>
+          </statementExpression>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StartNode" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.27"/>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="IsEClass" comment="IsEClass" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.28 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.29" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.1">
+          <storyPattern comment="IsEClass">
+            <objectVariable name="eClass" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EClass"/>
+              <bindingExpression xsi:type="patternExpressions:ObjectVariableExpression" object="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityNode.15/@storyPattern/@objectVariable.2"/>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+        <ownedActivityNode xsi:type="activities:StoryNode" name="EnsureNonNullParameters" comment="EnsureNonNullParameters" outgoing="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.30 //ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.31" incoming="//ConstantTransformer/transformLiteralExpression/@activity/@ownedActivityEdge.27">
+          <storyPattern comment="EnsureNonNullParameters">
+            <objectVariable name="tmpType" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EClassifier"/>
+              <bindingExpression xsi:type="callExpressions:ParameterExpression" parameter="//ConstantTransformer/transformLiteralExpression/expectedType"/>
+            </objectVariable>
+            <objectVariable type="//ConstantTransformer" name="this" bindingState="BOUND"/>
+            <objectVariable name="literalExpression" bindingState="BOUND">
+              <type xsi:type="ecore:EClass" href="platform:/plugin/SDMLanguage/model/SDMLanguage.ecore#//expressions/LiteralExpression"/>
+            </objectVariable>
+          </storyPattern>
+        </ownedActivityNode>
+      </activity>
+    </eOperations>
+    <eOperations xsi:type="activities:MoflonEOperation" name="canCreateDataTypeFromString">
+      <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+      <eParameters name="factory">
+        <eType xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EFactory"/>
+      </eParameters>
+      <eParameters name="dataType">
+        <eType xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EDataType"/>
+      </eParameters>
+      <eParameters name="value">
+        <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      </eParameters>
+    </eOperations>
+    <eOperations xsi:type="activities:MoflonEOperation" name="canCreateEnumLiteralFromString">
+      <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+      <eParameters name="eEnum">
+        <eType xsi:type="ecore:EClass" href="http://www.eclipse.org/emf/2002/Ecore#//EEnum"/>
+      </eParameters>
+      <eParameters name="value">
+        <eType xsi:type="ecore:EDataType" href="http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      </eParameters>
+    </eOperations>
+  </eClassifiers>
+</ecore:EPackage>
