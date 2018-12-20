@@ -25,7 +25,7 @@ import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.patterns.PatternType;
 
 public final class ControlFlowUtil {
-	public static final Action NO_CONSTRUCTOR = null;
+	private static final Action NO_CONSTRUCTOR = null;
 
 	private ControlFlowUtil() {
 		throw new UtilityClassNotInstantiableException();
@@ -102,6 +102,11 @@ public final class ControlFlowUtil {
 		variable.setConstructor(constructor);
 		variable.setScope(scope);
 		return variable;
+	}
+
+	public static CFVariable createControlFlowVariableWithoutConstructor(final String name, final EClassifier type,
+			final Scope scope) {
+		return createControlFlowVariable(name, type, NO_CONSTRUCTOR, scope);
 	}
 
 	public static CFVariable createLocalControlFlowVariable(final String name, final EClassifier type,
@@ -191,6 +196,14 @@ public final class ControlFlowUtil {
 		doLoopDemocles.setLoopAlongTrue(true);
 		doLoopDemocles.setId(id);
 		return doLoopDemocles;
+	}
+
+	public static CFNode createControlFlowNode(final int id, final Scope scope, final CFNode previousNode) {
+		final CFNode cfNode = DemoclesFactory.eINSTANCE.createCFNode();
+		cfNode.setId(id);
+		cfNode.setScope(scope);
+		cfNode.setPrev(previousNode);
+		return cfNode;
 	}
 
 }

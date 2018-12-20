@@ -11,7 +11,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
-public class ContextController {
+public class TypeLookup {
 
 	private Collection<EPackage> contextEPackages;
 
@@ -97,7 +97,7 @@ public class ContextController {
 	 * Returns the configured {@link ResourceSet}
 	 * 
 	 * @return the resource set
-	 * @see ContextController#setResourceSet(ResourceSet)
+	 * @see TypeLookup#setResourceSet(ResourceSet)
 	 */
 	public ResourceSet getResourceSet() {
 		return this.resourceSet;

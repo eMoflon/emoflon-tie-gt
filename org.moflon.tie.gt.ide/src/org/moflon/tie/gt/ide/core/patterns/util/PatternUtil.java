@@ -4,13 +4,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.runtime.MultiStatus;
+import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
+import org.gervarro.democles.specification.emf.Variable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.tie.gt.ide.core.patterns.PatternType;
 
@@ -75,6 +78,24 @@ public final class PatternUtil {
 
 	public static boolean isOnlyBound(final Adornment adornment) {
 		return adornment.getBoundColumns().length == adornment.size();
+	}
+
+	public static ConstraintParameter createConstraintParameter() {
+		return SpecificationFactory.eINSTANCE.createConstraintParameter();
+	}
+
+	public static PatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
+		switch (editorAttribute.getRelation()) {
+		case ASSIGNMENT:
+			return PatternType.GREEN_PATTERN;
+		default:
+			return PatternType.BLACK_PATTERN;
+		}
+	}
+
+	public static void moveSymbolicParameterToLocalVariable(final Variable symbolicParameter, final Pattern newPattern) {
+		newPattern.getSymbolicParameters().remove(symbolicParameter);
+		newPattern.getBodies().get(0).getLocalVariables().add(symbolicParameter);
 	}
 
 }
