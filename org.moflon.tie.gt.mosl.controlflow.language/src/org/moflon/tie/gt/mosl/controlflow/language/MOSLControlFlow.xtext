@@ -109,6 +109,14 @@ ForLoopStatement:
 
 ReturnStatement:{ReturnStatement} 'return' (obj=ReturnObject)?;
 
+ReturnObject: (ObjectVariableAttributeExpression | LiteralExpression | ObjectVariableExpression | EnumExpression );
+
+ObjectVariableExpression: obj=[ObjectVariableStatement|ID];
+
+ObjectVariableAttributeExpression:
+  variable = [ObjectVariableStatement|ID] '.' attribute = [ecore::EAttribute]
+;
+
 MethodParameter: name = ID ':' eType=[ecore::EClassifier | QualifiedName];
 
 MethodTypeName returns ecore::EString: 'void' | QualifiedName;
@@ -165,10 +173,6 @@ QualifiedName returns ecore::EString:
 //additional connections
 TypedElement:(ObjectVariableStatement | MethodParameter);
 
-TypedNamedObject: obj=[ObjectVariableStatement|QualifiedName];
-
 CalledParameter:CalledPatternParameter | CalledMethodParameter;
 
 LiteralExpression: val= LiteralValue | {StringConstant} val=STRING;
-
-ReturnObject: (LiteralExpression | TypedNamedObject | EnumExpression);

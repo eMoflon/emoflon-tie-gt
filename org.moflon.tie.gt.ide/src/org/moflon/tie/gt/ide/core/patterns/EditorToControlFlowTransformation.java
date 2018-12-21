@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
@@ -51,13 +52,13 @@ import org.moflon.sdm.runtime.democles.IfStatement;
 import org.moflon.sdm.runtime.democles.Loop;
 import org.moflon.sdm.runtime.democles.NodeDeletion;
 import org.moflon.sdm.runtime.democles.PatternInvocation;
-import org.moflon.sdm.runtime.democles.RegularPatternInvocation;
 import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.SingleResultPatternInvocation;
 import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.util.ControlFlowUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ValidationUtil;
@@ -74,13 +75,14 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpres
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableAttributeExpression;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnObject;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Statement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.TypedElement;
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.TypedNamedObject;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStatement;
 
 public class EditorToControlFlowTransformation {
@@ -112,7 +114,8 @@ public class EditorToControlFlowTransformation {
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile controlFlowFile,
 			final ResourceSet resourceSet, final EPackage ecorePackage) {
-		this.transformationStatus = new MultiStatus(getPluginId(), 0, "Creation of control flow model failed.", null);
+		this.transformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+				"Creation of control flow model failed.", null);
 		this.ePackage = ePackage;
 		this.ecorePackage = ecorePackage;
 		this.resourceSet = resourceSet;
@@ -214,19 +217,22 @@ public class EditorToControlFlowTransformation {
 
 		final ReturnObject returnObject = returnStmt.getObj();
 		if (returnObject == null) {
-			final Action emptyReturnAction = DemoclesFactory.eINSTANCE.createAction();
-			emptyReturnAction.setCfNode(returnStmtDemocles);
+			final Action emptyReturnAction = PatternInvocationUtil
+					.createSingleResultPatternInvocation(returnStmtDemocles);
 			returnStmtDemocles.setMainAction(emptyReturnAction);
 		} else {
-			final SingleResultPatternInvocation resultPatternInvocation = DemoclesFactory.eINSTANCE
-					.createSingleResultPatternInvocation();
-			resultPatternInvocation.setCfNode(returnStmtDemocles);
-			final Pattern pattern;
+
+			final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationUtil
+					.createSingleResultPatternInvocation(returnStmtDemocles);
+
 			returnStmtDemocles.setMainAction(resultPatternInvocation);
+
+			final Pattern pattern;
+			final EClassifier returnType;
 			if (returnObject instanceof LiteralExpression) {
 				final LiteralExpression val = (LiteralExpression) returnObject;
 				final EClassifier returnVariableType = lookupTypeInEcoreFile(eOperation.getEType());
-				resultPatternInvocation.setReturnType(returnVariableType);
+				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
 				final CFVariable returnVariable = ControlFlowUtil.createLocalControlFlowVariable(returnVariableName,
@@ -238,10 +244,10 @@ public class EditorToControlFlowTransformation {
 				final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
 				ControlFlowUtil.createVariableReference(returnVariable, emfReturnVariable, resultPatternInvocation);
 
-			} else if (returnObject instanceof TypedNamedObject) {
-				final TypedNamedObject namedObject = (TypedNamedObject) returnObject;
+			} else if (returnObject instanceof ObjectVariableExpression) {
+				final ObjectVariableExpression namedObject = (ObjectVariableExpression) returnObject;
 				final ObjectVariableStatement oVarStmt = namedObject.getObj();
-				resultPatternInvocation.setReturnType(lookupTypeInEcoreFile(oVarStmt.getEType()));
+				returnType = lookupTypeInEcoreFile(oVarStmt.getEType());
 
 				final String nameOfRequiredControlFlowVariable = oVarStmt.getName();
 				final Optional<CFVariable> returnVariableCandidate = ControlFlowUtil
@@ -265,13 +271,45 @@ public class EditorToControlFlowTransformation {
 
 				} else {
 					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
-							"Cannot resolve variable to be returned: %s", namedObject.getObj().getName());
+							"Cannot resolve variable to be returned: %s", nameOfRequiredControlFlowVariable);
+					return;
+				}
+			} else if (returnObject instanceof ObjectVariableAttributeExpression) {
+				final ObjectVariableAttributeExpression attributeExpression = (ObjectVariableAttributeExpression) returnObject;
+				final ObjectVariableStatement editorVariable = attributeExpression.getVariable();
+				final EAttribute attribute = attributeExpression.getAttribute();
+				returnType = attribute.getEType();
+				final String nameOfRequiredControlFlowVariable = editorVariable.getName();
+				final Optional<CFVariable> returnVariableCandidate = ControlFlowUtil
+						.findControlFlowVariableByName(scope, nameOfRequiredControlFlowVariable);
+
+				if (returnVariableCandidate.isPresent()) {
+					final CFVariable cfReturnVariable = returnVariableCandidate.get();
+
+					final CFVariable tempCFReturnVariable = ControlFlowUtil.createLocalControlFlowVariable(
+							"ret_" + cfReturnVariable.getName(), cfReturnVariable.getType(), resultPatternInvocation,
+							scope);
+
+					final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
+					pattern = patternBuilderVisitor.createExpressionPatternForObjectVariableAttribute(cfReturnVariable,
+							attribute);
+					if (hasErrors())
+						return;
+
+					final Variable source = pattern.getSymbolicParameters().get(1);
+					final Variable target = pattern.getSymbolicParameters().get(0);
+
+					ControlFlowUtil.createVariableReference(tempCFReturnVariable, target, resultPatternInvocation);
+					ControlFlowUtil.createVariableReference(cfReturnVariable, source, resultPatternInvocation);
+				} else {
+					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+							"Cannot resolve variable to be returned: %s", nameOfRequiredControlFlowVariable);
 					return;
 				}
 			} else if (returnObject instanceof EnumExpression) {
 				final EnumExpression enumExpression = (EnumExpression) returnObject;
 				final EClassifier returnVariableType = lookupTypeInEcoreFile(eOperation.getEType());
-				resultPatternInvocation.setReturnType(returnVariableType);
+				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
 				final CFVariable returnVariable = ControlFlowUtil.createLocalControlFlowVariable(returnVariableName,
@@ -284,11 +322,16 @@ public class EditorToControlFlowTransformation {
 
 				ControlFlowUtil.createVariableReference(returnVariable, emfReturnVariable, resultPatternInvocation);
 			} else {
-				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus, "Cannot handle '%s'",
-						returnObject);
+				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+						"Cannot handle the following expresion in a return statement '%s'", returnObject);
 				return;
 			}
 
+			if (hasErrors()) {
+				return;
+			}
+
+			resultPatternInvocation.setReturnType(returnType);
 			resultPatternInvocation.setPattern(pattern);
 
 			patternNameGenerator.setCFNode(returnStmtDemocles);
@@ -344,10 +387,6 @@ public class EditorToControlFlowTransformation {
 		}
 		// Continue with next statement after if
 		this.recentControlFlowNode = ifStmtDemocles;
-	}
-
-	private List<Statement> getThenAndElseStatements(final ConditionStatement ifStatement) {
-		return Arrays.asList(ifStatement.getThenStartStatement(), ifStatement.getElseStartStatement());
 	}
 
 	private void visitStatement(final WhileLoopStatement whileLoopStatement, final Scope scope, final EClass eClass,
@@ -464,16 +503,16 @@ public class EditorToControlFlowTransformation {
 			return;
 
 		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
-		final Map<PatternType, Pattern> patterns = patternBuilderVisitor.visit(flattenedPattern, transformationStatus);
+		final PatternLookup patterns = patternBuilderVisitor.visit(flattenedPattern);
 		final Map<PatternType, PatternInvocation> invocations = new HashMap<>();
 
 		final Collection<CFVariable> destructedVariables = new ArrayList<>();
 
 		for (final PatternType patternType : getOrderedPatternTypes()) {
 
-			final Pattern democlesPattern = patterns.get(patternType);
+			final Pattern democlesPattern = patterns.getPatternForType(patternType);
 
-			if (patternType.isBlack() && patterns.get(PatternType.BINDING_AND_BLACK_PATTERN) != null)
+			if (patternType.isBlack() && patterns.hasPatternForType(PatternType.BINDING_AND_BLACK_PATTERN))
 				continue;
 
 			if (democlesPattern == null)
@@ -536,8 +575,8 @@ public class EditorToControlFlowTransformation {
 
 			DemoclesValidationUtils.saveResource(adapterResource);
 
-			final PatternInvocation patternInvocation = createPatternInvocation(scope, invokingCFNode, editorPattern,
-					democlesPattern);
+			final PatternInvocation patternInvocation = PatternInvocationUtil.createPatternInvocation(scope,
+					invokingCFNode, editorPattern, democlesPattern);
 			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
 					createdVariables, patternType);
 
@@ -557,7 +596,11 @@ public class EditorToControlFlowTransformation {
 
 	}
 
-	public EditorPattern flattenPattern(final EditorPattern editorPattern) {
+	private List<Statement> getThenAndElseStatements(final ConditionStatement ifStatement) {
+		return Arrays.asList(ifStatement.getThenStartStatement(), ifStatement.getElseStartStatement());
+	}
+
+	private EditorPattern flattenPattern(final EditorPattern editorPattern) {
 		final GTFlattener flattener = new GTFlattener(editorPattern);
 		final List<String> flatteningErrors = flattener.getErrors();
 		for (final String errorMessage : flatteningErrors) {
@@ -880,14 +923,6 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private PatternInvocation createPatternInvocation(final Scope rootscope, final CFNode cfNode,
-			final EditorPattern pattern, final Pattern blackPattern) {
-		final RegularPatternInvocation patternInvocation = DemoclesFactory.eINSTANCE.createRegularPatternInvocation();
-		patternInvocation.setCfNode(cfNode);
-		patternInvocation.setPattern(blackPattern);
-		return patternInvocation;
-	}
-
 	private void createCFVariableFromObjectVariable(final Scope rootscope, final ObjectVariableStatement statement) {
 		final EClassifier editorObjectVariableType = statement.getEType();
 		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
@@ -936,11 +971,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private PatternBuilderVisitor createPatternBuilderVisitor() {
-		return new PatternBuilderVisitor(Arrays.asList(ecorePackage, ePackage), resourceSet);
-	}
-
-	private String getPluginId() {
-		return WorkspaceHelper.getPluginId(getClass());
+		return new PatternBuilderVisitor(Arrays.asList(ecorePackage, ePackage), resourceSet, transformationStatus);
 	}
 
 	private boolean hasErrors() {
