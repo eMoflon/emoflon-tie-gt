@@ -50,23 +50,17 @@ ObjectVariableStatement:
 Statement: NextStatement | ReturnStatement;
 
 NextStatement:
-  (PatternStatement | ConditionContainingStatement | ObjectVariableStatement| CallStatement ) (next = Statement)?
+  (PatternStatement | ConditionContainingStatement | ObjectVariableStatement | OperationCallStatement ) (next = Statement)?
 ;
 
 PatternStatement:
-'invoke' patternReference=PatternReference 
+patternReference=PatternReference 
   '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')'
 ;
 
 ConditionStatement:
   'if' '(' cond=Condition ')''{'	thenStartStatement = Statement ?	'}'
 	('else' '{'	elseStartStatement = Statement ? '}')?
-;
-
-CallStatement: OperationCallStatement | MethodCallStatement;
-
-MethodCallStatement:
-  name = [MethodDec] '('(parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)?')'
 ;
 
 OperationCallStatement:

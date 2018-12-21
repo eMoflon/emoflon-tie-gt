@@ -4,8 +4,6 @@
 package org.moflon.tie.gt.mosl.controlflow.language.validation
 
 import org.eclipse.xtext.validation.Check
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CallStatement
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodCallStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledParameter
 import org.eclipse.emf.ecore.ETypedElement
@@ -23,7 +21,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val CANNOT_RESOLVE_TYPE = 'cannotResolveType'
 
 @Check
-def checkParametersofMethodCall(CallStatement callStatement){
+def checkParametersofMethodCall(OperationCallStatement callStatement){
 	val operation = getOperartion(callStatement)
 	if (operation === null)
 	 return
@@ -31,22 +29,18 @@ def checkParametersofMethodCall(CallStatement callStatement){
 	val trgTypes = eparameters.map[param | param.EType]
 	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)?.EType]
 	if(trgTypes.size > srcTypes.size)
-		error("Too few Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, TOO_FEW_ARGUMENTS)
+		error("Too few Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, TOO_FEW_ARGUMENTS)
 	else if(trgTypes.size < srcTypes.size)
-		error("Too many Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, TOO_MANY_ARGUMENTS)
+		error("Too many Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, TOO_MANY_ARGUMENTS)
 
 	for(var index = 0; index < trgTypes.size; index++){
 	  val srcType = srcTypes.get(index)
 		if(srcType !== null && !this.isInstanceOf(srcType, trgTypes.get(index)))
-			error(srcType.name + " cannot be resolved to a variable of " + trgTypes.get(index).name, callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, CANNOT_RESOLVE_TYPE)
+			error(srcType.name + " cannot be resolved to a variable of " + trgTypes.get(index).name, callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, CANNOT_RESOLVE_TYPE)
 	}
 }
 
-def getOperartion(CallStatement callStatement){
-	if(callStatement instanceof MethodCallStatement){
-		return callStatement.name
-	}
-	else if (callStatement instanceof OperationCallStatement)
+def getOperartion(OperationCallStatement callStatement){
 		return callStatement.call
 }
 
