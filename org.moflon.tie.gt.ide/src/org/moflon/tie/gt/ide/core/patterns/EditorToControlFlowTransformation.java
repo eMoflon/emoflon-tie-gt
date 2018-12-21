@@ -63,6 +63,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ValidationUtil;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledMethodParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
@@ -221,15 +222,11 @@ public class EditorToControlFlowTransformation {
 
 		final ReturnObject returnObject = returnStmt.getObj();
 		if (returnObject == null) {
-			final Action emptyReturnAction = PatternInvocationUtil
-					.createSingleResultPatternInvocation(returnStmtDemocles);
-			returnStmtDemocles.setMainAction(emptyReturnAction);
+			PatternInvocationUtil.createSingleResultPatternInvocation(returnStmtDemocles);
 		} else {
 
 			final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationUtil
 					.createSingleResultPatternInvocation(returnStmtDemocles);
-
-			returnStmtDemocles.setMainAction(resultPatternInvocation);
 
 			final Pattern pattern;
 			final EClassifier returnType;
@@ -505,11 +502,39 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.setCFNode(cfNode);
 		recentControlFlowNode = cfNode;
 
-		/*
-		 * Create SingleResult... * this * _result *parameter list * Return type from
-		 * EOperation
-		 */
+		final EOperation calledOperation = operationStatement.getCall();
+		final EList<CalledMethodParameter> parameters = operationStatement.getParameters();
+		invokeOperation(calledOperation, parameters, cfNode, eClass, rootScope);
 
+	}
+
+	private void invokeOperation(final EOperation calledOperation, final EList<CalledMethodParameter> parameters,
+			final CFNode cfNode, final EClass eClass, final Scope rootScope) {
+
+		/**
+		 * <pre>
+		 * Create SingleResult... 
+		 * * callee (e.g., this)
+		 * * _result 
+		 * * EOperation parameter list 
+		 * * Return type from EOperation
+		 * 
+		 * Expression pattern
+		 * InvokeOperation
+		 * Body
+		 * 1x Operation constraint
+		 * 	Constraint Parameter 1: Return value _localVariable_0 (of type = return type of EOperation)
+		 * 	Constraint Parameter 2: callee (of type = return type of EOperation)
+		 *  Constraint Parameter 3...: further EParameters?
+		 * 2x Equal
+		 * 	_result
+		 *  _localVariable
+		 * </pre>
+		 */
+		final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationUtil
+				.createSingleResultPatternInvocation(cfNode);
+		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
+		patternBuilderVisitor.createExpressionPatternForOperationInvocation(null, null, null, calledOperation);
 	}
 
 	private void invokePattern(final EditorPattern editorPattern, final Scope scope, final EClass eClass,
@@ -893,7 +918,7 @@ public class EditorToControlFlowTransformation {
 			// Check for existing temporary CFVariables
 			Scope searchedScope = scope;
 
-			// If we are in a Tail Controlled Loop check contents of body
+			// If we are in a tail-controlled Loop check contents of body
 			if (scope.getParent() instanceof TailControlledLoop) {
 				searchedScope = scope.getContents().get(0).getScope();
 			}

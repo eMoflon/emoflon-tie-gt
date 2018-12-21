@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.ecore.EAttribute;
-import org.eclipse.emf.ecore.EObject;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
@@ -15,34 +14,34 @@ class VariableLookupTable {
 	private final EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
 	private final Map<PatternType, Map<Object, EMFVariable>> data = new HashMap<>();
 
-	public boolean containsKey(final EObject object, final Object parent, final PatternType type) {
+	public boolean containsKey(final Object object, final Object parent, final PatternType type) {
 		final String key = calculateLookupKey(object, parent);
 		return this.getVariableLookupForPatternType(type).containsKey(key);
 	}
 
-	public boolean containsKey(final EObject object, final PatternType type) {
+	public boolean containsKey(final Object object, final PatternType type) {
 		return containsKey(object, null, type);
 	}
 
-	public EMFVariable get(final EObject object, final Object parent, final PatternType type) {
+	public EMFVariable get(final Object object, final Object parent, final PatternType type) {
 		final String key = calculateLookupKey(object, parent);
 		return this.getVariableLookupForPatternType(type).get(key);
 	}
 
-	public EMFVariable get(final EObject object, final PatternType type) {
+	public EMFVariable get(final Object object, final PatternType type) {
 		final String key = calculateLookupKey(object, null);
 		return this.getVariableLookupForPatternType(type).get(key);
 	}
 
-	public EMFVariable getOrCreateEMFVariable(final EObject node, final PatternType type) {
+	public EMFVariable getOrCreateEMFVariable(final Object node, final PatternType type) {
 		return getOrCreateEMFVariable(node, null, type);
 	}
 
-	public EMFVariable lookup(final EObject object, final PatternType type) {
+	public EMFVariable lookup(final Object object, final PatternType type) {
 		return get(object, null, type);
 	}
 
-	EMFVariable getOrCreateEMFVariable(final EObject obj, final Object parent, final PatternType type) {
+	EMFVariable getOrCreateEMFVariable(final Object obj, final Object parent, final PatternType type) {
 		final String keyForLookup = calculateLookupKey(obj, parent);
 		final Map<Object, EMFVariable> variableLookupForPatternType = getVariableLookupForPatternType(type);
 		if (variableLookupForPatternType.containsKey(keyForLookup))
@@ -55,12 +54,8 @@ class VariableLookupTable {
 		}
 	}
 
-	private String calculateLookupKey(final EObject object, final Object parent) {
+	private String calculateLookupKey(final Object object, final Object parent) {
 		final String name;
-
-		if (object.eClass() == null) {
-			throw new IllegalArgumentException("Object" + object + " has no type.");
-		}
 
 		if (object instanceof EditorNode) {
 			name = ((EditorNode) object).getName();
@@ -70,6 +65,8 @@ class VariableLookupTable {
 			name = ((EAttribute) object).getName();
 		} else if (object instanceof CFVariable) {
 			name = ((CFVariable) object).getName();
+		} else if (object instanceof String) {
+			name = (String) object;
 		} else {
 			throw new RuntimeException("Type " + object.getClass() + " is not supported for this operation");
 		}
