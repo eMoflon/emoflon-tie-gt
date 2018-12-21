@@ -157,16 +157,16 @@ public class EditorToControlFlowTransformation {
 				}
 				patternNameGenerator.setEOperation(eOperation);
 
-				final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
+				final Scope rootScope = createrootScopeForEOperation(eOperation, editorEOperation);
 				final Statement statement = editorEOperation.getStartStatement();
 				cfNodeIdCounter = 1;
 				recentControlFlowNode = null;
-				visitStatement(statement, rootscope, correspondingEClass, eOperation);
-				rootscope.getVariables().stream()
+				visitStatement(statement, rootScope, correspondingEClass, eOperation);
+				rootScope.getVariables().stream()
 						.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 						.forEach(thisVariable -> thisVariable.setConstructor(null));
 
-				final AdapterResource adapterResource = attachToRegisteredAdapter(rootscope, eOperation,
+				final AdapterResource adapterResource = attachToRegisteredAdapter(rootScope, eOperation,
 						DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
 
 				DemoclesValidationUtils.saveResource(adapterResource);
@@ -481,24 +481,24 @@ public class EditorToControlFlowTransformation {
 
 	}
 
-	private void visitStatement(final PatternStatement patternStatement, final Scope rootscope, final EClass eClass,
+	private void visitStatement(final PatternStatement patternStatement, final Scope rootScope, final EClass eClass,
 			final EOperation eOperation) {
 
-		final CFNode cfNode = createCFNode(rootscope);
+		final CFNode cfNode = createCFNode(rootScope);
 		cfNode.setPrev(this.recentControlFlowNode);
 
 		patternNameGenerator.setCFNode(cfNode);
 		recentControlFlowNode = cfNode;
 
 		final EditorPattern editorPattern = patternStatement.getPatternReference().getPattern();
-		invokePattern(editorPattern, rootscope, eClass, patternStatement.getParameters(), cfNode, new ArrayList<>(),
+		invokePattern(editorPattern, rootScope, eClass, patternStatement.getParameters(), cfNode, new ArrayList<>(),
 				eOperation);
 	}
 
-	private void visitStatement(final OperationCallStatement operationStatement, final Scope rootscope,
+	private void visitStatement(final OperationCallStatement operationStatement, final Scope rootScope,
 			final EClass eClass, final EOperation eOperation) {
 
-		final CFNode cfNode = createCFNode(rootscope);
+		final CFNode cfNode = createCFNode(rootScope);
 		cfNode.setPrev(this.recentControlFlowNode);
 
 		patternNameGenerator.setCFNode(cfNode);
@@ -725,10 +725,10 @@ public class EditorToControlFlowTransformation {
 		return ((EMFVariable) param.getReference()).getName();
 	}
 
-	private Scope createRootScopeForEOperation(final EOperation eOperation, final MethodDec editorEOp) {
-		final Scope rootscope = ControlFlowUtil.createScope(null);
-		createAndCheckParameterVariables(eOperation, editorEOp, rootscope);
-		return rootscope;
+	private Scope createrootScopeForEOperation(final EOperation eOperation, final MethodDec editorEOperation) {
+		final Scope rootScope = ControlFlowUtil.createScope(null);
+		createAndCheckParameterVariables(eOperation, editorEOperation, rootScope);
+		return rootScope;
 	}
 
 	private CFNode createCFNode(final Scope scope) {
@@ -942,7 +942,7 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private void createCFVariableFromObjectVariable(final Scope rootscope, final ObjectVariableStatement statement) {
+	private void createCFVariableFromObjectVariable(final Scope rootScope, final ObjectVariableStatement statement) {
 		final EClassifier editorObjectVariableType = statement.getEType();
 		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
 				ecorePackage);
@@ -956,9 +956,9 @@ public class EditorToControlFlowTransformation {
 			return;
 
 		final CFVariable cfVariable = ControlFlowUtil.createControlFlowVariableWithoutConstructor(statement.getName(),
-				properCfVariableType, rootscope);
+				properCfVariableType, rootScope);
 
-		rootscope.getVariables().add(cfVariable);
+		rootScope.getVariables().add(cfVariable);
 
 		if (THIS_VARIABLE_NAME.equals(cfVariable.getName())) {
 			cfVariable.setConstructor(THIS_VARIABLE_DUMMY_ACTION);
