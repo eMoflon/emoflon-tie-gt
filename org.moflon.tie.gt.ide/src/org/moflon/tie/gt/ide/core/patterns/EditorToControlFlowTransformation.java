@@ -78,6 +78,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.NextStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableAttributeExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnObject;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
@@ -157,10 +158,10 @@ public class EditorToControlFlowTransformation {
 				patternNameGenerator.setEOperation(eOperation);
 
 				final Scope rootscope = createRootScopeForEOperation(eOperation, editorEOperation);
-				final Statement currentStatement = editorEOperation.getStartStatement();
+				final Statement statement = editorEOperation.getStartStatement();
 				cfNodeIdCounter = 1;
 				recentControlFlowNode = null;
-				visitStatement(currentStatement, rootscope, correspondingEClass, eOperation);
+				visitStatement(statement, rootscope, correspondingEClass, eOperation);
 				rootscope.getVariables().stream()
 						.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 						.forEach(thisVariable -> thisVariable.setConstructor(null));
@@ -173,40 +174,42 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private void visitStatement(Statement currentStatement, final Scope scope, final EClass eClass,
+	private void visitStatement(Statement statement, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
-		while (currentStatement instanceof NextStatement) {
-			final NextStatement aNextStatement = (NextStatement) currentStatement;
-			if (aNextStatement instanceof ObjectVariableStatement) {
-				visitStatement((ObjectVariableStatement) currentStatement, scope, eOperation);
-			} else if (aNextStatement instanceof ConditionStatement) {
-				visitStatement((ConditionStatement) currentStatement, scope, eClass, eOperation);
-			} else if (aNextStatement instanceof WhileLoopStatement) {
-				visitStatement((WhileLoopStatement) currentStatement, scope, eClass, eOperation);
-			} else if (aNextStatement instanceof ForLoopStatement) {
-				visitStatement((ForLoopStatement) currentStatement, scope, eClass, eOperation);
-			} else if (aNextStatement instanceof DoLoopStatement) {
-				visitStatement((DoLoopStatement) currentStatement, scope, eClass, eOperation);
-			} else if (aNextStatement instanceof ReturnStatement) {
-				visitStatement((ReturnStatement) currentStatement, scope, eClass, eOperation);
-			} else if (aNextStatement instanceof PatternStatement) {
-				visitStatement((PatternStatement) currentStatement, scope, eClass, eOperation);
+		while (statement instanceof NextStatement) {
+			final NextStatement nextStatement = (NextStatement) statement;
+			if (nextStatement instanceof ObjectVariableStatement) {
+				visitStatement((ObjectVariableStatement) statement, scope, eOperation);
+			} else if (nextStatement instanceof ConditionStatement) {
+				visitStatement((ConditionStatement) statement, scope, eClass, eOperation);
+			} else if (nextStatement instanceof WhileLoopStatement) {
+				visitStatement((WhileLoopStatement) statement, scope, eClass, eOperation);
+			} else if (nextStatement instanceof ForLoopStatement) {
+				visitStatement((ForLoopStatement) statement, scope, eClass, eOperation);
+			} else if (nextStatement instanceof DoLoopStatement) {
+				visitStatement((DoLoopStatement) statement, scope, eClass, eOperation);
+			} else if (nextStatement instanceof ReturnStatement) {
+				visitStatement((ReturnStatement) statement, scope, eClass, eOperation);
+			} else if (nextStatement instanceof PatternStatement) {
+				visitStatement((PatternStatement) statement, scope, eClass, eOperation);
+			} else if (nextStatement instanceof OperationCallStatement) {
+				visitStatement((OperationCallStatement) statement, scope, eClass, eOperation);
 			}
 
 			if (hasErrors()) {
 				return;
 			}
 
-			currentStatement = aNextStatement.getNext();
+			statement = nextStatement.getNext();
 		}
 
-		if (currentStatement instanceof ReturnStatement) {
-			visitStatement((ReturnStatement) currentStatement, scope, eClass, eOperation);
+		if (statement instanceof ReturnStatement) {
+			visitStatement((ReturnStatement) statement, scope, eClass, eOperation);
 		}
 	}
 
 	private void visitStatement(final ObjectVariableStatement oVarStatement, final Scope scope,
-			final EOperation currentEOP) {
+			final EOperation eOperation) {
 		createCFVariableFromObjectVariable(scope, oVarStatement);
 	}
 
@@ -421,7 +424,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void visitStatement(final ForLoopStatement forLoopStatement, final Scope scope,
-			final EClass correspondingEClass, final EOperation currentEOP) {
+			final EClass correspondingEClass, final EOperation eOperation) {
 		final int id = getAndIncrementalControlFlowNodeIdCounter();
 		final ForEach forLoopDemocles = ControlFlowUtil.createForEachStatement(id, scope, recentControlFlowNode);
 
@@ -430,7 +433,7 @@ public class EditorToControlFlowTransformation {
 		final Condition cond = forLoopStatement.getCond();
 		final List<CFVariable> createdVariables = new ArrayList<>();
 		invokePattern(cond.getPatternReference().getPattern(), scope, correspondingEClass, cond.getParameters(),
-				forLoopDemocles, createdVariables, currentEOP);
+				forLoopDemocles, createdVariables, eOperation);
 
 		// Transform loop body
 		final Scope nextScope = ControlFlowUtil.createScope(forLoopDemocles);
@@ -439,7 +442,7 @@ public class EditorToControlFlowTransformation {
 
 		this.recentControlFlowNode = null;
 
-		visitStatement(forLoopStatement.getLoopStartStatement(), nextScope, correspondingEClass, currentEOP);
+		visitStatement(forLoopStatement.getLoopStartStatement(), nextScope, correspondingEClass, eOperation);
 
 		if (hasErrors()) {
 			return;
@@ -492,9 +495,25 @@ public class EditorToControlFlowTransformation {
 				eOperation);
 	}
 
+	private void visitStatement(final OperationCallStatement operationStatement, final Scope rootscope,
+			final EClass eClass, final EOperation eOperation) {
+
+		final CFNode cfNode = createCFNode(rootscope);
+		cfNode.setPrev(this.recentControlFlowNode);
+
+		patternNameGenerator.setCFNode(cfNode);
+		recentControlFlowNode = cfNode;
+
+		/*
+		 * Create SingleResult... * this * _result *parameter list * Return type from
+		 * EOperation
+		 */
+
+	}
+
 	private void invokePattern(final EditorPattern editorPattern, final Scope scope, final EClass eClass,
 			final EList<CalledPatternParameter> calledParameters, final CFNode invokingCFNode,
-			final List<CFVariable> createdVariables, final EOperation currentEOP) {
+			final List<CFVariable> createdVariables, final EOperation eOperation) {
 
 		patternNameGenerator.setPatternDefinition(editorPattern);
 
@@ -782,13 +801,13 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private void bindConstructedVariablesFromParameter(final Scope currentScope, final Pattern democlesPattern,
+	private void bindConstructedVariablesFromParameter(final Scope scope, final Pattern democlesPattern,
 			final PatternInvocation invocation, final EList<CalledPatternParameter> calledPatternParameters,
 			final List<CFVariable> createdVariables, final PatternType patternType) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
-			CFVariable from = findCfVariableByName(currentScope, var, calledPatternParameters);
+			CFVariable from = findCfVariableByName(scope, var, calledPatternParameters);
 			if (from == null) {
-				from = createTemporaryCFVariable(currentScope, var);
+				from = createTemporaryCFVariable(scope, var);
 				if (hasErrors())
 					return;
 
@@ -804,7 +823,7 @@ public class EditorToControlFlowTransformation {
 		});
 	}
 
-	private CFVariable createTemporaryCFVariable(final Scope currentScope, final Variable var) {
+	private CFVariable createTemporaryCFVariable(final Scope scope, final Variable var) {
 		final EClassifier editorObjectVariableType = ValidationUtil.validateTypeExists(var, transformationStatus);
 		if (hasErrors())
 			return null;
@@ -815,8 +834,8 @@ public class EditorToControlFlowTransformation {
 
 		final String name = GENERATED_VARIABLE_NAME_PREFIX + var.getName();
 		final CFVariable temp = ControlFlowUtil.createControlFlowVariableWithoutConstructor(name,
-				editorObjectVariableType, currentScope);
-		currentScope.getVariables().add(temp);
+				editorObjectVariableType, scope);
+		scope.getVariables().add(temp);
 		return temp;
 	}
 
@@ -833,19 +852,19 @@ public class EditorToControlFlowTransformation {
 			return null;
 	}
 
-	private CFVariable findCfVariableByName(final Scope currentScope, final Variable symbolicParameter,
+	private CFVariable findCfVariableByName(final Scope scope, final Variable symbolicParameter,
 			final EList<CalledPatternParameter> patternParameters) {
 		final TypedElement typedElement = findPatternCallVariableByParameterName(symbolicParameter, patternParameters);
 		if (typedElement instanceof MethodParameter) {
 			final MethodParameter methodParameter = (MethodParameter) typedElement;
 			final String methodParameterName = methodParameter.getName();
-			final Optional<CFVariable> candidate = ControlFlowUtil.findControlFlowVariableByName(currentScope,
+			final Optional<CFVariable> candidate = ControlFlowUtil.findControlFlowVariableByName(scope,
 					methodParameterName);
 			return candidate.orElse(null);
 		} else if (typedElement instanceof ObjectVariableStatement) {
 			final ObjectVariableStatement ovstmt = (ObjectVariableStatement) typedElement;
-			Scope searchedScope = currentScope;
-			final Optional<CFNode> tclCandidate = currentScope.getContents().stream()
+			Scope searchedScope = scope;
+			final Optional<CFNode> tclCandidate = scope.getContents().stream()
 					.filter(node -> node instanceof TailControlledLoop).findFirst();
 			if (tclCandidate.isPresent()) {
 				final TailControlledLoop tcl = (TailControlledLoop) tclCandidate.get();
@@ -858,11 +877,11 @@ public class EditorToControlFlowTransformation {
 				if (candidate.isPresent()) {
 					// If we did an upwards traversal and are in the scope of a tailcontrolled loop
 					// and the variable in question is not the this variable, downgrade it
-					if ((!searchedScope.equals(currentScope))
+					if ((!searchedScope.equals(scope))
 							&& (searchedScope.getContents().get(0) instanceof TailControlledLoop)
 							&& (!ovstmt.getName().contentEquals(THIS_VARIABLE_NAME))) {
 						searchedScope.getVariables().remove(candidate.get());
-						currentScope.getVariables().add(candidate.get());
+						scope.getVariables().add(candidate.get());
 					}
 					return candidate.get();
 				}
@@ -871,11 +890,11 @@ public class EditorToControlFlowTransformation {
 			return null;
 		} else if (typedElement == null) {
 			// Check for existing temporary CFVariables
-			Scope searchedScope = currentScope;
+			Scope searchedScope = scope;
 
 			// If we are in a Tail Controlled Loop check contents of body
-			if (currentScope.getParent() instanceof TailControlledLoop) {
-				searchedScope = currentScope.getContents().get(0).getScope();
+			if (scope.getParent() instanceof TailControlledLoop) {
+				searchedScope = scope.getContents().get(0).getScope();
 			}
 
 			final List<String> names = Arrays.asList(GENERATED_VARIABLE_NAME_PREFIX + symbolicParameter.getName(),
@@ -893,9 +912,9 @@ public class EditorToControlFlowTransformation {
 		final boolean skipBlack = invocationsByPatternType.get(PatternType.BINDING_AND_BLACK_PATTERN) != null;
 		for (final PatternType patternType : getOrderedPatternTypes()) {
 
-			final PatternInvocation current = invocationsByPatternType.get(patternType);
+			final PatternInvocation patternInvocation = invocationsByPatternType.get(patternType);
 
-			if (current == null)
+			if (patternInvocation == null)
 				continue;
 
 			if (patternType.isBlack() && skipBlack)
@@ -903,12 +922,12 @@ public class EditorToControlFlowTransformation {
 
 			// The first action becomes the main action = head of the list of actions
 			if (previous == null)
-				cfNode.setMainAction(current);
+				cfNode.setMainAction(patternInvocation);
 			else {
-				previous.setNext(current);
-				current.setPrev(previous);
+				previous.setNext(patternInvocation);
+				patternInvocation.setPrev(previous);
 			}
-			previous = current;
+			previous = patternInvocation;
 
 			if (patternType.isRed()) {
 				final NodeDeletion nodeDeletion = DemoclesFactory.eINSTANCE.createNodeDeletion();
