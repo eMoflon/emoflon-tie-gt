@@ -64,7 +64,7 @@ ConditionStatement:
 ;
 
 OperationCallStatement:
-	object=[TypedElement] '.' call = [ecore::EOperation] '(' (parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)? ')'
+	object=[ObjectVariableStatement|ID] '.' call = [ecore::EOperation] '(' (parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)? ')'
 ;
 
 CalledMethodParameter:

@@ -81,10 +81,10 @@ public class PatternBuilderVisitor {
 	}
 
 	Pattern createExpressionPatternForObjectVariables(final CFVariable returnVariable) {
-		final Pattern exprPattern = createAndRegisterPattern(PatternType.EXPRESSION_PATTERN);
-		final PatternBody body = PatternUtil.getBody(exprPattern);
+		final Pattern pattern = createAndRegisterPattern(PatternType.EXPRESSION_PATTERN);
+		final PatternBody body = PatternUtil.getBody(pattern);
 
-		final EMFVariable target = createAndRegisterReturnEmfVariable(returnVariable, exprPattern);
+		final EMFVariable target = createAndRegisterReturnEmfVariable(returnVariable, pattern);
 
 		final EMFVariable source = registerEmfVariableAndSymbolicParameter(returnVariable,
 				PatternType.EXPRESSION_PATTERN);
@@ -93,7 +93,7 @@ public class PatternBuilderVisitor {
 
 		body.getConstraints().add(equal);
 
-		return exprPattern;
+		return pattern;
 	}
 
 	Pattern createExpressionPatternForObjectVariableAttribute(final CFVariable returnVariable,
@@ -103,35 +103,32 @@ public class PatternBuilderVisitor {
 		final PatternBody body = PatternUtil.getBody(pattern);
 
 		final EClassifier returnVariableType = returnVariable.getType();
-		if (returnVariableType instanceof EClass) {
-			final EClass returnValueClass = (EClass) returnVariableType;
-			if (returnValueClass.getEAllAttributes().contains(attribute)) {
-				final EMFVariable emfReturnVariable = createAndRegisterReturnEmfVariable(attribute, pattern);
-
-				final EMFVariable emfObjectVariable = registerEmfVariableAndSymbolicParameter(returnVariable,
-						patternType);
-
-				final EMFVariable attributeVariable = registerEmfVariableAndAddToLocalVariable(attribute,
-						returnVariable.getName(), patternType);
-
-				final Attribute attributeConstraint = AttributeUtil.createAttribute(attribute, emfObjectVariable,
-						attributeVariable);
-				body.getConstraints().add(attributeConstraint);
-
-				final Equal equal = RelationalConstraintUtil.createEqualConstraint(attributeVariable,
-						emfReturnVariable);
-				body.getConstraints().add(equal);
-			} else {
-				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
-						"%s has no EAttribute %s", returnValueClass.getName(), attribute.getName());
-				return null;
-			}
-
-		} else {
+		if (!(returnVariableType instanceof EClass)) {
 			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
 					"Type of %s should be an EClass, but was %s", returnVariable, returnVariableType.getName());
 			return null;
 		}
+
+		final EClass returnValueClass = (EClass) returnVariableType;
+		if (!returnValueClass.getEAllAttributes().contains(attribute)) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"%s has no EAttribute %s", returnValueClass.getName(), attribute.getName());
+			return null;
+		}
+
+		final EMFVariable emfReturnVariable = createAndRegisterReturnEmfVariable(attribute, pattern);
+
+		final EMFVariable emfObjectVariable = registerEmfVariableAndSymbolicParameter(returnVariable, patternType);
+
+		final EMFVariable attributeVariable = registerEmfVariableAndAddToLocalVariable(attribute,
+				returnVariable.getName(), patternType);
+
+		final Attribute attributeConstraint = AttributeUtil.createAttribute(attribute, emfObjectVariable,
+				attributeVariable);
+		body.getConstraints().add(attributeConstraint);
+
+		final Equal equal = RelationalConstraintUtil.createEqualConstraint(attributeVariable, emfReturnVariable);
+		body.getConstraints().add(equal);
 
 		return pattern;
 	}
@@ -179,17 +176,22 @@ public class PatternBuilderVisitor {
 		final PatternBody body = PatternUtil.getBody(pattern);
 
 		final EMFVariable resultEmfVariable = createAndRegisterReturnEmfVariable(resultVariable, pattern);
+		final EMFVariable calleeEmfVariable = registerEmfVariableAndSymbolicParameter(calleeVariable, patternType);
 
 		// Local variable for storing the EOperation result
-		final EMFVariable localVariable = variableLookup.getOrCreateEMFVariable("_localVariable0", patternType);
-		localVariable.setEClassifier(typeLookup.getEClassifier(eOperation.getEType()));
+		final EMFVariable operationResultVariable = variableLookup.getOrCreateEMFVariable("_localVariable0",
+				patternType);
+		operationResultVariable.setEClassifier(typeLookup.getEClassifier(eOperation.getEType()));
 		PatternUtil.getBody(generatedDemoclesPatterns.getPatternForType(patternType)).getLocalVariables()
-				.add(localVariable);
+				.add(operationResultVariable);
 
 		final Operation operationConstraint = PatternInvocationUtil.createOperationConstraint(eOperation);
+		operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(operationResultVariable));
+		operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(calleeEmfVariable));
+//		TODO@rkluge: add mappings for operation invocation parameters
 		body.getConstraints().add(operationConstraint);
 
-		final Equal equal = RelationalConstraintUtil.createEqualConstraint(resultEmfVariable, localVariable);
+		final Equal equal = RelationalConstraintUtil.createEqualConstraint(operationResultVariable, resultEmfVariable);
 		body.getConstraints().add(equal);
 
 		return pattern;

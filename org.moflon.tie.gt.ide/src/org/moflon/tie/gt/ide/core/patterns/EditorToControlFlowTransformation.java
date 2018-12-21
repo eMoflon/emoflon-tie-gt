@@ -63,7 +63,6 @@ import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ValidationUtil;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledMethodParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
@@ -265,9 +264,10 @@ public class EditorToControlFlowTransformation {
 					pattern = patternBuilderVisitor.createExpressionPatternForObjectVariables(cfReturnVariable);
 
 					final Variable source = pattern.getSymbolicParameters().get(1);
-					final Variable target = pattern.getSymbolicParameters().get(0);
+					final Variable returnEmfVariable = pattern.getSymbolicParameters().get(0);
 
-					ControlFlowUtil.createVariableReference(tempCFReturnVariable, target, resultPatternInvocation);
+					ControlFlowUtil.createVariableReference(tempCFReturnVariable, returnEmfVariable,
+							resultPatternInvocation);
 					ControlFlowUtil.createVariableReference(cfReturnVariable, source, resultPatternInvocation);
 
 				} else {
@@ -493,48 +493,59 @@ public class EditorToControlFlowTransformation {
 				eOperation);
 	}
 
-	private void visitStatement(final OperationCallStatement operationStatement, final Scope rootScope,
-			final EClass eClass, final EOperation eOperation) {
+	private void visitStatement(final OperationCallStatement operationStatement, final Scope scope, final EClass eClass,
+			final EOperation eOperation) {
 
-		final CFNode cfNode = createCFNode(rootScope);
+		final CFNode cfNode = createCFNode(scope);
 		cfNode.setPrev(this.recentControlFlowNode);
 
 		patternNameGenerator.setCFNode(cfNode);
 		recentControlFlowNode = cfNode;
 
+		final ObjectVariableStatement callee = operationStatement.getObject();
 		final EOperation calledOperation = operationStatement.getCall();
-		final EList<CalledMethodParameter> parameters = operationStatement.getParameters();
-		invokeOperation(calledOperation, parameters, cfNode, eClass, rootScope);
 
-	}
-
-	private void invokeOperation(final EOperation calledOperation, final EList<CalledMethodParameter> parameters,
-			final CFNode cfNode, final EClass eClass, final Scope rootScope) {
-
-		/**
-		 * <pre>
-		 * Create SingleResult... 
-		 * * callee (e.g., this)
-		 * * _result 
-		 * * EOperation parameter list 
-		 * * Return type from EOperation
-		 * 
-		 * Expression pattern
-		 * InvokeOperation
-		 * Body
-		 * 1x Operation constraint
-		 * 	Constraint Parameter 1: Return value _localVariable_0 (of type = return type of EOperation)
-		 * 	Constraint Parameter 2: callee (of type = return type of EOperation)
-		 *  Constraint Parameter 3...: further EParameters?
-		 * 2x Equal
-		 * 	_result
-		 *  _localVariable
-		 * </pre>
-		 */
 		final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationUtil
 				.createSingleResultPatternInvocation(cfNode);
 		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
-		patternBuilderVisitor.createExpressionPatternForOperationInvocation(null, null, null, calledOperation);
+		final Optional<CFVariable> calleeVariableCandidate = ControlFlowUtil
+				.findControlFlowVariableByName(cfNode.getScope(), callee.getName());
+		if (!calleeVariableCandidate.isPresent()) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"No variable with name %s exists.", callee);
+			return;
+		}
+
+		final CFVariable calleeVariable = calleeVariableCandidate.get();
+
+		final CFVariable returnCFVariable = ControlFlowUtil.createLocalControlFlowVariable(
+				"ret_" + calleeVariable.getName(), eOperation.getEType(), resultPatternInvocation, scope);
+
+		// TODO@rkluge: add mappings for operation invocation parameters
+		final ArrayList<CFVariable> parameterCFVariables = new ArrayList<>();
+		final Pattern pattern = patternBuilderVisitor.createExpressionPatternForOperationInvocation(calleeVariable,
+				returnCFVariable, parameterCFVariables, calledOperation);
+		resultPatternInvocation.setPattern(pattern);
+		final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
+		final Variable calleeEmfVariable = pattern.getSymbolicParameters().get(1);
+		// TODO@rkluge: add mappings for operation invocation parameters
+
+		ControlFlowUtil.createVariableReference(returnCFVariable, emfReturnVariable, resultPatternInvocation);
+		ControlFlowUtil.createVariableReference(calleeVariable, calleeEmfVariable, resultPatternInvocation);
+		// TODO@rkluge: add mappings for operation invocation parameters
+
+		patternNameGenerator.setCFNode(cfNode);
+		patternNameGenerator.setPatternType(PatternType.EXPRESSION_PATTERN);
+		patternNameGenerator.setPatternDefinition(null);
+		pattern.setName(patternNameGenerator.generateName());
+
+		final AdapterResource adapterResource = attachToRegisteredAdapter(pattern, eClass,
+				PatternType.EXPRESSION_PATTERN.getSuffix());
+
+		DemoclesValidationUtils.saveResource(adapterResource);
+
+		createAndSaveSearchPlan(resultPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN);
+
 	}
 
 	private void invokePattern(final EditorPattern editorPattern, final Scope scope, final EClass eClass,
