@@ -10,6 +10,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
+import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
@@ -80,8 +81,10 @@ public final class PatternUtil {
 		return adornment.getBoundColumns().length == adornment.size();
 	}
 
-	public static ConstraintParameter createConstraintParameter() {
-		return SpecificationFactory.eINSTANCE.createConstraintParameter();
+	public static ConstraintParameter createConstraintParameter(final ConstraintVariable variable) {
+		final ConstraintParameter constraintParameter = SpecificationFactory.eINSTANCE.createConstraintParameter();
+		constraintParameter.setReference(variable);
+		return constraintParameter;
 	}
 
 	public static PatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
@@ -93,7 +96,8 @@ public final class PatternUtil {
 		}
 	}
 
-	public static void moveSymbolicParameterToLocalVariable(final Variable symbolicParameter, final Pattern newPattern) {
+	public static void moveSymbolicParameterToLocalVariable(final Variable symbolicParameter,
+			final Pattern newPattern) {
 		newPattern.getSymbolicParameters().remove(symbolicParameter);
 		newPattern.getBodies().get(0).getLocalVariables().add(symbolicParameter);
 	}

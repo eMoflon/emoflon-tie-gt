@@ -1,7 +1,7 @@
 package org.moflon.tie.gt.ide.core.runtime.utilities;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.emf.ecore.EAttribute;
@@ -9,13 +9,14 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.resource.ResourceSet;
 
 public class TypeLookup {
 
-	private Collection<EPackage> contextEPackages;
+	private final Collection<EPackage> ePackages;
 
-	private ResourceSet resourceSet;
+	public TypeLookup(final List<EPackage> ePackages) {
+		this.ePackages = ePackages;
+	}
 
 	/**
 	 * Returns a classifier from the set of configured {@link EPackage}s having the
@@ -29,7 +30,7 @@ public class TypeLookup {
 			throw new IllegalArgumentException("Expect non-null EClassifier");
 
 		@SuppressWarnings("unchecked")
-		final Optional<EC> contextEClassMonad = getEPackages().stream()
+		final Optional<EC> contextEClassMonad = ePackages.stream()
 				.flatMap(ePackage -> ePackage.getEClassifiers().stream()) //
 				.filter(classifier -> classifier.getName().equals(eClassifier.getName())) //
 				.filter(classifier -> eClassifier.getClass().isAssignableFrom(classifier.getClass())) //
@@ -38,9 +39,8 @@ public class TypeLookup {
 		if (contextEClassMonad.isPresent())
 			return contextEClassMonad.get();
 		else
-			throw new IllegalArgumentException(
-					String.format("Cannot find EClassifier with name '%s' in EPackages %s	", eClassifier.getName(),
-							contextEPackages));
+			throw new IllegalArgumentException(String.format(
+					"Cannot find EClassifier with name '%s' in EPackages %s	", eClassifier.getName(), ePackages));
 	}
 
 	/**
@@ -79,28 +79,6 @@ public class TypeLookup {
 		else
 			throw new IllegalArgumentException(String.format("Cannot find EAttribute with name '%s' in EClass '%s'",
 					eAttribute.getName(), eClass));
-	}
-
-	public void setEPackages(final Collection<EPackage> contextEPackage) {
-		this.contextEPackages = new ArrayList<EPackage>(contextEPackage);
-	}
-
-	public Collection<EPackage> getEPackages() {
-		return contextEPackages;
-	}
-
-	public void setResourceSet(final ResourceSet resourceSet) {
-		this.resourceSet = resourceSet;
-	}
-
-	/**
-	 * Returns the configured {@link ResourceSet}
-	 * 
-	 * @return the resource set
-	 * @see TypeLookup#setResourceSet(ResourceSet)
-	 */
-	public ResourceSet getResourceSet() {
-		return this.resourceSet;
 	}
 
 }
