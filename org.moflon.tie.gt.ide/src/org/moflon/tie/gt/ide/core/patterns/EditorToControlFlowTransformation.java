@@ -62,6 +62,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ValidationUtil;
+import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
@@ -944,7 +945,7 @@ public class EditorToControlFlowTransformation {
 
 	private void createCFVariableFromObjectVariable(final Scope rootScope, final ObjectVariableStatement statement) {
 		final EClassifier editorObjectVariableType = statement.getEType();
-		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
+		final EClassifier properCfVariableType = TypeLookup.lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
 				ecorePackage);
 		if (properCfVariableType == null) {
 			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
@@ -966,26 +967,14 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private EClassifier lookupTypeInEcoreFile(final EClassifier statementEType) {
-		return lookupTypeInEcoreFile(statementEType, ePackage, ecorePackage);
-	}
-
-	public static EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage,
-			final EPackage ecorePackage) {
-		if (statementEType == null)
-			return null;
-
-		final EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
-		if (properEClassifierFromEPackage != null)
-			return properEClassifierFromEPackage;
-		else
-			return ecorePackage.getEClassifier(statementEType.getName());
+		return TypeLookup.lookupTypeInEcoreFile(statementEType, ePackage, ecorePackage);
 	}
 
 	private PatternMatcher getPatternMatcher(final PatternType patternType) {
 		return patternMatcherConfiguration.getPatternMatcher(patternType);
 	}
 
-	public int getAndIncrementalControlFlowNodeIdCounter() {
+	private int getAndIncrementalControlFlowNodeIdCounter() {
 		return cfNodeIdCounter++;
 	}
 

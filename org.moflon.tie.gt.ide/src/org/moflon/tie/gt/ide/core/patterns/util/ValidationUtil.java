@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.EParameter;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
+import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 
 public final class ValidationUtil {
@@ -55,7 +55,7 @@ public final class ValidationUtil {
 	public static void validateTypeExistsInMetamodel(final Variable var, final EPackage ePackage,
 			final EPackage ecorePackage, final MultiStatus transformationStatus) {
 		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
-		final EClassifier properCfVariableType = EditorToControlFlowTransformation
+		final EClassifier properCfVariableType = TypeLookup
 				.lookupTypeInEcoreFile(editorObjectVariableType, ePackage, ecorePackage);
 		if (properCfVariableType == null) {
 			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,

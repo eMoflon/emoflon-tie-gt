@@ -81,4 +81,16 @@ public class TypeLookup {
 					eAttribute.getName(), eClass));
 	}
 
+	public static EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage,
+			final EPackage ecorePackage) {
+		if (statementEType == null)
+			return null;
+	
+		final EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
+		if (properEClassifierFromEPackage != null)
+			return properEClassifierFromEPackage;
+		else
+			return ecorePackage.getEClassifier(statementEType.getName());
+	}
+
 }
