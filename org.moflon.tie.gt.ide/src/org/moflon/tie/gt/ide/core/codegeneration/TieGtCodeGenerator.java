@@ -17,6 +17,8 @@ import org.eclipse.core.runtime.jobs.JobGroup;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.impl.EPackageImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.eclipse.task.ITask;
@@ -128,6 +130,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			if (this.additionalCodeGenerationPhase != null) {
 				if (this.additionalCodeGenerationPhase instanceof TieGTControlFlowBuilder) {
 					final TieGTControlFlowBuilder cfBuilder = (TieGTControlFlowBuilder) this.additionalCodeGenerationPhase;
+					this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
 					cfBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
 				}
 				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
