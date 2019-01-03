@@ -7,13 +7,9 @@
 <project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.gt.editor"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.gt.editor.ide"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-ibex-ui.git,tie-gt-dev,org.emoflon.ibex.gt.editor.ui"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.core.dfs"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.core.moca.tree"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.compiler.democles"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.democles.pattern"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.democles.validation.controlflow"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.democles.validation.result"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.democles.validation.scope"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.eclipse"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.codegenerator"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.constraintstodemocles"/>
@@ -21,7 +17,6 @@
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.operationspecification"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.democles.patternmatcher"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.democles.reachability.javabdd"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.language"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.runtime.democles"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.tie.gt.branding"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.tie.gt.feature"/>
