@@ -22,4 +22,3 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: org.moflon.tie_gt.ui
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: eMoflon developers
-Bundle-Activator: org.moflon.tie.gt.ui.TieGtUiActivator

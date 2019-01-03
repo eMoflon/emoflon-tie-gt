@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ui.preferences;
+package org.moflon.tie.gt.ide.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -21,6 +21,7 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 
 	@Override
 	public void initializeDefaultPreferences() {
+		resetToDefaults();
 	}
 
 	public static void loadPreferences() {

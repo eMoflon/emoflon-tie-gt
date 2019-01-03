@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.moflon.tie.gt.ide.preferences.EMoflonPreferenceInitializer;
 
 /**
  * This {@link PreferencePage} holds the eMoflon-specific configuration options

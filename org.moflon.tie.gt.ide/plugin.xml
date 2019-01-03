@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
+    <extension
          id="org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature"
-         name="Moflon TIE-GT Nature"
+         name="eMoflon::TIE-GT Nature"
          point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature">
-         </run>
-      </runtime>
-        <builder id="org.moflon.tie.gt.ide.core.runtime.builders.TieGTBuilder">
-        </builder>
-        <one-of-nature id="org.moflon.core.ui.runtime.natures.MoflonNature">
-        </one-of-nature>
-        <requires-nature id="org.eclipse.jdt.core.javanature">
-        </requires-nature>
-   </extension>
-	<extension id="org.moflon.tie.gt.ide.core.runtime.builders.TieGTBuilder" name="Moflon TIE-GT Builder" point="org.eclipse.core.resources.builders">
+        <runtime>
+            <run
+               class="org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature"></run>
+        </runtime>
+        <builder id="org.moflon.tie.gt.ide.core.runtime.builders.TieGTBuilder"></builder>
+        <one-of-nature id="org.moflon.core.ui.runtime.natures.MoflonNature"></one-of-nature>
+        <requires-nature id="org.eclipse.jdt.core.javanature"></requires-nature>
+    </extension>
+    <extension id="org.moflon.tie.gt.ide.core.runtime.builders.TieGTBuilder" name="eMoflon::TIE-GT Builder" point="org.eclipse.core.resources.builders">
         <builder isConfigurable="true">
             <run class="org.moflon.tie.gt.ide.core.runtime.builders.TieGTBuilder"/>
         </builder>
+    </extension>
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="org.moflon.tie.gt.ide.preferences.EMoflonPreferenceInitializer"></initializer>
     </extension>
 </plugin>

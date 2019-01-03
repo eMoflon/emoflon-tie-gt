@@ -1,10 +1,10 @@
-package org.moflon.tie.gt.ui;
+package org.moflon.tie.gt.ide;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.moflon.tie.gt.ui.preferences.EMoflonPreferenceInitializer;
+import org.moflon.tie.gt.ide.preferences.EMoflonPreferenceInitializer;
 import org.osgi.framework.BundleContext;
 
-public class TieGtUiActivator extends AbstractUIPlugin {
+public class TieGtIdeActivator extends AbstractUIPlugin {
 
 	@Override
 	public void start(final BundleContext context) throws Exception {

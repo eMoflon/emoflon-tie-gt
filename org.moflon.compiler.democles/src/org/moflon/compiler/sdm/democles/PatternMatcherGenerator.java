@@ -73,15 +73,7 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 		final CompilerPatternBody body = compilerPattern.getBodies().get(0);
 		try {
 
-			final ReachabilityAnalyzer reachabilityAnalyzer;
-			if (TieGtCodeGenerationPreferences.getReachabilityEnabled()) {
-				final int maximumAdornmentSize = TieGtCodeGenerationPreferences.getMaximumAdornmentSize();
-				reachabilityAnalyzer = maximumAdornmentSize == TieGtCodeGenerationPreferences.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY //
-						? new BDDReachabilityAnalyzer() //
-						: new BDDReachabilityAnalyzer(maximumAdornmentSize);
-			} else {
-				reachabilityAnalyzer = new NullReachabilityAnalyzer();
-			}
+			final ReachabilityAnalyzer reachabilityAnalyzer = initializeReachabilityAnalyzer();
 			final boolean isReachable = reachabilityAnalyzer.analyzeReachability(compilerPattern, adornment);
 			if (isReachable) {
 				final Chain<GeneratorOperation> searchPlan = PatternMatcherCompiler.generateSearchPlan(body, adornment);
@@ -95,6 +87,19 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 
 		}
 		return report;
+	}
+
+	public ReachabilityAnalyzer initializeReachabilityAnalyzer() {
+		final ReachabilityAnalyzer reachabilityAnalyzer;
+		if (TieGtCodeGenerationPreferences.getReachabilityEnabled()) {
+			final int maximumAdornmentSize = TieGtCodeGenerationPreferences.getMaximumAdornmentSize();
+			reachabilityAnalyzer = maximumAdornmentSize == TieGtCodeGenerationPreferences.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY //
+					? new BDDReachabilityAnalyzer() //
+					: new BDDReachabilityAnalyzer(maximumAdornmentSize);
+		} else {
+			reachabilityAnalyzer = new NullReachabilityAnalyzer();
+		}
+		return reachabilityAnalyzer;
 	}
 
 	private void handleExceptionDuringSearchPlanGeneration(final Pattern pattern, final CompilerPatternBody body,
