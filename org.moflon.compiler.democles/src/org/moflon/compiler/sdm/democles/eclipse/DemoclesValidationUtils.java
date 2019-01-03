@@ -51,15 +51,8 @@ public final class DemoclesValidationUtils {
 			for (final EOperation eOperation : eClass.getEOperations()) {
 				final AdapterResource controlFlowResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
 						DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
-				final AdapterResource sdmFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
-						DemoclesMethodBodyHandler.SDM_FILE_EXTENSION);
-				final AdapterResource dfsFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
-						DemoclesMethodBodyHandler.DFS_FILE_EXTENSION);
 
-				for (final AdapterResource adapterResource : Arrays.asList(controlFlowResource, dfsFileResource,
-						sdmFileResource)) {
-					saveResource(adapterResource);
-				}
+				saveResource(controlFlowResource);
 			}
 
 			final AdapterResource bindingAndBlackResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
@@ -175,7 +168,6 @@ public final class DemoclesValidationUtils {
 				@Override
 				public boolean visit(final IResource resource) throws CoreException {
 					for (final String extension : Arrays.asList(DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION,
-							DemoclesMethodBodyHandler.SDM_FILE_EXTENSION, DemoclesMethodBodyHandler.DFS_FILE_EXTENSION,
 							DemoclesMethodBodyHandler.RED_FILE_EXTENSION,
 							DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION,
 							DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION,

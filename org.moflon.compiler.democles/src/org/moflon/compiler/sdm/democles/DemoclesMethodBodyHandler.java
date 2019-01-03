@@ -25,10 +25,6 @@ import org.moflon.emf.build.MoflonEmfCodeGenerator;
 
 public class DemoclesMethodBodyHandler implements MethodBodyHandler {
 
-	public static final String SDM_FILE_EXTENSION = "sdm";
-
-	public static final String DFS_FILE_EXTENSION = "dfs";
-
 	public static final String CONTROL_FLOW_FILE_EXTENSION = "cf";
 
 	public static final String BINDING_AND_BLACK_FILE_EXTENSION = "bindingAndBlack";
@@ -59,8 +55,6 @@ public class DemoclesMethodBodyHandler implements MethodBodyHandler {
 		final Map<String, Object> extensionToFactoryMap = resourceSet.getResourceFactoryRegistry()
 				.getExtensionToFactoryMap();
 
-		createAndRegisterMethodBodyFactory(adapterFactories, extensionToFactoryMap, SDM_FILE_EXTENSION);
-		createAndRegisterMethodBodyFactory(adapterFactories, extensionToFactoryMap, DFS_FILE_EXTENSION);
 		createAndRegisterMethodBodyFactory(adapterFactories, extensionToFactoryMap, CONTROL_FLOW_FILE_EXTENSION);
 
 		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap, BINDING_AND_BLACK_FILE_EXTENSION);
