@@ -4,10 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.moflon.codegen.PatternMatcher;
-import org.moflon.tie.gt.ide.core.patterns.PatternType;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 
 /**
- * Stores a mapping from {@link PatternType} to {@link PatternMatcher}
+ * Stores a mapping from {@link DemoclesPatternType} to {@link PatternMatcher}
  * 
  * @author Roland Kluge - Initial implementation
  */
@@ -20,12 +20,12 @@ public class PatternMatcherConfiguration {
 	}
 
 	/**
-	 * Returns the pattern matcher associated with the given {@link PatternType}
+	 * Returns the pattern matcher associated with the given {@link DemoclesPatternType}
 	 * 
 	 * @param patternType the pattern type
 	 * @return the {@link PatternMatcher}. May be <code>null</code>
 	 */
-	public PatternMatcher getPatternMatcher(final PatternType patternType) {
+	public PatternMatcher getPatternMatcher(final DemoclesPatternType patternType) {
 		final String key = patternType.getSuffix();
 		return this.fileExtensionToPatternMatcher.get(key);
 	}

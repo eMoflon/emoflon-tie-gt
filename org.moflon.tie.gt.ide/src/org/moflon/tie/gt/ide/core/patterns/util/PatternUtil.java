@@ -15,8 +15,8 @@ import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.tie.gt.ide.core.patterns.PatternType;
 
 public final class PatternUtil {
 
@@ -49,27 +49,27 @@ public final class PatternUtil {
 		return pattern.getBodies().get(0);
 	}
 
-	public static List<PatternType> mapOperatorToPatternTypes(final EditorReference editorReference,
+	public static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorReference editorReference,
 			final MultiStatus transformationStatus) {
 		final EditorOperator operator = editorReference.getOperator();
 		return mapOperatorToPatternTypes(operator, transformationStatus);
 	}
 
-	public static List<PatternType> mapOperatorToPatternTypes(final EditorNode editorNode,
+	public static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorNode editorNode,
 			final MultiStatus transformationStatus) {
 		final EditorOperator operator = editorNode.getOperator();
 		return mapOperatorToPatternTypes(operator, transformationStatus);
 	}
 
-	private static List<PatternType> mapOperatorToPatternTypes(final EditorOperator operator,
+	private static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorOperator operator,
 			final MultiStatus transformationStatus) {
 		switch (operator) {
 		case CONTEXT:
-			return Arrays.asList(PatternType.BLACK_PATTERN);
+			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN);
 		case DELETE:
-			return Arrays.asList(PatternType.BLACK_PATTERN, PatternType.RED_PATTERN);
+			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN, DemoclesPatternType.RED_PATTERN);
 		case CREATE:
-			return Arrays.asList(PatternType.GREEN_PATTERN);
+			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
 		default:
 			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
 					"Unsupported operator: " + operator);
@@ -87,12 +87,12 @@ public final class PatternUtil {
 		return constraintParameter;
 	}
 
-	public static PatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
+	public static DemoclesPatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
 		switch (editorAttribute.getRelation()) {
 		case ASSIGNMENT:
-			return PatternType.GREEN_PATTERN;
+			return DemoclesPatternType.GREEN_PATTERN;
 		default:
-			return PatternType.BLACK_PATTERN;
+			return DemoclesPatternType.BLACK_PATTERN;
 		}
 	}
 

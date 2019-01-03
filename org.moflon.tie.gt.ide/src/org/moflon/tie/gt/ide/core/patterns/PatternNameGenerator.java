@@ -9,6 +9,7 @@ import java.util.Map;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EOperation;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.sdm.runtime.democles.CFNode;
 
 /**
@@ -25,7 +26,7 @@ public class PatternNameGenerator {
 
 	private CFNode cfNode;
 
-	private PatternType patternType;
+	private DemoclesPatternType patternType;
 
 	public String generateName() {
 		final String descriptiveName = getDescriptiveName();
@@ -89,11 +90,11 @@ public class PatternNameGenerator {
 	}
 
 	/**
-	 * Configures the {@link PatternType} being currently transformed
+	 * Configures the {@link DemoclesPatternType} being currently transformed
 	 *
 	 * @param patternType
 	 */
-	public void setPatternType(final PatternType patternType) {
+	public void setPatternType(final DemoclesPatternType patternType) {
 		this.patternType = patternType;
 	}
 

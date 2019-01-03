@@ -1,6 +1,4 @@
-package org.moflon.tie.gt.ide.core.patterns;
-
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
+package org.moflon.compiler.sdm.democles;
 
 /**
  * Represents the different patterns that jointly form a graph transformation
@@ -9,7 +7,7 @@ import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
  * @author Roland Kluge - Initial implementation
  *
  */
-public enum PatternType {
+public enum DemoclesPatternType {
 	/**
 	 * Represents the LHS of a rule
 	 */

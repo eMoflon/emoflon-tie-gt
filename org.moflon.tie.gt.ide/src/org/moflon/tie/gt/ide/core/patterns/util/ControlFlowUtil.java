@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;
@@ -22,7 +23,6 @@ import org.moflon.sdm.runtime.democles.PatternInvocation;
 import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
-import org.moflon.tie.gt.ide.core.patterns.PatternType;
 
 public final class ControlFlowUtil {
 	private static final Action NO_CONSTRUCTOR = null;
@@ -116,7 +116,7 @@ public final class ControlFlowUtil {
 		return variable;
 	}
 
-	public static Adornment calculateAdornment(final PatternInvocation invocation, final PatternType patternType) {
+	public static Adornment calculateAdornment(final PatternInvocation invocation, final DemoclesPatternType patternType) {
 		int adornmentIndex = 0;
 		final Pattern pattern = invocation.getPattern();
 		final EList<Variable> symbolicParameters = pattern.getSymbolicParameters();

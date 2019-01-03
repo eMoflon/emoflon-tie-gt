@@ -36,6 +36,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.codegen.PatternMatcher;
 import org.moflon.codegen.eclipse.ValidationStatus;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.compiler.sdm.democles.eclipse.DemoclesValidationUtils;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
@@ -336,16 +337,16 @@ public class EditorToControlFlowTransformation {
 			resultPatternInvocation.setPattern(pattern);
 
 			patternNameGenerator.setCFNode(returnStmtDemocles);
-			patternNameGenerator.setPatternType(PatternType.EXPRESSION_PATTERN);
+			patternNameGenerator.setPatternType(DemoclesPatternType.EXPRESSION_PATTERN);
 			patternNameGenerator.setPatternDefinition(null);
 			pattern.setName(patternNameGenerator.generateName());
 
 			final AdapterResource adapterResource = attachToRegisteredAdapter(pattern, eClass,
-					PatternType.EXPRESSION_PATTERN.getSuffix());
+					DemoclesPatternType.EXPRESSION_PATTERN.getSuffix());
 
 			DemoclesValidationUtils.saveResource(adapterResource);
 
-			createAndSaveSearchPlan(resultPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN);
+			createAndSaveSearchPlan(resultPatternInvocation, pattern, DemoclesPatternType.EXPRESSION_PATTERN);
 		}
 
 		this.recentControlFlowNode = returnStmtDemocles;
@@ -535,16 +536,16 @@ public class EditorToControlFlowTransformation {
 		// TODO@rkluge: add mappings for operation invocation parameters
 
 		patternNameGenerator.setCFNode(cfNode);
-		patternNameGenerator.setPatternType(PatternType.EXPRESSION_PATTERN);
+		patternNameGenerator.setPatternType(DemoclesPatternType.EXPRESSION_PATTERN);
 		patternNameGenerator.setPatternDefinition(null);
 		pattern.setName(patternNameGenerator.generateName());
 
 		final AdapterResource adapterResource = attachToRegisteredAdapter(pattern, eClass,
-				PatternType.EXPRESSION_PATTERN.getSuffix());
+				DemoclesPatternType.EXPRESSION_PATTERN.getSuffix());
 
 		DemoclesValidationUtils.saveResource(adapterResource);
 
-		createAndSaveSearchPlan(resultPatternInvocation, pattern, PatternType.EXPRESSION_PATTERN);
+		createAndSaveSearchPlan(resultPatternInvocation, pattern, DemoclesPatternType.EXPRESSION_PATTERN);
 
 	}
 
@@ -560,15 +561,15 @@ public class EditorToControlFlowTransformation {
 
 		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 		final PatternLookup patterns = patternBuilderVisitor.visit(flattenedPattern);
-		final Map<PatternType, PatternInvocation> invocations = new HashMap<>();
+		final Map<DemoclesPatternType, PatternInvocation> invocations = new HashMap<>();
 
 		final Collection<CFVariable> destructedVariables = new ArrayList<>();
 
-		for (final PatternType patternType : getOrderedPatternTypes()) {
+		for (final DemoclesPatternType patternType : getOrderedPatternTypes()) {
 
 			final Pattern democlesPattern = patterns.getPatternForType(patternType);
 
-			if (patternType.isBlack() && patterns.hasPatternForType(PatternType.BINDING_AND_BLACK_PATTERN))
+			if (patternType.isBlack() && patterns.hasPatternForType(DemoclesPatternType.BINDING_AND_BLACK_PATTERN))
 				continue;
 
 			if (democlesPattern == null)
@@ -586,17 +587,17 @@ public class EditorToControlFlowTransformation {
 				final Pattern invokedBlackPattern = blackConstr.getInvokedPattern();
 
 				// Set pattern names
-				patternNameGenerator.setPatternType(PatternType.BINDING_PATTERN);
+				patternNameGenerator.setPatternType(DemoclesPatternType.BINDING_PATTERN);
 				invokedBindingPattern.setName(patternNameGenerator.generateName());
 
-				patternNameGenerator.setPatternType(PatternType.BLACK_PATTERN);
+				patternNameGenerator.setPatternType(DemoclesPatternType.BLACK_PATTERN);
 				invokedBlackPattern.setName(patternNameGenerator.generateName());
 
 				createAndSaveSearchPlanForApplicationConditions(eClass, patternType, bindingConstr,
-						invokedBindingPattern, democlesPattern, PatternType.BINDING_PATTERN);
+						invokedBindingPattern, democlesPattern, DemoclesPatternType.BINDING_PATTERN);
 
 				createAndSaveSearchPlanForApplicationConditions(eClass, patternType, blackConstr, invokedBlackPattern,
-						democlesPattern, PatternType.BLACK_PATTERN);
+						democlesPattern, DemoclesPatternType.BLACK_PATTERN);
 
 				for (int applicationConditionCounter = 0, i = 2; i < constraints.size(); i++) {
 					if (constraints.get(i) instanceof PatternInvocationConstraint) {
@@ -668,15 +669,15 @@ public class EditorToControlFlowTransformation {
 	}
 
 	/**
-	 * Returns the {@link PatternType} in the order that they shall be evaluated in
+	 * Returns the {@link DemoclesPatternType} in the order that they shall be evaluated in
 	 * the code
 	 */
-	private ArrayList<PatternType> getOrderedPatternTypes() {
-		final ArrayList<PatternType> patternTypesFIFO = new ArrayList<>();
-		patternTypesFIFO.add(PatternType.BINDING_AND_BLACK_PATTERN);
-		patternTypesFIFO.add(PatternType.BLACK_PATTERN);
-		patternTypesFIFO.add(PatternType.RED_PATTERN);
-		patternTypesFIFO.add(PatternType.GREEN_PATTERN);
+	private ArrayList<DemoclesPatternType> getOrderedPatternTypes() {
+		final ArrayList<DemoclesPatternType> patternTypesFIFO = new ArrayList<>();
+		patternTypesFIFO.add(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
+		patternTypesFIFO.add(DemoclesPatternType.BLACK_PATTERN);
+		patternTypesFIFO.add(DemoclesPatternType.RED_PATTERN);
+		patternTypesFIFO.add(DemoclesPatternType.GREEN_PATTERN);
 		return patternTypesFIFO;
 	}
 
@@ -703,14 +704,14 @@ public class EditorToControlFlowTransformation {
 		return destructedVariables;
 	}
 
-	private void createAndSaveSearchPlanForApplicationConditions(final EClass eClass, final PatternType patternType,
+	private void createAndSaveSearchPlanForApplicationConditions(final EClass eClass, final DemoclesPatternType patternType,
 			final Constraint constraint, final Pattern invokedPattern, final Pattern invokingPattern,
-			final PatternType constraintType) {
+			final DemoclesPatternType constraintType) {
 		final String suffix;
 		if (constraintType == null) {
-			suffix = PatternType.BLACK_PATTERN.getSuffix();
+			suffix = DemoclesPatternType.BLACK_PATTERN.getSuffix();
 		} else {
-			suffix = PatternType.BINDING_AND_BLACK_PATTERN.getSuffix();
+			suffix = DemoclesPatternType.BINDING_AND_BLACK_PATTERN.getSuffix();
 		}
 		final AdapterResource adapterResource = attachToRegisteredAdapter(invokedPattern, eClass, suffix);
 
@@ -786,7 +787,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void createAndSaveSearchPlan(final PatternInvocation invocation, final Pattern pattern,
-			final PatternType type) {
+			final DemoclesPatternType type) {
 		final PatternMatcher patternMatcher = getPatternMatcher(type);
 		final Adornment adornment = ControlFlowUtil.calculateAdornment(invocation, type);
 
@@ -840,7 +841,7 @@ public class EditorToControlFlowTransformation {
 
 	private void bindConstructedVariablesFromParameter(final Scope scope, final Pattern democlesPattern,
 			final PatternInvocation invocation, final EList<CalledPatternParameter> calledPatternParameters,
-			final List<CFVariable> createdVariables, final PatternType patternType) {
+			final List<CFVariable> createdVariables, final DemoclesPatternType patternType) {
 		democlesPattern.getSymbolicParameters().forEach(var -> {
 			CFVariable from = findCfVariableByName(scope, var, calledPatternParameters);
 			if (from == null) {
@@ -943,11 +944,11 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private void chainPatternInvocations(final Map<PatternType, PatternInvocation> invocationsByPatternType,
+	private void chainPatternInvocations(final Map<DemoclesPatternType, PatternInvocation> invocationsByPatternType,
 			final Collection<CFVariable> destructedVariables, final CFNode cfNode) {
 		Action previous = null;
-		final boolean skipBlack = invocationsByPatternType.get(PatternType.BINDING_AND_BLACK_PATTERN) != null;
-		for (final PatternType patternType : getOrderedPatternTypes()) {
+		final boolean skipBlack = invocationsByPatternType.get(DemoclesPatternType.BINDING_AND_BLACK_PATTERN) != null;
+		for (final DemoclesPatternType patternType : getOrderedPatternTypes()) {
 
 			final PatternInvocation patternInvocation = invocationsByPatternType.get(patternType);
 
@@ -1006,7 +1007,7 @@ public class EditorToControlFlowTransformation {
 		return TypeLookup.lookupTypeInEcoreFile(statementEType, ePackage, ecorePackage);
 	}
 
-	private PatternMatcher getPatternMatcher(final PatternType patternType) {
+	private PatternMatcher getPatternMatcher(final DemoclesPatternType patternType) {
 		return patternMatcherConfiguration.getPatternMatcher(patternType);
 	}
 

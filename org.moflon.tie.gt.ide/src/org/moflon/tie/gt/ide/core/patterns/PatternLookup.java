@@ -4,28 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gervarro.democles.specification.emf.Pattern;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 
 public class PatternLookup {
 
-	private final Map<PatternType, Pattern> lookupData = new HashMap<>();
+	private final Map<DemoclesPatternType, Pattern> lookupData = new HashMap<>();
 
-	public boolean hasPatternForType(final PatternType type) {
+	public boolean hasPatternForType(final DemoclesPatternType type) {
 		return lookupData.containsKey(type);
 	}
 
-	public Pattern getPatternForType(final PatternType patternType) {
+	public Pattern getPatternForType(final DemoclesPatternType patternType) {
 		return lookupData.get(patternType);
 	}
 
-	public Pattern registerPattern(final PatternType patternType, final Pattern pattern) {
+	public Pattern registerPattern(final DemoclesPatternType patternType, final Pattern pattern) {
 		return lookupData.put(patternType, pattern);
 	}
 
 	public Pattern getBlackPattern() {
-		return getPatternForType(PatternType.BLACK_PATTERN);
+		return getPatternForType(DemoclesPatternType.BLACK_PATTERN);
 	}
 
 	public Pattern getBindingPattern() {
-		return getPatternForType(PatternType.BINDING_PATTERN);
+		return getPatternForType(DemoclesPatternType.BINDING_PATTERN);
 	}
 }
