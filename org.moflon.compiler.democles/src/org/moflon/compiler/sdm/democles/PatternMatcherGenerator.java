@@ -11,6 +11,7 @@ import org.gervarro.democles.compiler.CompilerPatternBody;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
+import org.moflon.codegen.preferences.TieGtCodeGenerationPreferences;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.LogUtils;
@@ -35,8 +36,6 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 
 	protected final String patternType;
 
-	private final EMoflonPreferencesStorage preferencesStorage;
-
 	private final Logger logger = Logger.getLogger(getClass());
 
 	/**
@@ -51,7 +50,6 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 			final EMoflonPreferencesStorage preferencesStorage) {
 		this.patternMatcher = patternMatcher;
 		this.patternType = patternType;
-		this.preferencesStorage = preferencesStorage;
 	}
 
 	/**
@@ -76,9 +74,9 @@ public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
 		try {
 
 			final ReachabilityAnalyzer reachabilityAnalyzer;
-			if (preferencesStorage.getReachabilityEnabled()) {
-				final int maximumAdornmentSize = preferencesStorage.getMaximumAdornmentSize();
-				reachabilityAnalyzer = maximumAdornmentSize == EMoflonPreferencesStorage.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY //
+			if (TieGtCodeGenerationPreferences.getReachabilityEnabled()) {
+				final int maximumAdornmentSize = TieGtCodeGenerationPreferences.getMaximumAdornmentSize();
+				reachabilityAnalyzer = maximumAdornmentSize == TieGtCodeGenerationPreferences.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY //
 						? new BDDReachabilityAnalyzer() //
 						: new BDDReachabilityAnalyzer(maximumAdornmentSize);
 			} else {

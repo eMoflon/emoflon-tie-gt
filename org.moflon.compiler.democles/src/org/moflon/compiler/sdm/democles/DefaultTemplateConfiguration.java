@@ -119,11 +119,6 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 	}
 
 	public static final STGroup createControlFlowTemplates() {
-		// final URL groupFileURL =
-		// FileLocator.resolve(Platform.getBundle("org.moflon.compiler.sdm.democles").getEntry(
-		// "templates/stringtemplate/ControlFlow.stg"));
-		// final STGroup controlFlowGenerator = new STGroupFile(groupFileURL, "ascii",
-		// '<', '>');
 		final STGroup group = new STGroup();
 		group.setListener(new LoggingSTErrorListener(logger));
 		group.loadGroupFile("/" + CONTROL_FLOW_GENERATOR + "/",
@@ -308,7 +303,7 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 	}
 
 	private static String getCompilerURI() {
-		String pluginId = WorkspaceHelper.getPluginId(DefaultTemplateConfiguration.class);
+		final String pluginId = WorkspaceHelper.getPluginId(DefaultTemplateConfiguration.class);
 		return "platform:/plugin/" + pluginId + "/";
 	}
 

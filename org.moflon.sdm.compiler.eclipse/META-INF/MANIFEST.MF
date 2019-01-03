@@ -11,7 +11,6 @@ Require-Bundle:
  org.gervarro.eclipse.task;bundle-version="[1.0.1,2.0.0)",
  org.moflon.core.utilities,
  org.moflon.core.propertycontainer;bundle-version="2.1.0",
- org.moflon.sdm.language,
  org.moflon.sdm.compiler.democles.validation.result,
  org.moflon.sdm.compiler.democles.validation.scope,
  org.moflon.emf.injection,
@@ -25,6 +24,7 @@ Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.codegen,
  org.moflon.codegen.eclipse,
+ org.moflon.codegen.preferences,
  org.moflon.dependency.handlers,
  org.moflon.eclipse.genmodel,
  org.moflon.eclipse.resource

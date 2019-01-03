@@ -2,23 +2,19 @@ Manifest-Version: 1.0
 Bundle-SymbolicName: org.moflon.sdm.constraints.constraintstodemocles;
  singleton:=true
 Export-Package: org.moflon.sdm.constraints.constraintstodemocles,
- org.moflon.sdm.constraints.constraintstodemocles.impl,
- org.moflon.sdm.constraints.constraintstodemocles.util
+ org.moflon.sdm.constraints.constraintstodemocles.impl
 Bundle-Name: org.moflon.sdm.constraints.constraintstodemocles
 Bundle-Version: 2.0.0.qualifier
 Require-Bundle: org.eclipse.core.resources;bundle-version="[3.9.0,4.0.0)",
  org.eclipse.emf.ecore.xmi;bundle-version="[2.8.1,3.0.0)",
  org.moflon.core.utilities,
- org.moflon.sdm.language,
  org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,0.5.0)",
  org.moflon.sdm.compiler.democles.pattern,
  org.moflon.sdm.compiler.democles.validation.result,
  org.moflon.sdm.constraints.democles,
  org.moflon.sdm.constraints.operationspecification,
  org.eclipse.core.runtime;bundle-version="3.12.0",
- org.eclipse.emf.ecore,
- org.moflon.sdm.democles.literalexpressionsolver,
- org.moflon.core.moca.tree
+ org.eclipse.emf.ecore
 Bundle-ManifestVersion: 2
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8

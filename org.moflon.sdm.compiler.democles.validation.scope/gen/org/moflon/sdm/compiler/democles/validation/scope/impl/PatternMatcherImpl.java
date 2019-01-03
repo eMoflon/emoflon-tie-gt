@@ -2,15 +2,10 @@
  */
 package org.moflon.sdm.compiler.democles.validation.scope.impl;
 
-import java.lang.reflect.InvocationTargetException;
 // <-- [user defined imports]
 import java.util.List;
 
-import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
-import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.EObjectImpl;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
@@ -21,7 +16,6 @@ import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 // [user defined imports] -->
 import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
-import org.moflon.sdm.compiler.democles.validation.scope.ScopePackage;
 
 /**
  * <!-- begin-user-doc --> An implementation of the model object '<em><b>Pattern
@@ -61,25 +55,10 @@ public abstract class PatternMatcherImpl extends EObjectImpl implements PatternM
 	 * 
 	 * @generated
 	 */
-	@Override
-	protected EClass eStaticClass() {
-		return ScopePackage.Literals.PATTERN_MATCHER;
-	}
-
-	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
-	 * @generated
-	 */
 	public ValidationReport getValidationReport() {
 		if (validationReport != null && validationReport.eIsProxy()) {
 			final InternalEObject oldValidationReport = (InternalEObject) validationReport;
 			validationReport = (ValidationReport) eResolveProxy(oldValidationReport);
-			if (validationReport != oldValidationReport) {
-				if (eNotificationRequired())
-					eNotify(new ENotificationImpl(this, Notification.RESOLVE,
-							ScopePackage.PATTERN_MATCHER__VALIDATION_REPORT, oldValidationReport, validationReport));
-			}
 		}
 		return validationReport;
 	}
@@ -101,9 +80,6 @@ public abstract class PatternMatcherImpl extends EObjectImpl implements PatternM
 	public void setValidationReport(final ValidationReport newValidationReport) {
 		final ValidationReport oldValidationReport = validationReport;
 		validationReport = newValidationReport;
-		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, ScopePackage.PATTERN_MATCHER__VALIDATION_REPORT,
-					oldValidationReport, validationReport));
 	}
 
 	/**
@@ -118,80 +94,6 @@ public abstract class PatternMatcherImpl extends EObjectImpl implements PatternM
 		throw new UnsupportedOperationException();
 	}
 
-	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
-	 * @generated
-	 */
-	@Override
-	public Object eGet(final int featureID, final boolean resolve, final boolean coreType) {
-		switch (featureID) {
-		case ScopePackage.PATTERN_MATCHER__VALIDATION_REPORT:
-			if (resolve)
-				return getValidationReport();
-			return basicGetValidationReport();
-		}
-		return super.eGet(featureID, resolve, coreType);
-	}
-
-	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
-	 * @generated
-	 */
-	@Override
-	public void eSet(final int featureID, final Object newValue) {
-		switch (featureID) {
-		case ScopePackage.PATTERN_MATCHER__VALIDATION_REPORT:
-			setValidationReport((ValidationReport) newValue);
-			return;
-		}
-		super.eSet(featureID, newValue);
-	}
-
-	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
-	 * @generated
-	 */
-	@Override
-	public void eUnset(final int featureID) {
-		switch (featureID) {
-		case ScopePackage.PATTERN_MATCHER__VALIDATION_REPORT:
-			setValidationReport((ValidationReport) null);
-			return;
-		}
-		super.eUnset(featureID);
-	}
-
-	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
-	 * @generated
-	 */
-	@Override
-	public boolean eIsSet(final int featureID) {
-		switch (featureID) {
-		case ScopePackage.PATTERN_MATCHER__VALIDATION_REPORT:
-			return validationReport != null;
-		}
-		return super.eIsSet(featureID);
-	}
-
-	/**
-	 * <!-- begin-user-doc --> <!-- end-user-doc -->
-	 * 
-	 * @generated
-	 */
-	@Override
-	public Object eInvoke(final int operationID, final EList<?> arguments) throws InvocationTargetException {
-		switch (operationID) {
-		case ScopePackage.PATTERN_MATCHER___GENERATE_SEARCH_PLAN__PATTERN_ADORNMENT_BOOLEAN:
-			return generateSearchPlan((Pattern) arguments.get(0), (Adornment) arguments.get(1),
-					(Boolean) arguments.get(2));
-		}
-		return super.eInvoke(operationID, arguments);
-	}
 	// <-- [user code injected with eMoflon]
 
 	private static final int determineParameterIndex(final Pattern pattern, final ConstraintParameter cp) {

@@ -62,26 +62,44 @@ public enum PatternType {
 		}
 	}
 
+	/**
+	 * @return true iff this is {@link #BLACK_PATTERN}
+	 */
 	public boolean isBlack() {
 		return this == BLACK_PATTERN;
 	}
 
+	/**
+	 * @return true iff this is {@link #RED_PATTERN}
+	 */
 	public boolean isRed() {
 		return this == RED_PATTERN;
 	}
 
+	/**
+	 * @return true iff this is {@link #GREEN_PATTERN}
+	 */
 	public boolean isGreen() {
 		return this == GREEN_PATTERN;
 	}
 
+	/**
+	 * @return true iff this is {@link #BINDING_PATTERN}
+	 */
 	public boolean isBinding() {
 		return this == BINDING_PATTERN;
 	}
 
+	/**
+	 * @return true iff this is {@link #BINDING_AND_BLACK_PATTERN}
+	 */
 	public boolean isBindingAndBlack() {
 		return this == BINDING_AND_BLACK_PATTERN;
 	}
 
+	/**
+	 * @return true iff this is {@link #EXPRESSION_PATTERN}
+	 */
 	public boolean isExpression() {
 		return this == EXPRESSION_PATTERN;
 	}

@@ -6,7 +6,6 @@ Export-Package: org.moflon.sdm.runtime.democles,
 Bundle-Name: ControlFlow
 Bundle-Version: 2.0.0.qualifier
 Require-Bundle: org.eclipse.emf.ecore.xmi;bundle-version="[2.8.0,3.0.0)",
- org.moflon.sdm.language,
  org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,0.5.0)",
  org.eclipse.emf.ecore,
  org.moflon.core.utilities

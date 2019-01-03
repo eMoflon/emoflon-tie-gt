@@ -42,8 +42,6 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.codegen.GeneratorAdapterFactory;
 
-import SDMLanguage.impl.SDMLanguagePackageImpl;
-
 public class StandardCodeGenerationTest {
 	private static final Logger logger = Logger.getLogger(StandardCodeGenerationTest.class);
 
@@ -56,7 +54,7 @@ public class StandardCodeGenerationTest {
 
 	@SuppressWarnings("unused")
 	public static final void main(final String[] args) {
-		ResourceSet resourceSet = new ResourceSetImpl();
+		final ResourceSet resourceSet = new ResourceSetImpl();
 
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore",
 				new EcoreResourceFactoryImpl());
@@ -66,18 +64,18 @@ public class StandardCodeGenerationTest {
 				.put(Resource.Factory.Registry.DEFAULT_EXTENSION, new XMIResourceFactoryImpl());
 
 		EcorePackageImpl.init();
-		SDMLanguagePackageImpl.init();
 		GenModelPackageImpl.init();
 
-		String installationRootAsURI = "file:/C:/Download/eclipse-galileo";
-		String installationRootAsFile = "C:\\Download\\eclipse-galileo";
-		String workspaceRootAsURI = "file:/C:/Dokumente und Einstellungen/varro/workspace";
-		String workspaceRootAsFile = "C:\\Dokumente und Einstellungen\\varro\\workspace";
+		final String installationRootAsURI = "file:/C:/Download/eclipse-galileo";
+		final String installationRootAsFile = "C:\\Download\\eclipse-galileo";
+		final String workspaceRootAsURI = "file:/C:/Dokumente und Einstellungen/varro/workspace";
+		final String workspaceRootAsFile = "C:\\Dokumente und Einstellungen\\varro\\workspace";
 
 		// Accessing the generated version of ECore.ecore:
 		// "http://www.eclipse.org/emf/2002/Ecore" -> mapping to genmodel?
 		// Accessing the file version of ECore.ecore in standalone mode
-		String ecoreJarLocation = installationRootAsURI + "/plugins/org.eclipse.emf.ecore_2.5.0.v200906151043.jar";
+		final String ecoreJarLocation = installationRootAsURI
+				+ "/plugins/org.eclipse.emf.ecore_2.5.0.v200906151043.jar";
 		URI.createURI("archive:" + ecoreJarLocation + JAR_SEPARATOR + "/model/Ecore.ecore", true);
 		URI.createURI("archive:" + ecoreJarLocation + JAR_SEPARATOR + "/model/Ecore.genmodel", true);
 		// Accessing the file version of ECore.ecore in Eclipse mode
@@ -94,46 +92,47 @@ public class StandardCodeGenerationTest {
 		// resourceSet.getURIConverter().getURIMap().putAll(EcorePlugin.computePlatformURIMap());
 
 		// (1) Load ECore file (platform:/plugin/projectName/model/file.ecore)
-		URI ecoreModelLocation = URI.createPlatformResourceURI("/org.gervarro.democles.emoflon/model/Moflon.ecore",
-				true);
-		Resource ecoreModelResource = resourceSet.getResource(ecoreModelLocation, true);
+		final URI ecoreModelLocation = URI
+				.createPlatformResourceURI("/org.gervarro.democles.emoflon/model/Moflon.ecore", true);
+		final Resource ecoreModelResource = resourceSet.getResource(ecoreModelLocation, true);
 		EcoreUtil.resolveAll(resourceSet);
 
-		List<EPackage> interestingRootEPackages = new ConverterUtil.EPackageList();
+		final List<EPackage> interestingRootEPackages = new ConverterUtil.EPackageList();
 		interestingRootEPackages.addAll(
 				EcoreUtil.<EPackage>getObjectsByType(ecoreModelResource.getContents(), EcorePackage.Literals.EPACKAGE));
 
-		List<EPackage> referencedRootEPackages = new ConverterUtil.EPackageList();
-		for (Resource resource : resourceSet.getResources()) {
+		final List<EPackage> referencedRootEPackages = new ConverterUtil.EPackageList();
+		for (final Resource resource : resourceSet.getResources()) {
 			referencedRootEPackages.addAll(
 					EcoreUtil.<EPackage>getObjectsByType(resource.getContents(), EcorePackage.Literals.EPACKAGE));
 		}
 		referencedRootEPackages.removeAll(interestingRootEPackages);
 
 		// (2) Prepare GenModel file (platform:/plugin/projectName/model/file.genmodel)
-		GenModel genModel = GenModelFactory.eINSTANCE.createGenModel();
+		final GenModel genModel = GenModelFactory.eINSTANCE.createGenModel();
 
-		URI genModelURI = URI.createPlatformResourceURI("/org.gervarro.democles.emoflon/model/Moflon.genmodel", true);
-		Resource genModelResource = resourceSet.createResource(genModelURI);
+		final URI genModelURI = URI.createPlatformResourceURI("/org.gervarro.democles.emoflon/model/Moflon.genmodel",
+				true);
+		final Resource genModelResource = resourceSet.createResource(genModelURI);
 		genModelResource.getContents().add(genModel);
 
 		// (3) Produce GenModel contents from scratch (GenPackages and referred
 		// GenPackages)
 
-		List<GenPackage> referencedGenPackages = new ConverterUtil.GenPackageList();
-		for (EPackage ePackage : referencedRootEPackages) {
-			URI ecoreFileURI = ePackage.eResource().getURI();
-			URI genmodelFileURI = ecoreFileURI.trimFileExtension().appendFileExtension("genmodel");
-			Resource tempGenModelResource = resourceSet.getResource(genmodelFileURI, true);
-			GenModel tempGenModel = (GenModel) tempGenModelResource.getContents().get(0);
-			GenPackage tempGenPackage = tempGenModel.findGenPackage(ePackage);
+		final List<GenPackage> referencedGenPackages = new ConverterUtil.GenPackageList();
+		for (final EPackage ePackage : referencedRootEPackages) {
+			final URI ecoreFileURI = ePackage.eResource().getURI();
+			final URI genmodelFileURI = ecoreFileURI.trimFileExtension().appendFileExtension("genmodel");
+			final Resource tempGenModelResource = resourceSet.getResource(genmodelFileURI, true);
+			final GenModel tempGenModel = (GenModel) tempGenModelResource.getContents().get(0);
+			final GenPackage tempGenPackage = tempGenModel.findGenPackage(ePackage);
 			referencedGenPackages.add(tempGenPackage);
 		}
 
-		Map<GenPackage, EPackage> genPackageToReferredEPackage = new LinkedHashMap<GenPackage, EPackage>();
-		Map<String, GenPackage> referredEPackageNSURIToGenPackage = new HashMap<String, GenPackage>();
-		for (GenPackage genPackage : referencedGenPackages) {
-			EPackage referredEPackage = genPackage.getEcorePackage();
+		final Map<GenPackage, EPackage> genPackageToReferredEPackage = new LinkedHashMap<GenPackage, EPackage>();
+		final Map<String, GenPackage> referredEPackageNSURIToGenPackage = new HashMap<String, GenPackage>();
+		for (final GenPackage genPackage : referencedGenPackages) {
+			final EPackage referredEPackage = genPackage.getEcorePackage();
 			if (referredEPackage != null) {
 				genPackageToReferredEPackage.put(genPackage, referredEPackage);
 				referredEPackageNSURIToGenPackage.put(referredEPackage.getNsURI(), genPackage);
@@ -143,21 +142,21 @@ public class StandardCodeGenerationTest {
 		// Create resources for all the referenced EPackages
 		// The referencedEPackage is a "local" instance of the realEPackage. We
 		// will add the former to a resource that has the same URI of the later.
-		for (Map.Entry<GenPackage, EPackage> entry : genPackageToReferredEPackage.entrySet()) {
-			GenPackage genPackage = entry.getKey();
-			EPackage referredEPackage = entry.getValue();
-			EPackage realEPackage = genPackage.getEcorePackage();
+		for (final Map.Entry<GenPackage, EPackage> entry : genPackageToReferredEPackage.entrySet()) {
+			final GenPackage genPackage = entry.getKey();
+			final EPackage referredEPackage = entry.getValue();
+			final EPackage realEPackage = genPackage.getEcorePackage();
 
 			if (referredEPackage != realEPackage) {
-				EPackage eSuperPackage = realEPackage.getESuperPackage();
+				final EPackage eSuperPackage = realEPackage.getESuperPackage();
 				if (eSuperPackage == null) {
-					URI ecoreURI = realEPackage.eResource().getURI();
-					Resource resource = resourceSet.createResource(ecoreURI);
+					final URI ecoreURI = realEPackage.eResource().getURI();
+					final Resource resource = resourceSet.createResource(ecoreURI);
 					resource.getContents().add(referredEPackage);
 				} else {
-					GenPackage genSuperPackage = referredEPackageNSURIToGenPackage.get(eSuperPackage.getNsURI());
+					final GenPackage genSuperPackage = referredEPackageNSURIToGenPackage.get(eSuperPackage.getNsURI());
 					if (genSuperPackage != null) {
-						EPackage referredESuperPackage = genSuperPackage.getEcorePackage();
+						final EPackage referredESuperPackage = genSuperPackage.getEcorePackage();
 						referredESuperPackage.getESubpackages().add(referredEPackage);
 						referencedGenPackages.remove(genPackage);
 					}
@@ -170,7 +169,7 @@ public class StandardCodeGenerationTest {
 		genModel.getForeignModel().add("Moflon.ecore");
 		genModel.getUsedGenPackages().addAll(referencedGenPackages);
 
-		String modelPluginID = genModel.eResource().getURI().segment(1);
+		final String modelPluginID = genModel.eResource().getURI().segment(1);
 		String modelName = genModel.eResource().getURI().trimFileExtension().lastSegment();
 		modelName = CodeGenUtil.capName(modelName);
 		genModel.setModelName(modelName);
@@ -181,23 +180,23 @@ public class StandardCodeGenerationTest {
 		genModel.reconcile();
 
 		// (4) Save GenModel file
-		Map<Object, Object> genModelSaveOptions = new HashMap<Object, Object>();
+		final Map<Object, Object> genModelSaveOptions = new HashMap<Object, Object>();
 		genModelSaveOptions.put(Resource.OPTION_SAVE_ONLY_IF_CHANGED,
 				Resource.OPTION_SAVE_ONLY_IF_CHANGED_MEMORY_BUFFER);
 		genModelSaveOptions.put(Resource.OPTION_LINE_DELIMITER, WorkspaceHelper.DEFAULT_RESOURCE_LINE_DELIMITER);
 		try {
 			genModelResource.save(genModelSaveOptions);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			LogUtils.error(logger, e);
 		}
 
 		// (5) Compile template
 
 		// (6) Invoke code generation
-		DelegatingRegistry generatorRegistry = new DelegatingRegistry();
+		final DelegatingRegistry generatorRegistry = new DelegatingRegistry();
 		generatorRegistry.addDescriptor("http://www.eclipse.org/emf/2002/GenModel", GeneratorAdapterFactory.DESCRIPTOR);
 
-		Generator generator = new Generator(generatorRegistry);
+		final Generator generator = new Generator(generatorRegistry);
 		generator.setInput(genModel);
 
 		generator.generate(genModel, GenBaseGeneratorAdapter.MODEL_PROJECT_TYPE, new BasicMonitor.Printing(System.out));

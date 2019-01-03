@@ -13,31 +13,21 @@ package org.moflon.codegen;
 import java.util.Map;
 
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.gervarro.eclipse.task.ITask;
-import org.moflon.codegen.eclipse.MoflonCodeGenerator;
+import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 
 public interface MethodBodyHandler {
 
 	/**
-	 * Creates a validator job for the given package
-	 * 
-	 * The purpose of the validator is to turn an SDM-based specification of a
-	 * method into a proper control flow
+	 * Initializes the available search plan algorithms (= pattern matchers)
 	 */
-	public ITask createValidator(EPackage ePackage);
-
-	/**
-	 * Creates a job for processing the associated gen model of the given resource.
-	 */
-	public ITask createGenModelProcessor(MoflonCodeGenerator codeGenerator, Resource resource);
+	public void initializePatternMatchers();
 
 	/**
 	 * Creates a descriptor for code generator of the method bodies.
 	 */
-	public Descriptor createCodeGenerationEngine(MoflonCodeGenerator codeGenerator, Resource resource);
+	public Descriptor createCodeGenerationEngine(MoflonEmfCodeGenerator codeGenerator, Resource resource);
 
 	public Map<String, PatternMatcher> getPatternMatcherConfiguration();
 }

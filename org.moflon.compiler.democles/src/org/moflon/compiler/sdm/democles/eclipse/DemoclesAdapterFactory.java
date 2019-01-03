@@ -11,10 +11,7 @@ public class DemoclesAdapterFactory implements IAdapterFactory {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(final Object adaptableObject, @SuppressWarnings("rawtypes") final Class adapterType) {
-		if (adaptableObject instanceof DemoclesValidationProcess && DefaultCodeGeneratorConfig.class == adapterType) {
-			final DemoclesValidationProcess process = (DemoclesValidationProcess) adaptableObject;
-			return new DefaultCodeGeneratorConfig(process.getResourceSet(), process.getPreferencesStorage());
-		} else if (adaptableObject instanceof MoflonEmfCodeGenerator && (DemoclesMethodBodyHandler.class == adapterType
+		if (adaptableObject instanceof MoflonEmfCodeGenerator && (DemoclesMethodBodyHandler.class == adapterType
 				|| DefaultCodeGeneratorConfig.class == adapterType)) {
 			final MoflonEmfCodeGenerator process = (MoflonEmfCodeGenerator) adaptableObject;
 			final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(

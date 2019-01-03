@@ -38,4 +38,13 @@
             preferredPerspectives="org.moflon.ide.ui.perspective"
             project="true"></wizard>
     </extension>
+    <!--
+    Preference page contributions
+    -->
+    <extension point="org.eclipse.ui.preferencePages">
+        <page id="org.moflon.tie.gt.ui.preferences.EMoflonPreferencesPage" class="org.moflon.tie.gt.ui.preferences.EMoflonPreferencesPage" name="eMoflon::TIE-GT"></page>
+    </extension>
+    <extension point="org.eclipse.core.runtime.preferences">
+        <initializer class="org.moflon.tie.gt.ui.preferences.EMoflonPreferenceInitializer"></initializer>
+    </extension>
 </plugin>
