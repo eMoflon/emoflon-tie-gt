@@ -29,4 +29,9 @@ public class PatternLookup {
 	public Pattern getBindingPattern() {
 		return getPatternForType(DemoclesPatternType.BINDING_PATTERN);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("PatternLookup: %s", lookupData.toString());
+	}
 }
