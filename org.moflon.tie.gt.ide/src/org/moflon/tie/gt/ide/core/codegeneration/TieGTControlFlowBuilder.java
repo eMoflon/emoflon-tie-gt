@@ -20,9 +20,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.gervarro.eclipse.task.ITask;
 import org.moflon.codegen.MethodBodyHandler;
-import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -30,7 +28,7 @@ import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 
-public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask {
+public class TieGTControlFlowBuilder {
 
 	public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
 	public static final String IBEX_GT_FILE_EXTENSION = "gt";
@@ -59,7 +57,10 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 		return "eMoflon-GT Transformation task";
 	}
 
-	@Override
+	public void setECorePackage(final EPackage ecorePackage) {
+		this.ecorePackage = ecorePackage;
+	}
+
 	public IStatus run(final IProject project, final Resource resource, final MethodBodyHandler methodBodyHandler,
 			final IProgressMonitor monitor) {
 		this.project = project;
@@ -84,8 +85,7 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 	 * @param monitor the progress monitor
 	 * @return the status of the entire task
 	 */
-	@Override
-	public IStatus run(final IProgressMonitor monitor) {
+	private IStatus run(final IProgressMonitor monitor) {
 		final IStatus mcfLoadStatus = this.loadControlFlowFiles();
 		if (mcfLoadStatus.matches(IStatus.ERROR))
 			return mcfLoadStatus;
@@ -215,10 +215,6 @@ public class TieGTControlFlowBuilder implements MoflonCodeGeneratorPhase, ITask 
 			return helper.transform(contextEPackage, mCF, this.resourceSet, this.ecorePackage);
 		}
 		return Status.OK_STATUS;
-	}
-
-	public void setECorePackage(final EPackage ecorePackage) {
-		this.ecorePackage = ecorePackage;
 	}
 
 }

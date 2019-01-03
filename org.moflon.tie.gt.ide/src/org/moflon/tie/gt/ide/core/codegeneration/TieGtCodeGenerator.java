@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
@@ -16,10 +15,10 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.MethodBodyHandler;
-import org.moflon.codegen.eclipse.MoflonCodeGeneratorPhase;
-import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.DemoclesGeneratorAdapterFactory;
+import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.MoflonEmfCodeGenerator;
@@ -30,8 +29,6 @@ import org.moflon.emf.injection.ide.InjectionManager;
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 	private static final Logger logger = Logger.getLogger(TieGtCodeGenerator.class);
-
-	protected MoflonCodeGeneratorPhase additionalCodeGenerationPhase;
 
 	public TieGtCodeGenerator(final IFile ecoreFile, final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -51,14 +48,13 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			// (1) Instantiate code generation engine
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
-			final String engineID = "org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig";
-			final MethodBodyHandler methodBodyHandler = (MethodBodyHandler) Platform.getAdapterManager()
-					.loadAdapter(this, engineID);
+
+			final IProject project = getEcoreFile().getProject();
+			final AttributeConstraintCodeGeneratorConfig defaultCodeGeneratorConfig = new AttributeConstraintCodeGeneratorConfig(
+					getResourceSet(), project, getPreferencesStorage());
+			final MethodBodyHandler methodBodyHandler = new DemoclesMethodBodyHandler(getResourceSet(),
+					defaultCodeGeneratorConfig);
 			subMon.worked(5);
-			if (methodBodyHandler == null) {
-				return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-						"Unknown method body handler: " + engineID + ". Code generation aborted.");
-			}
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
@@ -77,31 +73,21 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			}
 			this.setGenModel(genModelBuilderJob.getGenModel());
 
-			// (2.1) Perform additional code generation phase
-			final IStatus weaverStatus;
-			if (this.additionalCodeGenerationPhase != null) {
-				if (this.additionalCodeGenerationPhase instanceof TieGTControlFlowBuilder) {
-					final TieGTControlFlowBuilder cfBuilder = (TieGTControlFlowBuilder) this.additionalCodeGenerationPhase;
-					this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
-					cfBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
-				}
-				weaverStatus = this.additionalCodeGenerationPhase.run(getProject(), getEcoreResource(),
-						methodBodyHandler, subMon.split(10));
+			final TieGTControlFlowBuilder cfBuilder = new TieGTControlFlowBuilder(getPreferencesStorage());
+			this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
+			cfBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
+			final IStatus weaverStatus = cfBuilder.run(getProject(), getEcoreResource(), methodBodyHandler,
+					subMon.split(10));
 
-				if (subMon.isCanceled()) {
-					return Status.CANCEL_STATUS;
-				}
+			if (subMon.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
 
-				if (weaverStatus.matches(IStatus.ERROR)) {
-					return weaverStatus;
-				}
-			} else {
-				weaverStatus = Status.OK_STATUS;
-				subMon.worked(10);
+			if (weaverStatus.matches(IStatus.ERROR)) {
+				return weaverStatus;
 			}
 
 			// Load injections
-			final IProject project = getEcoreFile().getProject();
 			final InjectionManager injectionManager = createInjectionManager(project);
 			this.setInjectorManager(injectionManager);
 			final IStatus injectionStatus = createInjections(project);
@@ -114,8 +100,6 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 			// Generate code
 			subMon.subTask("Generating code for project " + project.getName());
-			final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(
-					getResourceSet(), getPreferencesStorage());
 			final TemplateConfigurationProvider templateConfig = defaultCodeGeneratorConfig
 					.createTemplateConfiguration(this.getGenModel());
 			final Descriptor codeGenerationEngine = new DemoclesGeneratorAdapterFactory(templateConfig,
@@ -145,7 +129,4 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		}
 	}
 
-	public void setAdditionalCodeGenerationPhase(final MoflonCodeGeneratorPhase codeGenerationPhase) {
-		this.additionalCodeGenerationPhase = codeGenerationPhase;
-	}
 }

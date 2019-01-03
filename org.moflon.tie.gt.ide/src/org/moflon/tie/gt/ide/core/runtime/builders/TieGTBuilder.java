@@ -38,7 +38,6 @@ import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGtCodeGenerator;
-import org.moflon.tie.gt.ide.core.codegeneration.TieGTControlFlowBuilder;
 import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
 import com.google.inject.Injector;
@@ -124,7 +123,6 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			clean(new NullProgressMonitor());
 
 			// Build
-			// final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
 			final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
 			final PatternResourceFactory blackFactory = new PatternResourceFactory(
 					DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
@@ -140,14 +138,12 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			resourceSet.getAdapterFactories().add(cfFactory);
 			eMoflonEMFUtil.installCrossReferencers(resourceSet);
 			subMon.worked(1);
+
 			final EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
 					.getPreferencesStorage();
-			final TieGtCodeGenerator codeGenerationTask = new TieGtCodeGenerator(
-					ecoreFile, resourceSet, preferencesStorage);
-			final TieGTControlFlowBuilder tieGTCodeGenerationPhase = new TieGTControlFlowBuilder(preferencesStorage);
-			codeGenerationTask.setAdditionalCodeGenerationPhase(tieGTCodeGenerationPhase);
-			final IStatus status = codeGenerationTask.run(subMon.split(1));
-			subMon.worked(3);
+			final TieGtCodeGenerator codeGenerationTask = new TieGtCodeGenerator(ecoreFile, resourceSet,
+					preferencesStorage);
+			final IStatus status = codeGenerationTask.run(subMon.split(4));
 			emfBuilderStatus.add(status);
 
 			if (!emfBuilderStatus.isOK())

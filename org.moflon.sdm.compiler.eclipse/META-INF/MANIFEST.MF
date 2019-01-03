@@ -22,8 +22,7 @@ Export-Package: org.moflon.codegen,
  org.moflon.codegen.eclipse,
  org.moflon.codegen.preferences,
  org.moflon.dependency.handlers,
- org.moflon.eclipse.genmodel,
- org.moflon.eclipse.resource
+ org.moflon.eclipse.genmodel
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: eMoflon Developers
 Automatic-Module-Name: org.moflon.sdm.compiler.eclipse

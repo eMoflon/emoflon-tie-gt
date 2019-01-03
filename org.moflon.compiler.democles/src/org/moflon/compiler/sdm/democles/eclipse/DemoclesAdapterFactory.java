@@ -4,20 +4,13 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
-import org.moflon.emf.build.MoflonEmfCodeGenerator;
 
 public class DemoclesAdapterFactory implements IAdapterFactory {
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object getAdapter(final Object adaptableObject, @SuppressWarnings("rawtypes") final Class adapterType) {
-		if (adaptableObject instanceof MoflonEmfCodeGenerator && (DemoclesMethodBodyHandler.class == adapterType
-				|| DefaultCodeGeneratorConfig.class == adapterType)) {
-			final MoflonEmfCodeGenerator process = (MoflonEmfCodeGenerator) adaptableObject;
-			final DefaultCodeGeneratorConfig defaultCodeGeneratorConfig = new DefaultCodeGeneratorConfig(
-					process.getResourceSet(), process.getPreferencesStorage());
-			return new DemoclesMethodBodyHandler(process.getResourceSet(), defaultCodeGeneratorConfig);
-		} else if (adaptableObject instanceof IFile && EclipseErrorReporter.class == adapterType) {
+		if (adaptableObject instanceof IFile && EclipseErrorReporter.class == adapterType) {
 			return new EclipseErrorReporter((IFile) adaptableObject);
 		}
 		return null;
