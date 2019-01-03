@@ -32,7 +32,7 @@ public final class AttributeUtil {
 		return createAttribute(modelElement, fromParameter, toParameter);
 	}
 
-	public static boolean areEqual(final Attribute attributeReferenceConstraint1,
+	private static boolean areEqual(final Attribute attributeReferenceConstraint1,
 			final Attribute attributeReferenceConstraint2) {
 		final List<ConstraintParameter> parameters1 = attributeReferenceConstraint1.getParameters();
 		final List<ConstraintParameter> parameters2 = attributeReferenceConstraint2.getParameters();

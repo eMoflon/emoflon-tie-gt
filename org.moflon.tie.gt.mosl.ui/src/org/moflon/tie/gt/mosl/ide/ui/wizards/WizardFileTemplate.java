@@ -11,14 +11,14 @@ public abstract class WizardFileTemplate {
 
 	protected List<EPackage> epackageImports;
 
-	public void setEPackageImports(List<EPackage> imports) {
+	public void setEPackageImports(final List<EPackage> imports) {
 		epackageImports = imports;
 	}
 
 	public abstract void setContent(IFile file);
 
-	protected void save(IFile file, String content) throws CoreException {
-		ByteArrayInputStream source = new ByteArrayInputStream(content.getBytes());
+	protected void save(final IFile file, final String content) throws CoreException {
+		final ByteArrayInputStream source = new ByteArrayInputStream(content.getBytes());
 
 		if (file.exists()) {
 			file.setContents(source, IFile.FORCE | IFile.KEEP_HISTORY, null);

@@ -30,8 +30,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransfor
 
 public class TieGTControlFlowBuilder {
 
-	public static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
-	public static final String IBEX_GT_FILE_EXTENSION = "gt";
+	private static final String MOFLON_TIE_CONTROLFLOW_FILE_EXTENSION = "mcf";
 
 	/**
 	 * The top-level {@link EPackage} of the ongoing build process
@@ -54,7 +53,7 @@ public class TieGTControlFlowBuilder {
 	}
 
 	public String getTaskName() {
-		return "eMoflon-GT Transformation task";
+		return "eMoflon::TIE-GT transformation task";
 	}
 
 	public void setECorePackage(final EPackage ecorePackage) {

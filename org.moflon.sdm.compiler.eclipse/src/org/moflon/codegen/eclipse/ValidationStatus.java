@@ -77,7 +77,7 @@ public class ValidationStatus implements IStatus {
 		}
 	}
 
-	public static final int convertToStatusSeverity(final Severity severity) throws CoreException {
+	private static final int convertToStatusSeverity(final Severity severity) throws CoreException {
 		final int value = severity.getValue();
 		if (value >= Severity.ERROR_VALUE) {
 			return IStatus.ERROR;

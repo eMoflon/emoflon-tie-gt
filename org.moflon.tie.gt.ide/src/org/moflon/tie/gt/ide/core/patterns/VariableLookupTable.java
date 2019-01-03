@@ -38,10 +38,6 @@ class VariableLookupTable {
 		return getOrCreateEMFVariable(node, null, type);
 	}
 
-	public EMFVariable lookup(final Object object, final DemoclesPatternType type) {
-		return get(object, null, type);
-	}
-
 	EMFVariable getOrCreateEMFVariable(final Object obj, final Object parent, final DemoclesPatternType type) {
 		final String keyForLookup = calculateLookupKey(obj, parent);
 		final Map<Object, EMFVariable> variableLookupForPatternType = getVariableLookupForPatternType(type);

@@ -7,16 +7,15 @@ import java.util.List;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
-import org.gervarro.democles.common.OperationRuntime;
 import org.gervarro.democles.compiler.CompilerPatternBody;
 
-public class ReachabilityUtils {
+class ReachabilityUtils {
 	/**
 	 * Executes the given code with disabled stdout and stderr.
 	 * 
 	 * @param code
 	 */
-	public static void executeWithMutedStderrAndStdout(final Runnable code) {
+	static void executeWithMutedStderrAndStdout(final Runnable code) {
 		final PrintStream originalStdout = System.out;
 		final PrintStream originalStderr = System.err;
 		try {
@@ -40,39 +39,22 @@ public class ReachabilityUtils {
 	}
 
 	/**
-	 * Returns whether the given operation is a 'check' operation.
-	 * 
-	 * Check operations have a precondition consisting only of
-	 * {@link Adornment#BOUND}
-	 * 
-	 * @param operation
-	 *            the operation to analyze
-	 * @return whether the precondition adornment consists of
-	 *         {@link Adornment#BOUND} only
-	 */
-	public static boolean isCheckOperation(final OperationRuntime operation) {
-		final Adornment precondition = operation.getPrecondition();
-		return isCheckOperation(precondition);
-	}
-
-	/**
 	 * Returns whether the given adornment belongs to a 'check' operation.
 	 * 
 	 * Check operations have a precondition consisting only of
 	 * {@link Adornment#BOUND}
 	 * 
-	 * @param operation
-	 *            the operation to analyze
+	 * @param operation the operation to analyze
 	 * @return whether the precondition adornment consists of
 	 *         {@link Adornment#BOUND} only
 	 */
-	public static boolean isCheckOperation(final Adornment precondition) {
+	static boolean isCheckOperation(final Adornment precondition) {
 		return precondition.numberOfBound() + numberOfDontCare(precondition) == precondition.size();
 	}
 
-	private static int numberOfDontCare(Adornment precondition) {
+	private static int numberOfDontCare(final Adornment precondition) {
 		int count = 0;
-		for (int a : precondition.getRawBindingInformation()) {
+		for (final int a : precondition.getRawBindingInformation()) {
 			if (a == ADORNMENT_UNDEFINED)
 				count++;
 		}
@@ -82,7 +64,7 @@ public class ReachabilityUtils {
 	private static void muteStdoutAndStderr() {
 		final PrintStream mutedStream = new PrintStream(new OutputStream() {
 			@Override
-			public void write(int b) throws IOException { // nop
+			public void write(final int b) throws IOException { // nop
 			}
 		});
 		System.setOut(mutedStream);

@@ -47,45 +47,45 @@ import org.osgi.framework.wiring.BundleWiring;
  *
  */
 public class HighlightAutoFactory {
-	protected AbstractHighlightProviderController controller;
+	private AbstractHighlightProviderController controller;
 
-	protected Logger logger;
+	private final Logger logger;
 
 	public HighlightAutoFactory() {
 		logger = Logger.getLogger(this.getClass());
 	}
 
-	public void createAllInstances() {
-		String pluginName = WorkspaceHelper.getPluginId(controller.getClass());
-		Bundle bundle = FrameworkUtil.getBundle(controller.getClass());
-		BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
-		Collection<String> resources = bundleWiring.listResources(pluginName.replaceAll("\\.", "/"), "*.class",
+	void createAllInstances() {
+		final String pluginName = WorkspaceHelper.getPluginId(controller.getClass());
+		final Bundle bundle = FrameworkUtil.getBundle(controller.getClass());
+		final BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
+		final Collection<String> resources = bundleWiring.listResources(pluginName.replaceAll("\\.", "/"), "*.class",
 				BundleWiring.LISTRESOURCES_RECURSE);
-		List<String> classNames = resources.parallelStream()
+		final List<String> classNames = resources.parallelStream()
 				.map(resource -> resource.replaceAll("/", "\\.").replace(".class", "")).collect(Collectors.toList());
-		List<Class<?>> classes = classNames.parallelStream().map(className -> loadClass(className, bundle))
+		final List<Class<?>> classes = classNames.parallelStream().map(className -> loadClass(className, bundle))
 				.collect(Collectors.toList());
-		List<Class<?>> ruleClasses = classes.parallelStream().filter(this::isExecutableAndRegisteredRule)
+		final List<Class<?>> ruleClasses = classes.parallelStream().filter(this::isExecutableAndRegisteredRule)
 				.collect(Collectors.toList());
 		ruleClasses.addAll(manuallyLoadedClasses().parallelStream().filter(this::isConcreteHighlightingRule)
 				.map(classRule -> (Class<?>) classRule).collect(Collectors.toList()));
 		createInstances(ruleClasses);
 	}
 
-	private boolean isExecutableAndRegisteredRule(Class<?> ruleClass) {
+	private boolean isExecutableAndRegisteredRule(final Class<?> ruleClass) {
 		return isConcreteHighlightingRule(ruleClass) && ruleClass.isAnnotationPresent(RegisterRule.class);
 	}
 
-	private boolean isConcreteHighlightingRule(Class<?> ruleClass) {
+	private boolean isConcreteHighlightingRule(final Class<?> ruleClass) {
 		return ruleClass != null && AbstractHighlightingRule.class.isAssignableFrom(ruleClass)
 				&& !Modifier.isAbstract(ruleClass.getModifiers()) && hasCorrectConstructor(ruleClass);
 	}
 
-	private void createInstances(List<Class<?>> classes) {
+	private void createInstances(final List<Class<?>> classes) {
 		classes.parallelStream().map(this::getConstructor).forEach(this::createInstance);
 	}
 
-	private void createInstance(Constructor<?> constructor) {
+	private void createInstance(final Constructor<?> constructor) {
 		try {
 			constructor.newInstance(controller);
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
@@ -94,7 +94,7 @@ public class HighlightAutoFactory {
 		}
 	}
 
-	private Constructor<?> getConstructor(Class<?> clazz) {
+	private Constructor<?> getConstructor(final Class<?> clazz) {
 		try {
 			return clazz.getConstructor(AbstractHighlightProviderController.class);
 		} catch (NoSuchMethodException | SecurityException e) {
@@ -103,7 +103,7 @@ public class HighlightAutoFactory {
 		}
 	}
 
-	private boolean hasCorrectConstructor(Class<?> clazz) {
+	private boolean hasCorrectConstructor(final Class<?> clazz) {
 		try {
 			clazz.getConstructor(AbstractHighlightProviderController.class);
 			return true;
@@ -113,7 +113,7 @@ public class HighlightAutoFactory {
 		}
 	}
 
-	void setController(AbstractHighlightProviderController controller) {
+	void setController(final AbstractHighlightProviderController controller) {
 		this.controller = controller;
 	}
 
@@ -127,10 +127,10 @@ public class HighlightAutoFactory {
 		return new ArrayList<>();
 	}
 
-	private Class<?> loadClass(String className, Bundle bundle) {
+	private Class<?> loadClass(final String className, final Bundle bundle) {
 		try {
 			return bundle.loadClass(className);
-		} catch (ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 			logger.error(e.getMessage(), e);
 			return null;
 		}

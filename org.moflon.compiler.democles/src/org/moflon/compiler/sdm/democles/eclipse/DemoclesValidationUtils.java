@@ -2,30 +2,19 @@ package org.moflon.compiler.sdm.democles.eclipse;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EOperation;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.democles.specification.emf.Constant;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.core.utilities.eMoflonEMFUtil;
 
 /**
  * Useful utilities for the democles validation process
@@ -37,42 +26,6 @@ public final class DemoclesValidationUtils {
 
 	private DemoclesValidationUtils() {
 		throw new UtilityClassNotInstantiableException();
-	}
-
-	/**
-	 * This method persists the intermediate control flow structures that are
-	 * produced during the Democles validation process
-	 *
-	 * @param ePackage
-	 */
-	public static void saveAllIntermediateModels(final EPackage ePackage) {
-		for (final EClass eClass : eMoflonEMFUtil.getEClasses(ePackage)) {
-
-			for (final EOperation eOperation : eClass.getEOperations()) {
-				final AdapterResource controlFlowResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eOperation,
-						DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
-
-				saveResource(controlFlowResource);
-			}
-
-			final AdapterResource bindingAndBlackResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
-					DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION);
-			final AdapterResource redResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
-					DemoclesMethodBodyHandler.RED_FILE_EXTENSION);
-			final AdapterResource greenResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
-					DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION);
-			final AdapterResource bindingFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
-					DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION);
-			final AdapterResource blackFileResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
-					DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
-			final AdapterResource expressionResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(eClass,
-					DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION);
-
-			for (final AdapterResource adapterResource : Arrays.asList(bindingAndBlackResource, blackFileResource,
-					redResource, greenResource, bindingFileResource, blackFileResource, expressionResource)) {
-				saveResource(adapterResource);
-			}
-		}
 	}
 
 	/**
@@ -154,37 +107,6 @@ public final class DemoclesValidationUtils {
 	 */
 	private static void restoreNonSerializeableValues(final Map<Constant, Object> temporarilyClearedConstants) {
 		temporarilyClearedConstants.forEach((constant, value) -> constant.setValue(value));
-	}
-
-	/**
-	 * Deletes all intermediate models of the control flow generation process, which
-	 * are generated, e.g., by #saveAllIntermediateModels.
-	 *
-	 * @param modelFolder only files contained in this folder are scanned
-	 */
-	public static void clearAllIntermediateModels(final IFolder modelFolder) {
-		try {
-			modelFolder.accept(new IResourceVisitor() {
-				@Override
-				public boolean visit(final IResource resource) throws CoreException {
-					for (final String extension : Arrays.asList(DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION,
-							DemoclesMethodBodyHandler.RED_FILE_EXTENSION,
-							DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION,
-							DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION,
-							DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION,
-							DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION)) {
-						if (resource.getName().endsWith("." + extension)) {
-							resource.delete(true, new NullProgressMonitor());
-						}
-					}
-					return true;
-				}
-			}, IResource.DEPTH_ONE, false);
-		} catch (final CoreException e) {
-			LogUtils.error(logger, "Problem while removing temporary files in %s. Reason: %s", modelFolder,
-					e.getMessage());
-		}
-
 	}
 
 }

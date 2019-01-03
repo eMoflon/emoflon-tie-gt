@@ -69,7 +69,7 @@ import org.moflon.tie.gt.mosl.ide.ui.highlighting.utils.XtextColorManager;
 
 public abstract class AbstractHighlightingRule implements IModularConfiguration {
 
-	protected Logger logger;
+	private Logger logger;
 
 	/**
 	 * The id must be an unique identifier to save in
@@ -88,22 +88,22 @@ public abstract class AbstractHighlightingRule implements IModularConfiguration 
 	 */
 	private int prio = 50;
 
-	public AbstractHighlightingRule(AbstractHighlightProviderController controller) {
+	public AbstractHighlightingRule(final AbstractHighlightProviderController controller) {
 		init(controller);
 	}
 
-	protected void setPrio(int prio) {
+	protected void setPrio(final int prio) {
 		this.prio = prio;
 	}
 
-	private void init(AbstractHighlightProviderController controller) {
+	private void init(final AbstractHighlightProviderController controller) {
 		logger = Logger.getLogger(controller.getClass().getName() + "::" + this.getClass().getName());
 		this.id = id();
 		this.description = description();
 		this.controller = controller;
 		try {
 			this.controller.addHighlightRule(this);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			logger.error("ID already exist", e);
 		}
 	}
@@ -112,7 +112,7 @@ public abstract class AbstractHighlightingRule implements IModularConfiguration 
 
 	protected abstract String description();
 
-	public void setHighlighting(INode node, IHighlightedPositionAcceptor acceptor) {
+	public void setHighlighting(final INode node, final IHighlightedPositionAcceptor acceptor) {
 		acceptor.addPosition(node.getOffset(), node.getLength(), id);
 	}
 
@@ -123,11 +123,11 @@ public abstract class AbstractHighlightingRule implements IModularConfiguration 
 	 */
 	protected abstract TextStyle getTextStyle();
 
-	public void setHighlightingConfiguration(IHighlightingConfigurationAcceptor acceptor) {
+	public void setHighlightingConfiguration(final IHighlightingConfigurationAcceptor acceptor) {
 		acceptor.acceptDefaultHighlighting(id, description, getTextStyle());
 	}
 
-	public boolean canProvideHighlighting(EObject moslObject, INode node) {
+	public boolean canProvideHighlighting(final EObject moslObject, final INode node) {
 		if (moslObject.eIsProxy())
 			EcoreUtil.resolveAll(moslObject);
 		return getHighlightingConditions(moslObject, node);

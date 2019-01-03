@@ -6,6 +6,9 @@ import org.osgi.framework.BundleContext;
 
 public class TieGtIdeActivator extends AbstractUIPlugin {
 
+	/**
+	 * Loads the persisted eMoflon-specific settings
+	 */
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);

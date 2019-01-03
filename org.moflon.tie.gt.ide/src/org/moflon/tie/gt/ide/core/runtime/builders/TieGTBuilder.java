@@ -47,9 +47,9 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	private static final AntPatternCondition VISITOR_CONDITION = new AntPatternCondition(
 			new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" });
 
-	public static String BUILDER_ID = TieGTBuilder.class.getName();
+	private static String BUILDER_ID = TieGTBuilder.class.getName();
 
-	public static final Logger logger = Logger.getLogger(TieGTBuilder.class);
+	private static final Logger logger = Logger.getLogger(TieGTBuilder.class);
 
 	/**
 	 * Initializes the visitor condition
@@ -174,26 +174,12 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 	}
 
 	/**
-	 * Handles errors and warning produced by the code generation task
-	 *
-	 * @param status the {@link IStatus} that contains the errors and warnings
-	 */
-	protected void handleErrorsAndWarnings(final IStatus status, final IFile ecoreFile) throws CoreException {
-		if (status.matches(IStatus.ERROR)) {
-			handleErrorsInEclipse(status, ecoreFile);
-		}
-		if (status.matches(IStatus.WARNING)) {
-			handleInjectionWarningsAndErrors(status);
-		}
-	}
-
-	/**
 	 * Prepare an {@link ResourceSet} that is suitable for a MOSL-GT-based build
 	 * process
 	 *
 	 * @return the initialized resource set
 	 */
-	protected static ResourceSet initializeResourceSet() {
+	private static ResourceSet initializeResourceSet() {
 		final Injector injector = LanguageActivator.getInstance()
 				.getInjector(LanguageActivator.ORG_MOFLON_TIE_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
 		final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
@@ -245,17 +231,6 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			eclipseErrorReporter.report(status);
 		} else {
 			logger.error(String.format("Could not load error reporter '%s' to report status", reporterClass));
-		}
-	}
-
-	private void handleInjectionWarningsAndErrors(final IStatus status) {
-		final String reporterClass = "org.moflon.emf.injection.validation.InjectionErrorReporter";
-		final ErrorReporter errorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(getProject(),
-				reporterClass);
-		if (errorReporter != null) {
-			errorReporter.report(status);
-		} else {
-			logger.debug("Could not load error reporter '" + reporterClass + "'");
 		}
 	}
 

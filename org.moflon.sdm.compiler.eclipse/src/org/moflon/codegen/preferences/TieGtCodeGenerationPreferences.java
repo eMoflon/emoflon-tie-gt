@@ -20,11 +20,6 @@ public class TieGtCodeGenerationPreferences {
 	public static final boolean DEFAULT_REACHABILITIY_IS_ENABLED = true;
 
 	/**
-	 * Stores the configured validation timeout in milliseconds. 'null' if not set.
-	 */
-	private static final String VALIDATION_TIMEOUT_KEY = "org.moflon.tie.gt.validation.timeout";
-
-	/**
 	 * Stores the configured maximum adornment size. 'null' if not set
 	 */
 	private static final String REACHABILITY_ANALYSIS_MAXIMUM_ADORNMENT_SIZE_KEY = "org.moflon.tie.gt.reachability.maxadornmentsize";
@@ -33,15 +28,6 @@ public class TieGtCodeGenerationPreferences {
 	 * Stores whether reachability analysis is active. 'null' if not set
 	 */
 	private static final String REACHABILITY_ENABLED_KEY = "org.moflon.tie.gt.reachability.enabled";
-
-	/**
-	 * Returns the timeout for the reachability validation (in milliseconds)
-	 * 
-	 * @return the validation timeout
-	 */
-	public static int getValidationTimeout() {
-		return EMoflonPreferencesActivator.getDefault().getPreferencesStorage().getInt(VALIDATION_TIMEOUT_KEY);
-	}
 
 	/**
 	 * Sets the maximum size of adornments that should be analyzed using the

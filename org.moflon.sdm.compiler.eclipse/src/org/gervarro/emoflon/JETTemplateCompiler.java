@@ -56,12 +56,12 @@ public class JETTemplateCompiler extends JETCompiler {
 	 * A skip section entry, records the depth of the section and whether to start
 	 * skipping there.
 	 */
-	protected static class SkipSection {
+	private static class SkipSection {
 		int depth;
 
 		boolean skip;
 
-		protected SkipSection(final int depth, final boolean skip) {
+		private SkipSection(final int depth, final boolean skip) {
 			this.depth = depth;
 			this.skip = skip;
 		}
@@ -82,29 +82,29 @@ public class JETTemplateCompiler extends JETCompiler {
 	public void handleDirective(final String directive, final JETMark start, final JETMark stop,
 			final Map<String, String> attributes) throws JETException {
 		if (directive.equals("include")) {
-			String fileURIString = attributes.get("file");
-			String failAttribute = attributes.get("fail");
+			final String fileURIString = attributes.get("file");
+			final String failAttribute = attributes.get("fail");
 			if (fileURIString != null) {
-				URI currentRelative = URI.createURI(start.getFile(), true);
-				URI fileRelative = URI.createURI(fileURIString, true);
-				HashMap<Object, Object> options = new HashMap<Object, Object>();
+				final URI currentRelative = URI.createURI(start.getFile(), true);
+				final URI fileRelative = URI.createURI(fileURIString, true);
+				final HashMap<Object, Object> options = new HashMap<Object, Object>();
 
 				for (int i = 0; i < templateURIPath.length; i++) {
-					URI templateBase = URI.createURI(templateURIPath[i], true);
-					URI currentResolved = currentRelative.resolve(templateBase);
-					URI fileResolved = fileRelative.resolve(currentResolved);
+					final URI templateBase = URI.createURI(templateURIPath[i], true);
+					final URI currentResolved = currentRelative.resolve(templateBase);
+					final URI fileResolved = fileRelative.resolve(currentResolved);
 
-					for (URIHandler handler : uriHandlers) {
+					for (final URIHandler handler : uriHandlers) {
 						if (handler.canHandle(fileResolved)) {
 							if (handler.exists(fileResolved, options)) {
-								URI fileRelativeResolved = fileResolved.deresolve(templateBase);
+								final URI fileRelativeResolved = fileResolved.deresolve(templateBase);
 								if (fileRelativeResolved.equals(currentRelative)) {
 									// Loop has been found
 									// baseURI information is ignored
 									return;
 								}
 								try {
-									BufferedInputStream bufferedInputStream = new BufferedInputStream(
+									final BufferedInputStream bufferedInputStream = new BufferedInputStream(
 											handler.createInputStream(fileResolved, options));
 									reader.stackStream(templateBase.toString(), fileRelativeResolved.toString(),
 											bufferedInputStream, null);
@@ -121,9 +121,9 @@ public class JETTemplateCompiler extends JETCompiler {
 									if (fSavedLine != null) {
 										return;
 									}
-								} catch (IOException exception) {
+								} catch (final IOException exception) {
 									handleIncludeFailure(failAttribute, fileResolved.toString(), start, exception);
-								} catch (JETException exception) {
+								} catch (final JETException exception) {
 									handleIncludeFailure(failAttribute, fileResolved.toString(), start, exception);
 								}
 							} else {
@@ -132,8 +132,9 @@ public class JETTemplateCompiler extends JETCompiler {
 						}
 					}
 				}
-				FileNotFoundException fileNotFoundException = new FileNotFoundException(fileRelative.toFileString());
-				JETException exception = new JETException(fileNotFoundException.getLocalizedMessage(),
+				final FileNotFoundException fileNotFoundException = new FileNotFoundException(
+						fileRelative.toFileString());
+				final JETException exception = new JETException(fileNotFoundException.getLocalizedMessage(),
 						fileNotFoundException);
 				handleIncludeFailure(failAttribute, fileRelative.toString(), start, exception);
 			} else {
@@ -144,7 +145,7 @@ public class JETTemplateCompiler extends JETCompiler {
 			sectionDepth++;
 
 			// A section is not allowed without a preceding include with alternative.
-			SkipSection skipSection = overriddenSkipSections.isEmpty() ? null
+			final SkipSection skipSection = overriddenSkipSections.isEmpty() ? null
 					: (SkipSection) overriddenSkipSections.peek();
 			if (skipSection == null || skipSection.depth != sectionDepth) {
 				throw new JETException(CodeGenPlugin.getPlugin().getString("jet.error.section.noinclude",
@@ -170,21 +171,21 @@ public class JETTemplateCompiler extends JETCompiler {
 			} else {
 				skeleton = new JETSkeleton();
 				// Process this first.
-				String skeletonURI = attributes.get("skeleton");
+				final String skeletonURI = attributes.get("skeleton");
 				if (skeletonURI != null) {
 					try {
-						BufferedInputStream bufferedInputStream = new BufferedInputStream(
+						final BufferedInputStream bufferedInputStream = new BufferedInputStream(
 								openStream(resolveLocation(templateURIPath, templateURI, skeletonURI)[1]));
-						byte[] input = new byte[bufferedInputStream.available()];
+						final byte[] input = new byte[bufferedInputStream.available()];
 						bufferedInputStream.read(input);
 						bufferedInputStream.close();
 						skeleton.setCompilationUnitContents(new String(input));
-					} catch (IOException exception) {
+					} catch (final IOException exception) {
 						throw new JETException(exception);
 					}
 				}
 
-				for (Map.Entry<String, String> entry : attributes.entrySet()) {
+				for (final Map.Entry<String, String> entry : attributes.entrySet()) {
 					// Ignore this now
 					if (entry.getKey().equals("skeleton")) {
 						// Ignore
@@ -214,28 +215,29 @@ public class JETTemplateCompiler extends JETCompiler {
 	}
 
 	void code() {
-		EcorePackage ep = EcorePackage.eINSTANCE;
-		String c = ep.getClass().getName().replace('.', '/').concat(".class");
-		URL url = ep.getClass().getClassLoader().getResource(c);
-		URI eFile = URI.createURI("model/Ecore.ecore", true);
-		URI clazz = URI.createURI(c);
-		URI u = URI.createURI(url.toString());
-		URI base = u.trimSegments(clazz.segmentCount());
+		final EcorePackage ep = EcorePackage.eINSTANCE;
+		final String c = ep.getClass().getName().replace('.', '/').concat(".class");
+		final URL url = ep.getClass().getClassLoader().getResource(c);
+		final URI eFile = URI.createURI("model/Ecore.ecore", true);
+		final URI clazz = URI.createURI(c);
+		final URI u = URI.createURI(url.toString());
+		final URI base = u.trimSegments(clazz.segmentCount());
 		if (clazz.resolve(base).equals(u)) {
-			URI ecore = eFile.resolve(base);
-			for (URIHandler handler : URIHandler.DEFAULT_HANDLERS) {
+			final URI ecore = eFile.resolve(base);
+			for (final URIHandler handler : URIHandler.DEFAULT_HANDLERS) {
 				if (handler.canHandle(u)) {
 					try {
 						handler.createInputStream(ecore, Collections.EMPTY_MAP);
 						System.out.println("OK");
-					} catch (IOException e) {
+					} catch (final IOException e) {
 						LogUtils.error(logger, e);
 					}
 				}
 			}
 		}
 		// Development and runtime versions of
-		Map<String, URI> ePackageNsURItoGenModelLocationMap = EcorePlugin.getEPackageNsURIToGenModelLocationMap(false);
+		final Map<String, URI> ePackageNsURItoGenModelLocationMap = EcorePlugin
+				.getEPackageNsURIToGenModelLocationMap(false);
 		ePackageNsURItoGenModelLocationMap.keySet().toArray(new Object[ePackageNsURItoGenModelLocationMap.size()]);
 		EPackage.Registry.INSTANCE.keySet().toArray(new Object[EPackage.Registry.INSTANCE.size()]);
 	}
@@ -246,25 +248,25 @@ public class JETTemplateCompiler extends JETCompiler {
 	public static void main(final String[] args) throws JETException, FileNotFoundException {
 		// The original program started here
 		if (args != null && args.length == 2) {
-			String eclipseInstallDirectory = args[1];
-			String workspaceLocation = args[0] + (args[0].endsWith("\\") ? "" : "\\");
+			final String eclipseInstallDirectory = args[1];
+			final String workspaceLocation = args[0] + (args[0].endsWith("\\") ? "" : "\\");
 
-			URI eclipseInstallDirURI = URI.createFileURI(eclipseInstallDirectory);
-			URI workspaceRootURI = URI.createFileURI(workspaceLocation);
-			URI projectDir = URI.createURI("SDMCompiler/", true).resolve(workspaceRootURI);
-			URI srcDir = URI.createURI("gen/").resolve(projectDir);
-			URI templateDir = URI.createURI("templates/emf/").resolve(projectDir);
-			String[] templateURIPath = new String[] { templateDir.toString(),
+			final URI eclipseInstallDirURI = URI.createFileURI(eclipseInstallDirectory);
+			final URI workspaceRootURI = URI.createFileURI(workspaceLocation);
+			final URI projectDir = URI.createURI("SDMCompiler/", true).resolve(workspaceRootURI);
+			final URI srcDir = URI.createURI("gen/").resolve(projectDir);
+			final URI templateDir = URI.createURI("templates/emf/").resolve(projectDir);
+			final String[] templateURIPath = new String[] { templateDir.toString(),
 					"archive:" + eclipseInstallDirURI.toString()
 							+ "/plugins/org.eclipse.emf.codegen.ecore_2.9.1.v20130902-0605.jar!/templates/" };
-			String relativeTemplateURI = "model/JavaClassGenerator.javajet";
+			final String relativeTemplateURI = "model/JavaClassGenerator.javajet";
 
 			final JETCompiler jetCompiler = new JETTemplateCompiler(templateURIPath, relativeTemplateURI);
 
 			jetCompiler.parse();
 
-			String packageName = jetCompiler.getSkeleton().getPackageName();
-			String className = jetCompiler.getSkeleton().getClassName();
+			final String packageName = jetCompiler.getSkeleton().getPackageName();
+			final String className = jetCompiler.getSkeleton().getClassName();
 
 			String fileName = packageName + "." + className;
 			fileName = fileName.replace('.', '/');
@@ -272,11 +274,11 @@ public class JETTemplateCompiler extends JETCompiler {
 			uri = uri.resolve(srcDir);
 
 			final File file = new File(uri.toFileString());
-			String parent = file.getParent();
+			final String parent = file.getParent();
 			if (parent != null) {
 				new File(parent).mkdirs();
 			}
-			OutputStream outputStream = new FileOutputStream(file);
+			final OutputStream outputStream = new FileOutputStream(file);
 
 			jetCompiler.generate(outputStream);
 		} else {

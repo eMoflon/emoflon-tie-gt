@@ -21,12 +21,12 @@ import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVar
 import org.moflon.sdm.constraints.operationspecification.constraint.util.AttributeVariableConstraintsModule;
 
 public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGeneratorConfig {
-	protected final WeightedOperationBuilder<GeneratorOperation> builder = new AttributeEnabledWeightedOperationBuilder<>();
+	private final WeightedOperationBuilder<GeneratorOperation> builder = new AttributeEnabledWeightedOperationBuilder<>();
 
-	protected final DefaultAlgorithm<SimpleCombiner, GeneratorOperation> algorithm = new DefaultAlgorithm<>(builder);
+	private final DefaultAlgorithm<SimpleCombiner, GeneratorOperation> algorithm = new DefaultAlgorithm<>(builder);
 
 	// Constraint modules
-	final AttributeVariableConstraintsModule attributeVariableConstraintsModule;
+	private final AttributeVariableConstraintsModule attributeVariableConstraintsModule;
 
 	// Operation modules (constraint to operation (constraint + adornment) mappings)
 	private final AttributeConstraintsOperationBuilder attributeConstraintsOperationBuilder = new AttributeConstraintsOperationBuilder();
@@ -37,7 +37,7 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 	// Constraint type module
 	private final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule;
 
-	protected AttributeConstraintLibUtilImpl attributeConstraintLibUtil = new AttributeConstraintLibUtilImpl();
+	private final AttributeConstraintLibUtilImpl attributeConstraintLibUtil = new AttributeConstraintLibUtilImpl();
 
 	public AttributeConstraintCodeGeneratorConfig(final ResourceSet resourceSet, final IProject project,
 			final EMoflonPreferencesStorage preferencesStorage) {

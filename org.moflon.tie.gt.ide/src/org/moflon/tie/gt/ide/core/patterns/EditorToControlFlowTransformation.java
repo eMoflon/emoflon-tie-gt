@@ -761,7 +761,7 @@ public class EditorToControlFlowTransformation {
 
 	}
 
-	public String getReferencedVariableName(final ConstraintParameter param) {
+	private String getReferencedVariableName(final ConstraintParameter param) {
 		return ((EMFVariable) param.getReference()).getName();
 	}
 

@@ -53,32 +53,32 @@ public class EPackageChooser {
 
 	private final IJdtHelper jdtHelper;
 
-	public EPackageChooser(Shell shell, IJdtHelper jdtHelper) {
+	public EPackageChooser(final Shell shell, final IJdtHelper jdtHelper) {
 		this.shell = shell;
 		this.jdtHelper = jdtHelper;
 	}
 
-	protected List<EPackageInfo> createEPackageInfosFromGenModel(URI genModelURI) {
-		ResourceSet resourceSet = createResourceSet(genModelURI);
+	private List<EPackageInfo> createEPackageInfosFromGenModel(final URI genModelURI) {
+		final ResourceSet resourceSet = createResourceSet(genModelURI);
 		try {
 			eMoflonEMFUtil.createPluginToResourceMapping(resourceSet);
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			e.printStackTrace();
 		}
-		Resource resource = resourceSet.getResource(genModelURI, true);
-		List<EPackageInfo> ePackageInfos = Lists.newArrayList();
-		for (TreeIterator<EObject> i = resource.getAllContents(); i.hasNext();) {
-			EObject next = i.next();
+		final Resource resource = resourceSet.getResource(genModelURI, true);
+		final List<EPackageInfo> ePackageInfos = Lists.newArrayList();
+		for (final TreeIterator<EObject> i = resource.getAllContents(); i.hasNext();) {
+			final EObject next = i.next();
 			if (next instanceof GenPackage) {
-				GenPackage genPackage = (GenPackage) next;
-				EPackage ePackage = genPackage.getEcorePackage();
+				final GenPackage genPackage = (GenPackage) next;
+				final EPackage ePackage = genPackage.getEcorePackage();
 				URI importURI;
 				if (ePackage.eResource() == null) {
 					importURI = URI.createURI(ePackage.getNsURI());
 				} else {
 					importURI = ePackage.eResource().getURI();
 				}
-				EPackageInfo ePackageInfo = new EPackageInfo(ePackage, importURI, genModelURI,
+				final EPackageInfo ePackageInfo = new EPackageInfo(ePackage, importURI, genModelURI,
 						genPackage.getQualifiedPackageInterfaceName(), genPackage.getGenModel().getModelPluginID());
 				ePackageInfos.add(ePackageInfo);
 			} else if (!(next instanceof GenModel)) {
@@ -88,19 +88,19 @@ public class EPackageChooser {
 		return ePackageInfos;
 	}
 
-	private ResourceSet createResourceSet(URI genModelUri) {
+	private ResourceSet createResourceSet(final URI genModelUri) {
 		ResourceSetImpl resourceSet;
 		if (genModelUri.fileExtension().equals("xcore")) {
-			IResourceServiceProvider resourceServiceProvider = IResourceServiceProvider.Registry.INSTANCE
+			final IResourceServiceProvider resourceServiceProvider = IResourceServiceProvider.Registry.INSTANCE
 					.getResourceServiceProvider(genModelUri);
-			IStorage2UriMapper storage2UriMapper = resourceServiceProvider.get(IStorage2UriMapper.class);
-			IProject project = storage2UriMapper.getStorages(genModelUri).iterator().next().getSecond();
+			final IStorage2UriMapper storage2UriMapper = resourceServiceProvider.get(IStorage2UriMapper.class);
+			final IProject project = storage2UriMapper.getStorages(genModelUri).iterator().next().getSecond();
 			resourceSet = (ResourceSetImpl) resourceServiceProvider.get(IResourceSetProvider.class).get(project);
 		} else {
 			resourceSet = new ResourceSetImpl();
 		}
-		Resource ecorePackageResource = EcorePackage.eINSTANCE.eResource();
-		Map<URI, Resource> uriResourceMap = Maps.newHashMap();
+		final Resource ecorePackageResource = EcorePackage.eINSTANCE.eResource();
+		final Map<URI, Resource> uriResourceMap = Maps.newHashMap();
 		uriResourceMap.put(URI.createPlatformResourceURI(PATH_TO_ECORE_ECORE, true), ecorePackageResource);
 		uriResourceMap.put(URI.createPlatformPluginURI(PATH_TO_ECORE_ECORE, true), ecorePackageResource);
 		resourceSet.setURIResourceMap(uriResourceMap);
@@ -109,19 +109,19 @@ public class EPackageChooser {
 
 	private static class LabelProvider extends org.eclipse.jface.viewers.LabelProvider {
 
-		private ILabelProvider delegate = new WorkbenchLabelProvider();
+		private final ILabelProvider delegate = new WorkbenchLabelProvider();
 
 		@Override
-		public String getText(Object object) {
+		public String getText(final Object object) {
 			if (object instanceof IFile) {
-				IFile file = (IFile) object;
+				final IFile file = (IFile) object;
 				return delegate.getText(file) + " - " + file.getParent().getFullPath();
 			}
 			return delegate.getText(object);
 		}
 
 		@Override
-		public Image getImage(Object element) {
+		public Image getImage(final Object element) {
 			return delegate.getImage(element);
 		}
 	}
@@ -131,7 +131,7 @@ public class EPackageChooser {
 		private Iterable<Object> content;
 
 		@Override
-		public Object[] getElements(Object inputElement) {
+		public Object[] getElements(final Object inputElement) {
 			if (content != null) {
 				return Iterables.toArray(content, Object.class);
 			} else {
@@ -146,7 +146,7 @@ public class EPackageChooser {
 
 		@Override
 		@SuppressWarnings("unchecked")
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 			if (newInput instanceof Iterable<?>) {
 				content = (Iterable<Object>) newInput;
 			}
@@ -156,15 +156,15 @@ public class EPackageChooser {
 
 	public List<EPackageInfo> open() {
 		final Iterable<IResource> resourcesContainingGenModels = findResourcesContainingGenModels();
-		ListSelectionDialog listSelectionDialog = new ListSelectionDialog(shell, resourcesContainingGenModels,
+		final ListSelectionDialog listSelectionDialog = new ListSelectionDialog(shell, resourcesContainingGenModels,
 				new ContentProvider(), new LabelProvider(), Messages.EPackageChooser_ChooseGenModel);
-		int result = listSelectionDialog.open();
+		final int result = listSelectionDialog.open();
 		if (result == Window.OK) {
-			List<EPackageInfo> ePackageInfos = Lists.newArrayList();
-			for (Object selection : listSelectionDialog.getResult()) {
+			final List<EPackageInfo> ePackageInfos = Lists.newArrayList();
+			for (final Object selection : listSelectionDialog.getResult()) {
 				if (selection instanceof IFile) {
-					IFile file = (IFile) selection;
-					URI genModelURI = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
+					final IFile file = (IFile) selection;
+					final URI genModelURI = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
 					ePackageInfos.addAll(createEPackageInfosFromGenModel(genModelURI));
 				}
 			}
@@ -173,14 +173,14 @@ public class EPackageChooser {
 		return Collections.emptyList();
 	}
 
-	protected Iterable<IResource> findResourcesContainingGenModels() {
+	private Iterable<IResource> findResourcesContainingGenModels() {
 		final List<IResource> filteredResources = Lists.newArrayList();
 		try {
 			ResourcesPlugin.getWorkspace().getRoot().accept(new IResourceVisitor() {
 				@Override
-				public boolean visit(IResource resource) throws CoreException {
+				public boolean visit(final IResource resource) throws CoreException {
 					if (resource instanceof IFile) {
-						String fileExtension = ((IFile) resource).getFileExtension();
+						final String fileExtension = ((IFile) resource).getFileExtension();
 						if ("genmodel".equals(fileExtension) || "xcore".equals(fileExtension)) {
 							filteredResources.add(resource);
 						}
@@ -191,7 +191,7 @@ public class EPackageChooser {
 					return true;
 				}
 			});
-		} catch (CoreException e) {
+		} catch (final CoreException e) {
 			Logger.getLogger(this.getClass()).error(Messages.EPackageChooser_ErrorFindingGenModels, e);
 		}
 		return filteredResources;
