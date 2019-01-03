@@ -18,10 +18,10 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.MethodBodyHandler;
+import org.moflon.codegen.PatternMatcher;
 import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
 import org.moflon.emf.build.MoflonEmfCodeGenerator;
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 
 public class DemoclesMethodBodyHandler implements MethodBodyHandler {
 

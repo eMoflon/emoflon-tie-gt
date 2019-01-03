@@ -25,8 +25,8 @@ import org.gervarro.democles.specification.impl.DefaultPattern;
 import org.gervarro.democles.specification.impl.DefaultPatternBody;
 import org.gervarro.democles.specification.impl.DefaultPatternFactory;
 import org.gervarro.democles.specification.impl.PatternInvocationConstraintModule;
+import org.moflon.codegen.PatternMatcher;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 
 public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	protected final ResourceSet resourceSet;

@@ -13,16 +13,11 @@ Require-Bundle: org.eclipse.core.resources;bundle-version="[3.9.0,4.0.0)",
  org.stringtemplate;bundle-version="[4.2.1,5.0.0)",
  org.moflon.sdm.democles.patternmatcher;bundle-version="[0.4.0,0.5.0)",
  org.moflon.sdm.compiler.democles,
- org.moflon.sdm.compiler.democles.pattern,
- org.moflon.sdm.compiler.democles.validation.scope,
- org.moflon.sdm.compiler.eclipse,
  org.moflon.sdm.constraints.constraintstodemocles,
  org.moflon.sdm.constraints.operationspecification,
- org.moflon.sdm.runtime.democles,
- org.moflon.sdm.compiler.democles.validation.result,
- org.moflon.core.utilities,
- org.moflon.core.build,
  org.moflon.core.preferences,
- org.moflon.emf.build;bundle-version="1.0.0"
+ org.moflon.emf.build;bundle-version="1.0.0",
+ org.moflon.sdm.compiler.eclipse;bundle-version="3.0.0",
+ org.moflon.sdm.compiler.democles.validation.result
 Export-Package: org.moflon.compiler.sdm.democles.attributes
 Automatic-Module-Name: org.moflon.sdm.constraints.codegenerator

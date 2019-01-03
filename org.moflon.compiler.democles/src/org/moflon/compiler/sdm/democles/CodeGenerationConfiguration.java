@@ -3,7 +3,7 @@ package org.moflon.compiler.sdm.democles;
 import java.util.Map;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
+import org.moflon.codegen.PatternMatcher;
 
 public interface CodeGenerationConfiguration {
 	void initializePatternMatchers();

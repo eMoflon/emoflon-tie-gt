@@ -22,10 +22,8 @@ public class AttributeConstraintTemplateConfig extends DefaultTemplateConfigurat
 	 * Initializes this template configuration with the given {@link GenModel} and a
 	 * list of user-defined attribute constraint libraries
 	 *
-	 * @param genModel
-	 *            the {@link GenModel}
-	 * @param attributeConstraintLibs
-	 *            the {@link AttributeConstraintLibrary}s
+	 * @param genModel                the {@link GenModel}
+	 * @param attributeConstraintLibs the {@link AttributeConstraintLibrary}s
 	 */
 	public AttributeConstraintTemplateConfig(final GenModel genModel,
 			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
@@ -46,9 +44,8 @@ public class AttributeConstraintTemplateConfig extends DefaultTemplateConfigurat
 	 * Adds the templates for user-defined constraints to the template group for
 	 * black patterns (i.e., patterns that represent preserved variables).
 	 *
-	 * @param attributeConstraintLibs
-	 *            the library containing user-defined attribute constraints and
-	 *            operations
+	 * @param attributeConstraintLibs the library containing user-defined attribute
+	 *                                constraints and operations
 	 */
 	private void addAttrConstTemplatesToBlackTemplates(final List<AttributeConstraintLibrary> attributeConstraintLibs) {
 		final STGroup group = getTemplateGroup(DefaultCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR);
@@ -67,7 +64,7 @@ public class AttributeConstraintTemplateConfig extends DefaultTemplateConfigurat
 
 				for (final String templateName : newGroup.getTemplateNames()) {
 					final ST template = newGroup.getInstanceOf(templateName);
-					String fullyQualifiedTemplateName = "/" + library.getPrefix() + "/"
+					final String fullyQualifiedTemplateName = "/" + library.getPrefix() + "/"
 							+ operationSpecificationGroup.getOperationIdentifier() + template.getName();
 					group.rawDefineTemplate(fullyQualifiedTemplateName, template.impl, null);
 				}

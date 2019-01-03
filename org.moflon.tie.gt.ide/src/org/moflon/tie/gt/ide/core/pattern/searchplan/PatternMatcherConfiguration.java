@@ -3,7 +3,7 @@ package org.moflon.tie.gt.ide.core.pattern.searchplan;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
+import org.moflon.codegen.PatternMatcher;
 import org.moflon.tie.gt.ide.core.patterns.PatternType;
 
 /**

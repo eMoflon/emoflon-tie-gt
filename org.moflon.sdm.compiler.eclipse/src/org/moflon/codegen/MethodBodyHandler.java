@@ -15,7 +15,6 @@ import java.util.Map;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.moflon.emf.build.MoflonEmfCodeGenerator;
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 
 public interface MethodBodyHandler {
 

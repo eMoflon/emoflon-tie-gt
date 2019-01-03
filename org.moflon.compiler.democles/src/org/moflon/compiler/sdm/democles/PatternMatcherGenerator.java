@@ -11,6 +11,7 @@ import org.gervarro.democles.compiler.CompilerPatternBody;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
+import org.moflon.codegen.PatternMatcher;
 import org.moflon.codegen.preferences.TieGtCodeGenerationPreferences;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
@@ -22,7 +23,6 @@ import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
 import org.moflon.sdm.compiler.democles.validation.result.ResultFactory;
 import org.moflon.sdm.compiler.democles.validation.result.Severity;
 import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
-import org.moflon.sdm.compiler.democles.validation.scope.impl.PatternMatcherImpl;
 
 /**
  * This class is responsible for generating a search plan for patterns
@@ -31,7 +31,7 @@ import org.moflon.sdm.compiler.democles.validation.scope.impl.PatternMatcherImpl
  * @author Roland Kluge - Integration of reachability analysis
  *
  */
-public abstract class PatternMatcherGenerator extends PatternMatcherImpl {
+public abstract class PatternMatcherGenerator extends PatternMatcher {
 	protected final PatternMatcherCompiler patternMatcher;
 
 	protected final String patternType;

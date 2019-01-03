@@ -7,19 +7,15 @@ Require-Bundle:
  org.eclipse.core.runtime;bundle-version="[3.5.0,4.0.0)",
  org.eclipse.emf.ecore.editor;bundle-version="[2.5.0,3.0.0)",
  org.eclipse.emf.converter;bundle-version="[2.5.0,3.0.0)",
- org.eclipse.pde.core,
  org.gervarro.eclipse.task;bundle-version="[1.0.1,2.0.0)",
  org.moflon.core.utilities,
  org.moflon.core.propertycontainer;bundle-version="2.1.0",
  org.moflon.sdm.compiler.democles.validation.result,
- org.moflon.sdm.compiler.democles.validation.scope,
- org.moflon.emf.injection,
- org.moflon.core.build,
- org.moflon.emf.injection.ui,
  org.moflon.core.preferences,
  org.moflon.emf.codegen,
- org.moflon.emf.injection.ide,
- org.moflon.emf.build
+ org.moflon.emf.build,
+ org.gervarro.democles.specification.emf,
+ org.gervarro.democles.common
 Bundle-ClassPath: .
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.codegen,

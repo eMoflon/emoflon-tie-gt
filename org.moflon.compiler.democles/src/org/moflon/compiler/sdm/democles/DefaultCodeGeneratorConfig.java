@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.moflon.codegen.PatternMatcher;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
-import org.moflon.sdm.compiler.democles.validation.scope.PatternMatcher;
 
 public class DefaultCodeGeneratorConfig extends DefaultValidatorConfig {
 	public static final String BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR = "BindingAndBlackPatternMatcherGenerator";
