@@ -47,6 +47,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
+import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.AttributeUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ConstantUtil;
@@ -359,8 +360,38 @@ public class PatternBuilderVisitor {
 			final Optional<Variable> match = symbolicParamsInvoker.stream().filter(candidate -> {
 				return candidate.getName().equals(symbolicParam.getName());
 			}).findAny();
+			ConstraintParameter constraintParameter=null;
 			if (match.isPresent()) {
-				final ConstraintParameter constraintParameter = PatternUtil.createConstraintParameter(match.get());
+				//TODO:insert casting here
+				if(symbolicParam instanceof EMFVariable) {
+					EMFVariable symParamEMF =(EMFVariable)symbolicParam;
+					if(match.get()instanceof EMFVariable) {
+						EMFVariable varOnInvokerSide=(EMFVariable)match.get();
+						if(varOnInvokerSide.getEClassifier() instanceof EClass && symParamEMF.getEClassifier()instanceof EClass) {
+							EClass invokerSideEClass=(EClass)varOnInvokerSide;
+							EClass invokeSideEClass=(EClass)symParamEMF;
+							if(invokeSideEClass.getEAllSuperTypes().contains(invokerSideEClass)) {
+								//Create temporary EMFVariable for casting
+								EMFVariable tempVar=variableLookup.getOrCreateEMFVariable("casted"+symParamEMF.getName(),PatternType.BLACK_PATTERN);
+								newInvokedPattern.getSymbolicParameters().remove(symParamEMF);
+								newInvokedPattern.getBodies().get(0).getLocalVariables().add(symParamEMF);
+								newInvokedPattern.getSymbolicParameters().add(tempVar);
+								Equal equalConstraint=RelationalConstraintFactory.eINSTANCE.createEqual();
+								ConstraintParameter from=SpecificationFactory.eINSTANCE.createConstraintParameter();
+								ConstraintParameter to=SpecificationFactory.eINSTANCE.createConstraintParameter();
+								from.setReference(tempVar);
+								to.setReference(symbolicParam);
+								equalConstraint.getParameters().add(to);
+								equalConstraint.getParameters().add(from);
+								newInvokedPattern.getBodies().get(0).getConstraints().add(equalConstraint);
+								constraintParameter=PatternUtil.createConstraintParameter(tempVar);
+							}
+						}
+					}
+				}
+				if(constraintParameter==null) {
+					constraintParameter = PatternUtil.createConstraintParameter(match.get());
+				}
 				invocationConstraintNegative.getParameters().add(constraintParameter);
 			} else {
 				symbolicParametersToMove.add(symbolicParam);
@@ -553,6 +584,7 @@ public class PatternBuilderVisitor {
 		returnEmfVariable.setName("_result");
 		returnEmfVariable.setEClassifier(typeLookup.getEClassifier(determineTypeOfEditorElement(returnVariable)));
 		pattern.getSymbolicParameters().add(returnEmfVariable);
+		
 		return returnEmfVariable;
 	}
 
