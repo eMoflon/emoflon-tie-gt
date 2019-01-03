@@ -582,14 +582,12 @@ public class EditorToControlFlowTransformation {
 			switch (patternType) {
 			case BINDING_AND_BLACK_PATTERN: {
 				final PatternInvocationConstraint bindingConstr = (PatternInvocationConstraint) constraints.get(0);
-				final PatternInvocationConstraint blackConstr = (PatternInvocationConstraint) constraints.get(1);
 				final Pattern invokedBindingPattern = bindingConstr.getInvokedPattern();
-				final Pattern invokedBlackPattern = blackConstr.getInvokedPattern();
-
-				// Set pattern names
 				patternNameGenerator.setPatternType(DemoclesPatternType.BINDING_PATTERN);
 				invokedBindingPattern.setName(patternNameGenerator.generateName());
 
+				final PatternInvocationConstraint blackConstr = (PatternInvocationConstraint) constraints.get(1);
+				final Pattern invokedBlackPattern = blackConstr.getInvokedPattern();
 				patternNameGenerator.setPatternType(DemoclesPatternType.BLACK_PATTERN);
 				invokedBlackPattern.setName(patternNameGenerator.generateName());
 
@@ -632,12 +630,16 @@ public class EditorToControlFlowTransformation {
 
 			DemoclesValidationUtils.saveResource(adapterResource);
 
+			if (hasErrors())
+				return;
+
 			final PatternInvocation patternInvocation = PatternInvocationUtil.createPatternInvocation(scope,
 					invokingCFNode, editorPattern, democlesPattern);
 			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
 					createdVariables, patternType);
 
 			createAndSaveSearchPlan(patternInvocation, democlesPattern, patternType);
+
 			if (hasErrors()) {
 				return;
 			}
@@ -669,8 +671,8 @@ public class EditorToControlFlowTransformation {
 	}
 
 	/**
-	 * Returns the {@link DemoclesPatternType} in the order that they shall be evaluated in
-	 * the code
+	 * Returns the {@link DemoclesPatternType} in the order that they shall be
+	 * evaluated in the code
 	 */
 	private ArrayList<DemoclesPatternType> getOrderedPatternTypes() {
 		final ArrayList<DemoclesPatternType> patternTypesFIFO = new ArrayList<>();
@@ -704,9 +706,9 @@ public class EditorToControlFlowTransformation {
 		return destructedVariables;
 	}
 
-	private void createAndSaveSearchPlanForApplicationConditions(final EClass eClass, final DemoclesPatternType patternType,
-			final Constraint constraint, final Pattern invokedPattern, final Pattern invokingPattern,
-			final DemoclesPatternType constraintType) {
+	private void createAndSaveSearchPlanForApplicationConditions(final EClass eClass,
+			final DemoclesPatternType patternType, final Constraint constraint, final Pattern invokedPattern,
+			final Pattern invokingPattern, final DemoclesPatternType constraintType) {
 		final String suffix;
 		if (constraintType == null) {
 			suffix = DemoclesPatternType.BLACK_PATTERN.getSuffix();

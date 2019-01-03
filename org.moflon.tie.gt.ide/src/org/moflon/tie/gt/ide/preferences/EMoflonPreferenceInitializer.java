@@ -8,9 +8,11 @@ import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 
 public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer {
-	private static final String KEY_REACHABILITY_ENABLED = "org.moflon.ide.ui.preferences.ReachabilityEnabled";
+	private static final String REACHABILITY_PREFIX = "org.moflon.tie.gt.ide.preferences.reachability";
 
-	private static final String KEY_REACHABILITY_MAX_ADORNMENT_SIZE = "org.moflon.ide.ui.preferences.ReachabilityMaxAdornmentSize";
+	private static final String KEY_REACHABILITY_ENABLED = REACHABILITY_PREFIX + ".enabled";
+
+	private static final String KEY_REACHABILITY_MAX_ADORNMENT_SIZE = REACHABILITY_PREFIX + ".maxadornmentsize";
 
 	/**
 	 * Empty default constructor
@@ -24,8 +26,12 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 		resetToDefaults();
 	}
 
-	public static void loadPreferences() {
-		getPreferences();
+	public static void refreshEMoflonPreferencesStorage() {
+		TieGtCodeGenerationPreferences.setReachabilityEnabled(getPreferences().getBoolean(KEY_REACHABILITY_ENABLED,
+				TieGtCodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED));
+		TieGtCodeGenerationPreferences
+				.setReachabilityMaximumAdornmentSize(getPreferences().getInt(KEY_REACHABILITY_MAX_ADORNMENT_SIZE,
+						TieGtCodeGenerationPreferences.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY));
 	}
 
 	/**
@@ -39,7 +45,7 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 
 	public static void setReachabilityEnabled(final boolean isEnabled) {
 		getPreferences().putBoolean(KEY_REACHABILITY_ENABLED, isEnabled);
-		TieGtCodeGenerationPreferences.setReachabilityEnabled(isEnabled);
+		refreshEMoflonPreferencesStorage();
 	}
 
 	public static boolean getReachabilityEnabled() {
@@ -49,7 +55,7 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 
 	public static void setReachabilityMaxAdornmentSize(final int maxAdornmentSize) {
 		getPreferences().putInt(KEY_REACHABILITY_MAX_ADORNMENT_SIZE, maxAdornmentSize);
-		TieGtCodeGenerationPreferences.setReachabilityMaximumAdornmentSize(maxAdornmentSize);
+		refreshEMoflonPreferencesStorage();
 	}
 
 	public static int getReachabilityMaxAdornmentSize() {

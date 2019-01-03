@@ -9,6 +9,6 @@ public class TieGtIdeActivator extends AbstractUIPlugin {
 	@Override
 	public void start(final BundleContext context) throws Exception {
 		super.start(context);
-		EMoflonPreferenceInitializer.loadPreferences();
+		EMoflonPreferenceInitializer.refreshEMoflonPreferencesStorage();
 	}
 }
