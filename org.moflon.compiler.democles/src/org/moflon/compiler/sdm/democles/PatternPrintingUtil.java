@@ -28,9 +28,14 @@ public final class PatternPrintingUtil {
 	 * Newline token to use
 	 */
 	private static final String NL = "\n";
+	private static final Adornment NO_ADORNMENT = null;
 
 	private PatternPrintingUtil() {
 		throw new UtilityClassNotInstantiableException();
+	}
+
+	public static Object describeSymbolicParameters(final Pattern pattern) {
+		return describeSymbolicParameters(pattern, NO_ADORNMENT);
 	}
 
 	public static String describeSymbolicParameters(final Pattern pattern, final Adornment adornment) {
@@ -43,7 +48,9 @@ public final class PatternPrintingUtil {
 				sb.append(EMFVariable.class.cast(parameter).getName());
 			else
 				sb.append(parameter);
-			appendf(sb, "^%s,", describeAdornment(adornment.get(i)));
+
+			if (adornment != NO_ADORNMENT)
+				appendf(sb, "^%s,", describeAdornment(adornment.get(i)));
 		}
 		sb.replace(sb.length() - 1, sb.length(), "]");
 		return sb.toString();

@@ -192,6 +192,9 @@ public class PatternBuilderVisitor {
 			operationResultVariable.setEClassifier(typeLookup.getEClassifier(returnType));
 			PatternUtil.getBody(generatedDemoclesPatterns.getPatternForType(patternType)).getLocalVariables()
 					.add(operationResultVariable);
+
+			// IMPORTANT: The first constraint parameter is interpreted as return variable
+			// (for non-void EOperations)
 			operationConstraint.getParameters().add(0, PatternUtil.createConstraintParameter(operationResultVariable));
 
 			final EMFVariable resultEmfVariable = createAndRegisterReturnEmfVariable(resultCFVariable, pattern);

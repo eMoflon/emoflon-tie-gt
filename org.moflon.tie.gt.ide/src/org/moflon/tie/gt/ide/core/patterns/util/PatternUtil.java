@@ -17,6 +17,7 @@ import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
 import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.PatternPrintingUtil;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
 public final class PatternUtil {
@@ -110,7 +111,8 @@ public final class PatternUtil {
 			return match.get();
 		}
 		throw new IllegalArgumentException(
-				String.format("No symbolic parameter with name %s in %s", variableName, pattern.getName()));
+				String.format("No symbolic parameter with name %s in %s (available parameters: %s)", variableName,
+						pattern.getName(), PatternPrintingUtil.describeSymbolicParameters(pattern)));
 	}
 
 }
