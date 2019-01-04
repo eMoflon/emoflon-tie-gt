@@ -114,7 +114,7 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 		}
 
 		if (logger.isDebugEnabled()) {
-			final String formattedPattern = PatternUtils.describePattern(pattern, body, adornment);
+			final String formattedPattern = PatternPrintingUtil.describePattern(pattern, body, adornment);
 			LogUtils.debug(logger, formattedPattern);
 		}
 	}

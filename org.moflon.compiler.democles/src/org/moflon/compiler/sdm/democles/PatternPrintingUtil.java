@@ -22,14 +22,14 @@ import org.gervarro.democles.specification.emf.constraint.relational.SmallerOrEq
 import org.gervarro.democles.specification.emf.constraint.relational.Unequal;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
-public final class PatternUtils {
+public final class PatternPrintingUtil {
 
 	/**
 	 * Newline token to use
 	 */
 	private static final String NL = "\n";
 
-	private PatternUtils() {
+	private PatternPrintingUtil() {
 		throw new UtilityClassNotInstantiableException();
 	}
 
@@ -158,6 +158,16 @@ public final class PatternUtils {
 		return formattedPattern;
 	}
 
+	/**
+	 * Convenience function that uses {@link String#format(String, Object...)} for
+	 * formatting the given format string and arguments and appending the result to
+	 * the given {@link StringBuilder}
+	 * 
+	 * @param sb           the string builder
+	 * @param formatString the format string
+	 * @param args         the format string arguments
+	 * @return sb (for chaining)
+	 */
 	private static StringBuilder appendf(final StringBuilder sb, final String formatString, final Object... args) {
 		sb.append(String.format(formatString, args));
 		return sb;
