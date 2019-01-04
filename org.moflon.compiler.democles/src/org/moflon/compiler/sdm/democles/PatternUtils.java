@@ -10,6 +10,7 @@ import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.Larger;
@@ -83,6 +84,9 @@ public final class PatternUtils {
 		} else if (constraint instanceof Reference) {
 			final Reference reference = (Reference) constraint;
 			return reference.getEModelElement().getName();
+		} else if (constraint instanceof Operation) {
+			final Operation operation = (Operation) constraint;
+			return operation.getEModelElement().getName();
 		} else if (constraint instanceof Smaller) {
 			return "<";
 		} else if (constraint instanceof SmallerOrEqual) {
