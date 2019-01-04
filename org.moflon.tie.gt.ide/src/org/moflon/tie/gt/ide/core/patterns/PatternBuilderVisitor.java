@@ -177,11 +177,20 @@ public class PatternBuilderVisitor {
 		final Pattern pattern = createAndRegisterPattern(patternType);
 		final PatternBody body = PatternUtil.getBody(pattern);
 
-		final EMFVariable calleeEmfVariable = registerEmfVariableAndSymbolicParameter(calleeVariable, patternType);
-
 		final Operation operationConstraint = PatternInvocationUtil.createOperationConstraint(eOperation);
+
+		// Handle callee
+		final EMFVariable calleeEmfVariable = registerEmfVariableAndSymbolicParameter(calleeVariable, patternType);
 		operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(calleeEmfVariable));
-//		TODO@rkluge: add mappings for operation invocation parameters
+
+		// Handle operation call parameters
+		for (final CFVariable parameterCFVariable : parameterCFVariables) {
+			final EMFVariable parameterEmfVariable = registerEmfVariableAndSymbolicParameter(parameterCFVariable,
+					patternType);
+			operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(parameterEmfVariable));
+
+		}
+
 		body.getConstraints().add(operationConstraint);
 
 		final EClassifier returnType = eOperation.getEType();

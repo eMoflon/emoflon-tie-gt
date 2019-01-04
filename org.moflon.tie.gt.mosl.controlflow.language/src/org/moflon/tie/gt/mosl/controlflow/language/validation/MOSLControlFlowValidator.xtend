@@ -5,9 +5,9 @@ package org.moflon.tie.gt.mosl.controlflow.language.validation
 
 import org.eclipse.xtext.validation.Check
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledParameter
-import org.eclipse.emf.ecore.ETypedElement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowPackage
+import org.eclipse.emf.ecore.EClassifier
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter
 
 /**
  * This class contains custom validation rules.
@@ -27,7 +27,7 @@ def checkParametersofMethodCall(OperationCallStatement callStatement){
 	 return
 	val eparameters = operation.EParameters
 	val trgTypes = eparameters.map[param | param.EType]
-	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)?.EType]
+	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)]
 	if(trgTypes.size > srcTypes.size)
 		error("Too few Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, TOO_FEW_ARGUMENTS)
 	else if(trgTypes.size < srcTypes.size)
@@ -44,16 +44,8 @@ def getOperartion(OperationCallStatement callStatement){
 		return callStatement.call
 }
 
-def ETypedElement getTypeOfCalledParameter(CalledParameter param){
-	val typedElement =
-	{
-		if(param.create === null)
-			 param.object
-		else
-			 param.create
-	}
-	if (typedElement instanceof ETypedElement)
-		typedElement
+def EClassifier getTypeOfCalledParameter(OperationCallStatementParameter param){
+	  return param.object.EType
 }
 
 @Check

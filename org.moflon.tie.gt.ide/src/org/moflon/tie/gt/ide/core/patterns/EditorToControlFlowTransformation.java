@@ -524,6 +524,17 @@ public class EditorToControlFlowTransformation {
 
 		// TODO@rkluge: add mappings for operation invocation parameters
 		final ArrayList<CFVariable> parameterCFVariables = new ArrayList<>();
+
+		operationStatement.getParameters().forEach(parameter -> {
+			final String name = parameter.getObject().getName();
+			final Optional<CFVariable> parameterCfVariableCandidate = ControlFlowUtil
+					.findControlFlowVariableByName(cfNode.getScope(), name);
+			if (!parameterCfVariableCandidate.isPresent()) {
+				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+						"No variable with name %s exists.", callee);
+				return;
+			}
+		});
 		final Pattern pattern = patternBuilderVisitor.createExpressionPatternForOperationInvocation(calleeVariable,
 				returnCFVariable, parameterCFVariables, calledOperation);
 		resultPatternInvocation.setPattern(pattern);
