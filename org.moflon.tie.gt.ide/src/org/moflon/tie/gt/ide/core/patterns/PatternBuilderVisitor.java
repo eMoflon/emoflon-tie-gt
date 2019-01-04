@@ -58,6 +58,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 
 public class PatternBuilderVisitor {
+	public static final String RESULT_VARIABLE_NAME = "_result";
 	private PatternLookup generatedDemoclesPatterns;
 	private VariableLookupTable variableLookup;
 	private final TypeLookup typeLookup;
@@ -168,38 +169,44 @@ public class PatternBuilderVisitor {
 		return pattern;
 	}
 
-	// TODO@rkluge: Go on here
 	Pattern createExpressionPatternForOperationInvocation(final CFVariable calleeVariable,
-			final CFVariable resultVariable, final List<CFVariable> parameterCFVariables, final EOperation eOperation) {
+			final CFVariable resultCFVariable, final List<CFVariable> parameterCFVariables,
+			final EOperation eOperation) {
 
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
 		final Pattern pattern = createAndRegisterPattern(patternType);
 		final PatternBody body = PatternUtil.getBody(pattern);
 
-		final EMFVariable resultEmfVariable = createAndRegisterReturnEmfVariable(resultVariable, pattern);
 		final EMFVariable calleeEmfVariable = registerEmfVariableAndSymbolicParameter(calleeVariable, patternType);
 
-		// Local variable for storing the EOperation result
-		final EMFVariable operationResultVariable = variableLookup.getOrCreateEMFVariable("_localVariable0",
-				patternType);
-		operationResultVariable.setEClassifier(typeLookup.getEClassifier(eOperation.getEType()));
-		PatternUtil.getBody(generatedDemoclesPatterns.getPatternForType(patternType)).getLocalVariables()
-				.add(operationResultVariable);
-
 		final Operation operationConstraint = PatternInvocationUtil.createOperationConstraint(eOperation);
-		operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(operationResultVariable));
 		operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(calleeEmfVariable));
 //		TODO@rkluge: add mappings for operation invocation parameters
 		body.getConstraints().add(operationConstraint);
 
-		final Equal equal = RelationalConstraintUtil.createEqualConstraint(operationResultVariable, resultEmfVariable);
-		body.getConstraints().add(equal);
+		final EClassifier returnType = eOperation.getEType();
+		if (returnType != null) {
+			// Local variable for storing the EOperation result
+			final EMFVariable operationResultVariable = variableLookup.getOrCreateEMFVariable("_localVariable0",
+					patternType);
+			operationResultVariable.setEClassifier(typeLookup.getEClassifier(returnType));
+			PatternUtil.getBody(generatedDemoclesPatterns.getPatternForType(patternType)).getLocalVariables()
+					.add(operationResultVariable);
+			operationConstraint.getParameters().add(0, PatternUtil.createConstraintParameter(operationResultVariable));
+
+			final EMFVariable resultEmfVariable = createAndRegisterReturnEmfVariable(resultCFVariable, pattern);
+
+			final Equal equal = RelationalConstraintUtil.createEqualConstraint(operationResultVariable,
+					resultEmfVariable);
+			body.getConstraints().add(equal);
+		}
 
 		return pattern;
 	}
 
 	private void visit(final EditorNode node, final EditorPattern editorPattern) {
-		final List<DemoclesPatternType> patternTypes = PatternUtil.mapOperatorToPatternTypes(node, transformationStatus);
+		final List<DemoclesPatternType> patternTypes = PatternUtil.mapOperatorToPatternTypes(node,
+				transformationStatus);
 		if (patternTypes == null) {
 			return;
 		}
@@ -433,7 +440,8 @@ public class PatternBuilderVisitor {
 		emfVarSource.setEClassifier(source.getType());
 		bindingAndBlack.getSymbolicParameters().add(emfVarSource);
 
-		final EMFVariable toBeRemoved = variableLookup.getOrCreateEMFVariable(source, DemoclesPatternType.BLACK_PATTERN);
+		final EMFVariable toBeRemoved = variableLookup.getOrCreateEMFVariable(source,
+				DemoclesPatternType.BLACK_PATTERN);
 		getBlackPattern().getSymbolicParameters().remove(toBeRemoved);
 		generatedDemoclesPatterns.registerPattern(patternType, bindingAndBlack);
 		body.setHeader(bindingAndBlack);
@@ -466,10 +474,12 @@ public class PatternBuilderVisitor {
 		final Pattern binding = createAndRegisterPattern(DemoclesPatternType.BINDING_PATTERN);
 		final PatternBody body = PatternUtil.getBody(binding);
 
-		final EMFVariable emfVarTarget = variableLookup.getOrCreateEMFVariable(node, DemoclesPatternType.BINDING_PATTERN);
+		final EMFVariable emfVarTarget = variableLookup.getOrCreateEMFVariable(node,
+				DemoclesPatternType.BINDING_PATTERN);
 		emfVarTarget.setEClassifier(node.getType());
 
-		final EMFVariable emfVarSource = variableLookup.getOrCreateEMFVariable(source, DemoclesPatternType.BINDING_PATTERN);
+		final EMFVariable emfVarSource = variableLookup.getOrCreateEMFVariable(source,
+				DemoclesPatternType.BINDING_PATTERN);
 		emfVarSource.setEClassifier(source.getType());
 
 		binding.getSymbolicParameters().add(emfVarTarget);
@@ -535,7 +545,8 @@ public class PatternBuilderVisitor {
 		return enumLiteralConstant;
 	}
 
-	private EMFVariable registerEmfVariableAndSymbolicParameter(final EObject object, final DemoclesPatternType patternType) {
+	private EMFVariable registerEmfVariableAndSymbolicParameter(final EObject object,
+			final DemoclesPatternType patternType) {
 		if (!variableLookup.containsKey(object, patternType)) {
 			final EMFVariable variable = variableLookup.getOrCreateEMFVariable(object, patternType);
 
@@ -582,9 +593,9 @@ public class PatternBuilderVisitor {
 
 	private EMFVariable createAndRegisterReturnEmfVariable(final EObject returnVariable, final Pattern pattern) {
 		final EMFVariable returnEmfVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
-		returnEmfVariable.setName("_result");
+		returnEmfVariable.setName(RESULT_VARIABLE_NAME);
 		returnEmfVariable.setEClassifier(typeLookup.getEClassifier(determineTypeOfEditorElement(returnVariable)));
-		pattern.getSymbolicParameters().add(returnEmfVariable);
+		pattern.getSymbolicParameters().add(0, returnEmfVariable);
 
 		return returnEmfVariable;
 	}

@@ -8,9 +8,7 @@ import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPattern;
 import org.gervarro.democles.compiler.CompilerPatternBody;
-import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.Pattern;
-import org.gervarro.democles.specification.emf.PatternBody;
 import org.moflon.codegen.PatternMatcher;
 import org.moflon.codegen.preferences.TieGtCodeGenerationPreferences;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
@@ -115,17 +113,10 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 			LogUtils.debug(logger, "%s\nStack trace: %s", shortMessage, stacktrace);
 		}
 
-		LogUtils.debug(logger, "Symbolic parameters: %s", PatternUtils.describeSymbolicParameters(pattern, adornment));
-		final PatternBody originalPattern = pattern.getBodies().get(0);
-		LogUtils.debug(logger, "Constraints");
-		for (final Constraint constraint : originalPattern.getConstraints()) {
-			LogUtils.debug(logger, "  %s", PatternUtils.describeConstraint(constraint));
+		if (logger.isDebugEnabled()) {
+			final String formattedPattern = PatternUtils.describePattern(pattern, body, adornment);
+			LogUtils.debug(logger, formattedPattern);
 		}
-		LogUtils.debug(logger, "Operations");
-		for (final GeneratorOperation operation : body.getOperations()) {
-			LogUtils.debug(logger, "  %s", PatternUtils.describeOperation(operation));
-		}
-
 	}
 
 	/**
@@ -168,7 +159,7 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 		report.getErrorMessages().add(error);
 		final String detailsFragment = details != null ? String.format(" Details: '%s'.", details) : "";
 		error.setId(String.format(
-				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct.%s",
+				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct. See also debug log. %s",
 				pattern.getName(), detailsFragment));
 		error.setSeverity(Severity.ERROR);
 	}

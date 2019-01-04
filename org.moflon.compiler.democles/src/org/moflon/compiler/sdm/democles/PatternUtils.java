@@ -3,10 +3,12 @@ package org.moflon.compiler.sdm.democles;
 import org.eclipse.emf.common.util.EList;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.compiler.CompilerPatternBody;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
+import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
@@ -22,6 +24,11 @@ import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
 public final class PatternUtils {
 
+	/**
+	 * Newline token to use
+	 */
+	private static final String NL = "\n";
+
 	private PatternUtils() {
 		throw new UtilityClassNotInstantiableException();
 	}
@@ -36,13 +43,25 @@ public final class PatternUtils {
 				sb.append(EMFVariable.class.cast(parameter).getName());
 			else
 				sb.append(parameter);
-			sb.append("^");
-			sb.append(describeAdornment(adornment.get(i)));
-
-			if (i != parameters.size() - 1)
-				sb.append(",");
+			appendf(sb, "^%s,", describeAdornment(adornment.get(i)));
 		}
-		sb.append("]");
+		sb.replace(sb.length() - 1, sb.length(), "]");
+		return sb.toString();
+	}
+
+	public static String describeLocalVariables(final Pattern pattern) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		final EList<Variable> localVariables = pattern.getBodies().get(0).getLocalVariables();
+		for (int i = 0; i < localVariables.size(); ++i) {
+			final Variable parameter = localVariables.get(i);
+			if (parameter instanceof EMFVariable)
+				sb.append(EMFVariable.class.cast(parameter).getName());
+			else
+				sb.append(parameter);
+			sb.append("^F,");
+		}
+		sb.replace(sb.length() - 1, sb.length(), "]");
 		return sb.toString();
 	}
 
@@ -69,11 +88,10 @@ public final class PatternUtils {
 				sb.append(EMFVariable.class.cast(reference).getName());
 			else
 				sb.append(parameter);
-			sb.append("[").append(String.format("%x", reference.hashCode())).append("]");
-			sb.append(",");
+			appendf(sb, "[%x],", reference.hashCode());
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
-		sb.append("    [class: ").append(constraint).append("]");
+		appendf(sb, "    [class: %s]", constraint);
 		return sb.toString();
 	}
 
@@ -117,4 +135,32 @@ public final class PatternUtils {
 		sb.append("]");
 		return sb.toString();
 	}
+
+	public static String describePattern(final Pattern pattern, final CompilerPatternBody body,
+			final Adornment adornment) {
+		final StringBuilder sb = new StringBuilder();
+		appendf(sb, "Pattern:%s", NL);
+		appendf(sb, "Symbolic parameters: %s%s", describeSymbolicParameters(pattern, adornment), NL);
+		appendf(sb, "Local variables:     %s%s", describeLocalVariables(pattern), NL);
+
+		final PatternBody originalPattern = pattern.getBodies().get(0);
+
+		sb.append("Constraints").append(NL);
+		for (final Constraint constraint : originalPattern.getConstraints()) {
+			appendf(sb, "  %s%s", describeConstraint(constraint), NL);
+		}
+
+		sb.append("Operations");
+		for (final GeneratorOperation operation : body.getOperations()) {
+			appendf(sb, "  %s%s", describeOperation(operation), NL);
+		}
+		final String formattedPattern = sb.toString();
+		return formattedPattern;
+	}
+
+	private static StringBuilder appendf(final StringBuilder sb, final String formatString, final Object... args) {
+		sb.append(String.format(formatString, args));
+		return sb;
+	}
+
 }

@@ -2,6 +2,7 @@ package org.moflon.tie.gt.ide.core.patterns.util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.core.runtime.MultiStatus;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
@@ -100,6 +101,16 @@ public final class PatternUtil {
 			final Pattern newPattern) {
 		newPattern.getSymbolicParameters().remove(symbolicParameter);
 		newPattern.getBodies().get(0).getLocalVariables().add(symbolicParameter);
+	}
+
+	public static Variable getSymbolicParameterByName(final Pattern pattern, final String variableName) {
+		final Optional<Variable> match = pattern.getSymbolicParameters().stream()
+				.filter(parameter -> parameter.getName().equals(variableName)).findAny();
+		if (match.isPresent()) {
+			return match.get();
+		}
+		throw new IllegalArgumentException(
+				String.format("No symbolic parameter with name %s in %s", variableName, pattern.getName()));
 	}
 
 }

@@ -527,8 +527,9 @@ public class EditorToControlFlowTransformation {
 		final Pattern pattern = patternBuilderVisitor.createExpressionPatternForOperationInvocation(calleeVariable,
 				returnCFVariable, parameterCFVariables, calledOperation);
 		resultPatternInvocation.setPattern(pattern);
-		final Variable emfReturnVariable = pattern.getSymbolicParameters().get(0);
-		final Variable calleeEmfVariable = pattern.getSymbolicParameters().get(1);
+		final Variable emfReturnVariable = PatternUtil.getSymbolicParameterByName(pattern,
+				PatternBuilderVisitor.RESULT_VARIABLE_NAME);
+		final Variable calleeEmfVariable = PatternUtil.getSymbolicParameterByName(pattern, calleeVariable.getName());
 		// TODO@rkluge: add mappings for operation invocation parameters
 
 		ControlFlowUtil.createVariableReference(returnCFVariable, emfReturnVariable, resultPatternInvocation);
