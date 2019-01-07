@@ -85,7 +85,7 @@ public class PatternNameGenerator {
 	/**
 	 * Configures the {@link CFNode} being currently transformed
 	 */
-	public void setCFNode(final CFNode cfNode) {
+	public void setControlFlowNode(final CFNode cfNode) {
 		this.cfNode = cfNode;
 	}
 

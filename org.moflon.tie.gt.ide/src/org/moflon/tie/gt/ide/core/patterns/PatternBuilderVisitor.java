@@ -51,6 +51,7 @@ import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.AttributeUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ConstantUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.RelationalConstraintUtil;
@@ -193,12 +194,11 @@ public class PatternBuilderVisitor {
 
 		body.getConstraints().add(operationConstraint);
 
-		final EClassifier returnType = eOperation.getEType();
-		if (returnType != null) {
+		if (!TieGtEcoreUtil.isVoidOperation(eOperation)) {
 			// Local variable for storing the EOperation result
 			final EMFVariable operationResultVariable = variableLookup.getOrCreateEMFVariable("_localVariable0",
 					patternType);
-			operationResultVariable.setEClassifier(typeLookup.getEClassifier(returnType));
+			operationResultVariable.setEClassifier(typeLookup.getEClassifier(eOperation.getEType()));
 			PatternUtil.getBody(generatedDemoclesPatterns.getPatternForType(patternType)).getLocalVariables()
 					.add(operationResultVariable);
 

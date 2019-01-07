@@ -20,7 +20,6 @@ import org.eclipse.xtext.EcoreUtil2;
 import org.eclipse.xtext.generator.AbstractGenerator;
 import org.eclipse.xtext.generator.IFileSystemAccess2;
 import org.eclipse.xtext.generator.IGeneratorContext;
-import org.moflon.core.xtext.scoping.utils.MOSLScopeUtil;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 
@@ -41,8 +40,9 @@ public abstract class AbstractMOSLControlFlowGenerator extends AbstractGenerator
 				.collect(Collectors.toList());
 		gtcf.getEClassifiers().addAll(classes);
 		update(gtcf);
-		final URI uri = createURI(input, "model/generated", input.getURI().toString().split("/")[2] + ".ecore");
-		MOSLScopeUtil.saveToResource(uri, input.getResourceSet(), gtcf);
+		// final URI uri = createURI(input, "model/generated",
+		// input.getURI().toString().split("/")[2] + ".ecore");
+		// MOSLScopeUtil.saveToResource(uri, input.getResourceSet(), gtcf);
 	}
 
 	private void update(final EPackage ePackage) {
