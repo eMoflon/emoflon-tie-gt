@@ -67,7 +67,7 @@ OperationCallStatement:
   (',' parameters+=OperationCallStatementParameter)*)? ')';
 
 OperationCallStatementParameter:
-  (object=[ObjectVariableStatement|ID]);
+  (object=[ObjectVariableStatement|ID]) | literal=LiteralExpression;
 
 Condition:
   patternReference=PatternReference '(' (parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*

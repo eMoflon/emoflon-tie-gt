@@ -82,6 +82,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariabl
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnObject;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement;
@@ -118,24 +119,15 @@ public class EditorToControlFlowTransformation {
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile controlFlowFile,
 			final ResourceSet resourceSet, final EPackage ecorePackage) {
-		this.transformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
-				"Creation of control flow model failed.", null);
-		this.ePackage = ePackage;
-		this.ecorePackage = ecorePackage;
-		this.resourceSet = resourceSet;
+		setTransformationParameters(ePackage, resourceSet, ecorePackage);
 
 		EcoreUtil.resolveAll(resourceSet);
-		patternNameGenerator = new PatternNameGenerator();
 		for (final EClassDef editorEClass : controlFlowFile.getEClasses()) {
 			transformClassDefinition(editorEClass);
 		}
 
-		this.ePackage = null;
-		this.resourceSet = null;
-		this.ecorePackage = null;
-
 		final IStatus result = this.transformationStatus;
-		this.transformationStatus = null;
+		unsetTransformationParameters();
 		return result;
 	}
 
@@ -151,25 +143,25 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	public void transformOperationDefinition(final EClass eClass, final MethodDec editorEOperation) {
+	private void transformOperationDefinition(final EClass eClass, final MethodDec editorEOperation) {
 		if (editorEOperation.getStartStatement() == null) {
 			editorEOperation.setStartStatement(MoslControlFlowFactory.eINSTANCE.createReturnStatement());
 		}
 
 		final EOperation eOperation = resolveEOperation(eClass, editorEOperation);
-		if (eOperation == null) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
-					"Cannot find EOperation for %s (from editor) in EClass %s ", editorEOperation, eClass);
+
+		if (hasErrors())
 			return;
-		}
 
 		patternNameGenerator.setEOperation(eOperation);
+		cfNodeIdCounter = 1;
+		recentControlFlowNode = null;
 
 		final Scope rootScope = createRootScopeForEOperation(eOperation, editorEOperation);
 		final Statement statement = editorEOperation.getStartStatement();
-		cfNodeIdCounter = 1;
-		recentControlFlowNode = null;
+
 		visitStatement(statement, rootScope, eClass, eOperation);
+
 		rootScope.getVariables().stream()
 				.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 				.forEach(thisVariable -> thisVariable.setConstructor(null));
@@ -222,7 +214,7 @@ public class EditorToControlFlowTransformation {
 	private void visitStatement(final ReturnStatement returnStmt, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
 		final org.moflon.sdm.runtime.democles.ReturnStatement returnStmtDemocles = ControlFlowUtil
-				.createReturnStatement(getAndIncrementalControlFlowNodeIdCounter(), scope, recentControlFlowNode);
+				.createReturnStatement(cfNodeIdCounter++, scope, recentControlFlowNode);
 
 		final ReturnObject returnObject = returnStmt.getObj();
 		if (returnObject == null) {
@@ -363,8 +355,8 @@ public class EditorToControlFlowTransformation {
 	private void visitStatement(final ConditionStatement ifStatement, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
 
-		final IfStatement ifStmtDemocles = ControlFlowUtil
-				.createIfStatement(getAndIncrementalControlFlowNodeIdCounter(), scope, recentControlFlowNode);
+		final IfStatement ifStmtDemocles = ControlFlowUtil.createIfStatement(cfNodeIdCounter++, scope,
+				recentControlFlowNode);
 
 		patternNameGenerator.setControlFlowNode(ifStmtDemocles);
 
@@ -401,7 +393,7 @@ public class EditorToControlFlowTransformation {
 	private void visitStatement(final WhileLoopStatement whileLoopStatement, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
 
-		final int id = getAndIncrementalControlFlowNodeIdCounter();
+		final int id = cfNodeIdCounter++;
 		final HeadControlledLoop whileLoopDemocles = ControlFlowUtil.createHeadControlledLoop(id, scope,
 				recentControlFlowNode);
 
@@ -431,7 +423,7 @@ public class EditorToControlFlowTransformation {
 
 	private void visitStatement(final ForLoopStatement forLoopStatement, final Scope scope,
 			final EClass correspondingEClass, final EOperation eOperation) {
-		final int id = getAndIncrementalControlFlowNodeIdCounter();
+		final int id = cfNodeIdCounter++;
 		final ForEach forLoopDemocles = ControlFlowUtil.createForEachStatement(id, scope, recentControlFlowNode);
 
 		patternNameGenerator.setControlFlowNode(forLoopDemocles);
@@ -461,7 +453,7 @@ public class EditorToControlFlowTransformation {
 	private void visitStatement(final DoLoopStatement doLoopStatement, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
 
-		final int id = getAndIncrementalControlFlowNodeIdCounter();
+		final int id = cfNodeIdCounter++;
 		final TailControlledLoop doLoopDemocles = ControlFlowUtil.createTailControlledLoop(id, scope,
 				recentControlFlowNode);
 
@@ -532,20 +524,23 @@ public class EditorToControlFlowTransformation {
 
 		final ArrayList<CFVariable> parameterCFVariables = new ArrayList<>();
 
-		operationStatement.getParameters().forEach(parameter -> {
-			final String name = parameter.getObject().getName();
-			final Optional<CFVariable> parameterCfVariableCandidate = ControlFlowUtil
-					.findControlFlowVariableByName(cfNode.getScope(), name);
-			if (!parameterCfVariableCandidate.isPresent()) {
-				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
-						"No variable with name %s exists.", callee);
-				return;
-			} else {
-				parameterCFVariables.add(parameterCfVariableCandidate.get());
+		final EList<OperationCallStatementParameter> operationParameters = operationStatement.getParameters();
+		operationParameters.forEach(parameter -> {
+			final ObjectVariableStatement object = parameter.getObject();
+			if (object != null) {
+				final String name = object.getName();
+				final Optional<CFVariable> parameterCfVariableCandidate = ControlFlowUtil
+						.findControlFlowVariableByName(cfNode.getScope(), name);
+				if (!parameterCfVariableCandidate.isPresent()) {
+					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+							"No variable with name %s exists.", callee);
+				} else {
+					parameterCFVariables.add(parameterCfVariableCandidate.get());
+				}
 			}
 		});
 		final Pattern pattern = patternBuilderVisitor.createExpressionPatternForOperationInvocation(calleeVariable,
-				returnCFVariable, parameterCFVariables, calledOperation);
+				returnCFVariable, parameterCFVariables, calledOperation, operationParameters);
 		resultPatternInvocation.setPattern(pattern);
 		patternNameGenerator.setControlFlowNode(cfNode);
 		patternNameGenerator.setPatternType(patternType);
@@ -799,7 +794,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private CFNode createCFNode(final Scope scope) {
-		final int id = getAndIncrementalControlFlowNodeIdCounter();
+		final int id = cfNodeIdCounter++;
 		final CFNode cfNode = ControlFlowUtil.createControlFlowNode(id, scope, recentControlFlowNode);
 
 		if (scope.getParent() instanceof Loop) {
@@ -834,7 +829,7 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	public EClass resolveEClass(final EClassDef editorEClass) {
+	private EClass resolveEClass(final EClassDef editorEClass) {
 		final String name = editorEClass.getName().getName();
 		if (name == null) {
 			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
@@ -847,9 +842,16 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private EOperation resolveEOperation(final EClass eClass, final MethodDec methodDeclaration) {
-		return eClass.getEOperations().stream().filter(clazzEop -> {
+		final EOperation eOperation = eClass.getEOperations().stream().filter(clazzEop -> {
 			return clazzEop.getName().equals(methodDeclaration.getName());
 		}).findAny().orElse(null);
+
+		if (eOperation == null) {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"Cannot find EOperation for %s (from editor) in EClass %s ", methodDeclaration, eClass);
+		}
+
+		return eOperation;
 	}
 
 	private void createAndCheckParameterVariables(final EOperation eOperation, final MethodDec editorEOperation,
@@ -1041,15 +1043,31 @@ public class EditorToControlFlowTransformation {
 		return patternMatcherConfiguration.getPatternMatcher(patternType);
 	}
 
-	private int getAndIncrementalControlFlowNodeIdCounter() {
-		return cfNodeIdCounter++;
-	}
-
 	private PatternBuilderVisitor createPatternBuilderVisitor() {
 		return new PatternBuilderVisitor(Arrays.asList(ecorePackage, ePackage), resourceSet, transformationStatus);
 	}
 
 	private boolean hasErrors() {
 		return transformationStatus.matches(IStatus.ERROR);
+	}
+
+	private void setTransformationParameters(final EPackage ePackage, final ResourceSet resourceSet,
+			final EPackage ecorePackage) {
+		this.ePackage = ePackage;
+		this.ecorePackage = ecorePackage;
+		this.resourceSet = resourceSet;
+
+		this.patternNameGenerator = new PatternNameGenerator();
+
+		this.transformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+				"Creation of control flow model failed.", null);
+	}
+
+	private void unsetTransformationParameters() {
+		this.ePackage = null;
+		this.resourceSet = null;
+		this.ecorePackage = null;
+		this.transformationStatus = null;
+		this.patternNameGenerator = null;
 	}
 }

@@ -9,10 +9,12 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationCondition;
@@ -51,12 +53,15 @@ import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.AttributeUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ConstantUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.LiteralExpressionUtils;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.RelationalConstraintUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter;
 
 public class PatternBuilderVisitor {
 	public static final String RESULT_VARIABLE_NAME = "_result";
@@ -171,8 +176,8 @@ public class PatternBuilderVisitor {
 	}
 
 	Pattern createExpressionPatternForOperationInvocation(final CFVariable calleeVariable,
-			final CFVariable resultCFVariable, final List<CFVariable> parameterCFVariables,
-			final EOperation eOperation) {
+			final CFVariable resultCFVariable, final List<CFVariable> parameterCFVariables, final EOperation eOperation,
+			final EList<OperationCallStatementParameter> operationParameters) {
 
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
 		final Pattern pattern = createAndRegisterPattern(patternType);
@@ -185,11 +190,24 @@ public class PatternBuilderVisitor {
 		operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(calleeEmfVariable));
 
 		// Handle operation call parameters
-		for (final CFVariable parameterCFVariable : parameterCFVariables) {
-			final EMFVariable parameterEmfVariable = registerEmfVariableAndSymbolicParameter(parameterCFVariable,
-					patternType);
-			operationConstraint.getParameters().add(PatternUtil.createConstraintParameter(parameterEmfVariable));
-
+		int counter = 0;
+		for (final OperationCallStatementParameter operationParameter : operationParameters) {
+			final ConstraintParameter constraintParameter;
+			if (operationParameter.getObject() != null) {
+				final CFVariable parameterCFVariable = parameterCFVariables.stream()
+						.filter(cfVariable -> cfVariable.getName().equals(operationParameter.getObject().getName()))
+						.findAny().get();
+				final EMFVariable parameterEmfVariable = registerEmfVariableAndSymbolicParameter(parameterCFVariable,
+						patternType);
+				constraintParameter = PatternUtil.createConstraintParameter(parameterEmfVariable);
+			} else {
+				final LiteralExpression literalExpression = operationParameter.getLiteral();
+				final Constant constant = createConstraintParameterForLiteralConstant(
+						eOperation.getEParameters().get(counter), body, literalExpression);
+				constraintParameter = PatternUtil.createConstraintParameter(constant);
+			}
+			operationConstraint.getParameters().add(constraintParameter);
+			++counter;
 		}
 
 		body.getConstraints().add(operationConstraint);
@@ -214,6 +232,33 @@ public class PatternBuilderVisitor {
 		}
 
 		return pattern;
+	}
+
+	private Constant createConstraintParameterForLiteralConstant(final EParameter eParameter, final PatternBody body,
+			final LiteralExpression literalExpression) {
+
+		final EClassifier parameterType = eParameter.getEType();
+		if (parameterType instanceof EDataType) {
+			final EDataType parameterDataType = (EDataType) parameterType;
+
+			final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
+			final Optional<Object> value = LiteralExpressionUtils.convertLiteralValueToObject(parameterDataType,
+					literalExpression);
+			if (value.isPresent()) {
+				final Object valueObject = value.get();
+				ConstantUtil.setConstantValueWithAdjustedType(constant, valueObject);
+			} else {
+				constant.setValue(literalExpression.getVal());
+			}
+
+			body.getConstants().add(constant);
+			return constant;
+		} else {
+			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					"The type of %s::%s must be an EDataType but is", eParameter.getEOperation().getName(),
+					eParameter.getName(), parameterType);
+			return null;
+		}
 	}
 
 	private void visit(final EditorNode node, final EditorPattern editorPattern) {
