@@ -20,11 +20,10 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.codegen.MethodBodyHandler;
+import org.moflon.compiler.sdm.democles.MethodBodyHandler;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
-import org.moflon.tie.gt.ide.core.pattern.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 
@@ -70,8 +69,7 @@ public class TieGTControlFlowBuilder {
 					"eCore Package was not set in " + getClass().getName());
 		}
 		this.controlFlowTransformation = new EditorToControlFlowTransformation(
-				new PatternMatcherConfiguration(methodBodyHandler.getPatternMatcherConfiguration()),
-				preferencesStorage);
+				methodBodyHandler.getPatternMatcherConfiguration(), preferencesStorage);
 		return run(monitor);
 	}
 

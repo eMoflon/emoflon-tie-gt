@@ -74,6 +74,7 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 		this.emfTypeModule = new EMFConstraintModule(this.resourceSet);
 		this.internalEMFTypeModule = new EMFTypeModule(emfTypeModule);
+
 		this.bindingAndBlackPatternBuilder
 				.addConstraintTypeSwitch(internalPatternInvocationTypeModule.getConstraintTypeSwitch());
 		this.bindingAndBlackPatternBuilder
@@ -82,20 +83,17 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		this.bindingAndBlackPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 	}
 
-	// TODO@rkluge: Switch to PatternType
 	@Override
-	public Map<String, PatternMatcher> getSearchPlanGenerators() {
-		final Map<String, PatternMatcher> searchPlanGenerators = new HashMap<>();
-		searchPlanGenerators.put(DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION, getGreenPatternSearchPlanGenerator());
-		searchPlanGenerators.put(DemoclesMethodBodyHandler.RED_FILE_EXTENSION, getRedPatternSearchPlanGenerator());
-		searchPlanGenerators.put(DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION, getBlackPatternSearchPlanGenerator());
-		searchPlanGenerators.put(DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION,
-				getBindingPatternSearchPlanGenerator());
-		searchPlanGenerators.put(DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION,
+	public PatternMatcherConfiguration getSearchPlanGenerators() {
+		final Map<DemoclesPatternType, PatternMatcher> searchPlanGenerators = new HashMap<>();
+		searchPlanGenerators.put(DemoclesPatternType.GREEN_PATTERN, getGreenPatternSearchPlanGenerator());
+		searchPlanGenerators.put(DemoclesPatternType.RED_PATTERN, getRedPatternSearchPlanGenerator());
+		searchPlanGenerators.put(DemoclesPatternType.BLACK_PATTERN, getBlackPatternSearchPlanGenerator());
+		searchPlanGenerators.put(DemoclesPatternType.BINDING_PATTERN, getBindingPatternSearchPlanGenerator());
+		searchPlanGenerators.put(DemoclesPatternType.BINDING_AND_BLACK_PATTERN,
 				getBindingAndBlackPatternSearchPlanGenerator());
-		searchPlanGenerators.put(DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION,
-				getExpressionPatternSearchPlanGenerator());
-		return searchPlanGenerators;
+		searchPlanGenerators.put(DemoclesPatternType.EXPRESSION_PATTERN, getExpressionPatternSearchPlanGenerator());
+		return new PatternMatcherConfiguration(searchPlanGenerators);
 	}
 
 	@Override

@@ -8,9 +8,7 @@
  * Contributors: 
  *   Gergely Varro - Initial API and implementation
  */
-package org.moflon.codegen;
-
-import java.util.Map;
+package org.moflon.compiler.sdm.democles;
 
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -28,5 +26,5 @@ public interface MethodBodyHandler {
 	 */
 	public Descriptor createCodeGenerationEngine(MoflonEmfCodeGenerator codeGenerator, Resource resource);
 
-	public Map<String, PatternMatcher> getPatternMatcherConfiguration();
+	public PatternMatcherConfiguration getPatternMatcherConfiguration();
 }

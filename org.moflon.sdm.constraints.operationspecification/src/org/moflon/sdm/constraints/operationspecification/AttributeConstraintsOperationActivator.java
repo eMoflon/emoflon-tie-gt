@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.Plugin;
  * Activator of this bundle.
  * 
  * @author Frederik Deckwerth - Initial implementation
- * @author Roland Kluge
+ * @author Roland Kluge - Documentation
  */
 public class AttributeConstraintsOperationActivator extends Plugin {
 	/**

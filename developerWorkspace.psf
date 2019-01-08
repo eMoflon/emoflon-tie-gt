@@ -12,7 +12,6 @@
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.democles.validation.result"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.compiler.eclipse"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.codegenerator"/>
-<project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.constraintstodemocles"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.democles"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.constraints.operationspecification"/>
 <project reference="1.0,https://github.com/eMoflon/emoflon-tie-gt.git,rkluge-dev,org.moflon.sdm.democles.patternmatcher"/>
