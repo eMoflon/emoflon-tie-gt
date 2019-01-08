@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EAttribute;
@@ -20,17 +21,26 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionAdornment;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionLibrary;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionOperationalization;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionParameter;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionSpecification;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionTargetPlatform;
+import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorBindingExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorConditionReference;
 import org.emoflon.ibex.gt.editor.gT.EditorEnumExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorExpression;
+import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
 import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorParameterExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
@@ -49,7 +59,15 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
+import org.moflon.compiler.sdm.democles.Adornments;
 import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
+import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
+import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
+import org.moflon.sdm.constraints.operationspecification.OperationspecificationFactory;
+import org.moflon.sdm.constraints.operationspecification.ParamIdentifier;
+import org.moflon.sdm.constraints.operationspecification.ParameterType;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.AttributeUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ConstantUtil;
@@ -69,6 +87,7 @@ public class PatternBuilderVisitor {
 	private VariableLookupTable variableLookup;
 	private final TypeLookup typeLookup;
 	private final MultiStatus transformationStatus;
+	private AttributeConstraintLibrary attributeConstraintsLibrary;
 
 	public PatternBuilderVisitor(final List<EPackage> ePackages, final ResourceSet resourceSet,
 			final MultiStatus transformationStatus) {
@@ -81,11 +100,99 @@ public class PatternBuilderVisitor {
 
 	public PatternLookup visit(final EditorPattern pattern) {
 
+		this.attributeConstraintsLibrary = buildAttributeConstraintsLibrary(pattern);
+
+		if (hasErrors())
+			return null;
+
 		pattern.getNodes().forEach(n -> visit(n, pattern));
+
+		pattern.getComplexAttributeConstraints().forEach(cac -> visit(cac, pattern));
 
 		pattern.getConditions().forEach(condition -> visit(condition, pattern));
 
 		return generatedDemoclesPatterns;
+	}
+
+	private AttributeConstraintLibrary buildAttributeConstraintsLibrary(final EditorPattern pattern) {
+		final EObject container = pattern.eContainer();
+		final AttributeConstraintLibrary democlesLibrary = OperationspecificationFactory.eINSTANCE
+				.createAttributeConstraintLibrary();
+		democlesLibrary.setPrefix("mylibrary");
+		if (container instanceof EditorGTFile) {
+			final EditorGTFile gtFile = EditorGTFile.class.cast(container);
+			for (final EditorAttributeConditionLibrary editorLibrary : gtFile.getAttributeConditionLibraries()) {
+
+				for (final EditorAttributeConditionSpecification editorConditionSpecification : editorLibrary
+						.getConditionSpecifications()) {
+
+					final ConstraintSpecification democlesConstraintSpecification = OperationspecificationFactory.eINSTANCE
+							.createConstraintSpecification();
+					democlesConstraintSpecification.setSymbol(editorConditionSpecification.getName());
+					democlesLibrary.getConstraintSpecifications().add(democlesConstraintSpecification);
+
+					final OperationSpecificationGroup democlesOperationSpecificationGroup = OperationspecificationFactory.eINSTANCE
+							.createOperationSpecificationGroup();
+					democlesOperationSpecificationGroup.setOperationIdentifier(editorConditionSpecification.getName());
+					democlesLibrary.getOperationSpecifications().add(democlesOperationSpecificationGroup);
+					democlesConstraintSpecification.setOperationSpecificationGroup(democlesOperationSpecificationGroup);
+
+					for (final EditorAttributeConditionParameter editorParameter : editorConditionSpecification
+							.getParameters()) {
+						final EDataType parameterType = editorParameter.getType();
+						final ParameterType democlesParameterType = OperationspecificationFactory.eINSTANCE
+								.createParameterType();
+						democlesParameterType.setType(parameterType);
+						democlesConstraintSpecification.getParameterTypes().add(democlesParameterType);
+
+						final ParamIdentifier democlesParameterIdentifier = OperationspecificationFactory.eINSTANCE
+								.createParamIdentifier();
+						democlesParameterIdentifier.setIdentifier(editorParameter.getName());
+						democlesOperationSpecificationGroup.getParameterIDs().add(democlesParameterIdentifier);
+					}
+
+					for (final EditorAttributeConditionOperationalization editorOperationalization : editorConditionSpecification
+							.getOperationalizations()) {
+						if (editorOperationalization.getTarget() == EditorAttributeConditionTargetPlatform.JAVA) {
+							final OperationSpecification operationSpecification = OperationspecificationFactory.eINSTANCE
+									.createOperationSpecification();
+							operationSpecification
+									.setAdornmentString(mapToAdornmentString(editorOperationalization.getAdornments()));
+							operationSpecification.setAlwaysSuccessful(isAlwaysSuccessfull(editorOperationalization));
+							operationSpecification.setSpecification(editorOperationalization.getSpecification());
+						}
+					}
+				}
+			}
+		} else {
+			// TODO@rkluge: Some patterns do not have a container, strange.
+//			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+//					"Unexpected container %s of pattern %s", container, pattern);
+		}
+		return democlesLibrary;
+
+	}
+
+	private boolean isAlwaysSuccessfull(final EditorAttributeConditionOperationalization editorOperationalization) {
+		return editorOperationalization.getOperationalizationType() == EditorAttributeConditionType.EXTEND;
+	}
+
+	private String mapToAdornmentString(final EList<EditorAttributeConditionAdornment> editorAdornments) {
+		final StringBuilder adornmentString = new StringBuilder();
+		for (final EditorAttributeConditionAdornment editorAdornment : editorAdornments) {
+			switch (editorAdornment) {
+			case BOUND:
+				adornmentString.append(Adornments.ADORNMENT_BOUND);
+				break;
+			case FREE:
+				adornmentString.append(Adornments.ADORNMENT_FREE);
+				break;
+			default:
+				throw new IllegalArgumentException(
+						String.format("Unsupported adornment in editor %s", editorAdornment));
+			}
+		}
+		return adornmentString.toString();
 	}
 
 	Pattern createExpressionPatternForObjectVariables(final CFVariable returnVariable) {
@@ -286,6 +393,10 @@ public class PatternBuilderVisitor {
 		}
 	}
 
+	private void visit(final EditorPatternAttributeCondition cac, final EditorPattern pattern) {
+
+	}
+
 	private void visit(final EditorCondition condition, final EditorPattern pattern) {
 		final EList<EditorSimpleCondition> conditions = condition.getConditions();
 		for (final EditorSimpleCondition partialCondition : conditions) {
@@ -398,6 +509,10 @@ public class PatternBuilderVisitor {
 		variableLookup = new VariableLookupTable();
 
 		visit(applicationCondition);
+
+		if (hasErrors())
+			return null;
+
 		final Pattern newInvokedPattern = getBlackPattern();
 
 		// Restore lookup tables
@@ -669,5 +784,9 @@ public class PatternBuilderVisitor {
 		final Pattern pattern = PatternUtil.createEmptyPattern();
 		generatedDemoclesPatterns.registerPattern(patternType, pattern);
 		return pattern;
+	}
+
+	private boolean hasErrors() {
+		return this.transformationStatus.matches(IStatus.ERROR);
 	}
 }

@@ -582,6 +582,10 @@ public class EditorToControlFlowTransformation {
 
 		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 		final PatternLookup patterns = patternBuilderVisitor.visit(flattenedPattern);
+
+		if (hasErrors())
+			return;
+
 		final Map<DemoclesPatternType, PatternInvocation> invocations = new HashMap<>();
 
 		final Collection<CFVariable> destructedVariables = new ArrayList<>();
