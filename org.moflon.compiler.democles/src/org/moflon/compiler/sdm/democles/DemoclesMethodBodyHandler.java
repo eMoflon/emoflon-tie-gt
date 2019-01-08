@@ -45,10 +45,11 @@ public class DemoclesMethodBodyHandler implements MethodBodyHandler {
 			final CodeGenerationConfiguration scopeValidatorConfiguration) {
 		this.resourceSet = resourceSet;
 		this.scopeValidatorConfiguration = scopeValidatorConfiguration;
-		initResourceSetForDemocles(this.resourceSet);
+		inititializeResourceSet(this.resourceSet);
+		initializePatternMatchers();
 	}
 
-	public static final void initResourceSetForDemocles(final ResourceSet resourceSet) {
+	public static final void inititializeResourceSet(final ResourceSet resourceSet) {
 		final EList<AdapterFactory> adapterFactories = resourceSet.getAdapterFactories();
 		final Map<String, Object> extensionToFactoryMap = resourceSet.getResourceFactoryRegistry()
 				.getExtensionToFactoryMap();

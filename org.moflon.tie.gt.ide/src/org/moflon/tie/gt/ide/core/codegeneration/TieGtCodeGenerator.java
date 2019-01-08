@@ -20,6 +20,7 @@ import org.moflon.compiler.sdm.democles.MethodBodyHandler;
 import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
 import org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
+import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
@@ -41,11 +42,11 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			final int totalWork = 5 + 10 + 10 + 15 + 35 + 30 + 5;
 			final SubMonitor subMon = SubMonitor.convert(monitor, "Code generation task for " + getProject().getName(),
 					totalWork);
-			logger.info("Generating code for: " + getProject().getName());
+			LogUtils.info(logger, "Generating code for: %s", getProject().getName());
 
 			final long toc = System.nanoTime();
 
-			// (1) Instantiate code generation engine
+			// Instantiate code generation engine
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 
@@ -59,8 +60,6 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 				return Status.CANCEL_STATUS;
 			}
 
-			methodBodyHandler.initializePatternMatchers();
-
 			// Build or load GenModel
 			final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(),
 					getAllResources(), getEcoreFile(), true, getMoflonProperties());
@@ -73,18 +72,18 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			}
 			this.setGenModel(genModelBuilderJob.getGenModel());
 
-			final TieGTControlFlowBuilder cfBuilder = new TieGTControlFlowBuilder(getPreferencesStorage());
+			final TieGtControlFlowBuilder controlFlowBuilder = new TieGtControlFlowBuilder(getPreferencesStorage());
 			this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
-			cfBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
-			final IStatus weaverStatus = cfBuilder.run(getProject(), getEcoreResource(), methodBodyHandler,
-					subMon.split(10));
+			controlFlowBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
+			final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
+					methodBodyHandler, subMon.split(10));
 
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
 
-			if (weaverStatus.matches(IStatus.ERROR)) {
-				return weaverStatus;
+			if (controlFlowBuilderStatus.matches(IStatus.ERROR)) {
+				return controlFlowBuilderStatus;
 			}
 
 			// Load injections
@@ -117,7 +116,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 			final long tic = System.nanoTime();
 
-			logger.info(String.format(Locale.US, "Completed in %.3fs", (tic - toc) / 1e9));
+			logger.info(String.format(Locale.US, "Code generation completed in %.3fs", (tic - toc) / 1e9));
 
 			return injectionStatus.isOK() ? Status.OK_STATUS : injectionStatus;
 		} catch (final Exception e) {
