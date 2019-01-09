@@ -23,7 +23,7 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.gervarro.eclipse.workspace.util.RelevantElementCollector;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
 import org.moflon.core.build.AbstractVisitorBuilder;
@@ -42,21 +42,21 @@ import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator
 
 import com.google.inject.Injector;
 
-public class TieGTBuilder extends AbstractVisitorBuilder {
+public class TieGtBuilder extends AbstractVisitorBuilder {
 
 	private static final AntPatternCondition VISITOR_CONDITION = new AntPatternCondition(
 			new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" });
 
-	private static String BUILDER_ID = TieGTBuilder.class.getName();
+	private static String BUILDER_ID = TieGtBuilder.class.getName();
 
-	private static final Logger logger = Logger.getLogger(TieGTBuilder.class);
+	private static final Logger logger = Logger.getLogger(TieGtBuilder.class);
 
 	/**
 	 * Initializes the visitor condition
 	 *
 	 * This builder gets triggered whenever any ecore file in /models changes
 	 */
-	public TieGTBuilder() {
+	public TieGtBuilder() {
 		super(VISITOR_CONDITION);
 	}
 
@@ -123,18 +123,18 @@ public class TieGTBuilder extends AbstractVisitorBuilder {
 			clean(new NullProgressMonitor());
 
 			// Build
-			final ResourceSet resourceSet = TieGTBuilder.initializeResourceSet();
+			final ResourceSet resourceSet = TieGtBuilder.initializeResourceSet();
 			final PatternResourceFactory blackFactory = new PatternResourceFactory(
-					DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION);
+					DemoclesPatternType.BLACK_FILE_EXTENSION);
 			resourceSet.getAdapterFactories().add(blackFactory);
 			final PatternResourceFactory redFactory = new PatternResourceFactory(
-					DemoclesMethodBodyHandler.RED_FILE_EXTENSION);
+					DemoclesPatternType.RED_FILE_EXTENSION);
 			resourceSet.getAdapterFactories().add(redFactory);
 			final PatternResourceFactory greenFactory = new PatternResourceFactory(
-					DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION);
+					DemoclesPatternType.GREEN_FILE_EXTENSION);
 			resourceSet.getAdapterFactories().add(greenFactory);
 			final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
-					DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
+					DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
 			resourceSet.getAdapterFactories().add(cfFactory);
 			eMoflonEMFUtil.installCrossReferencers(resourceSet);
 			subMon.worked(1);

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
@@ -16,7 +15,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.compiler.sdm.democles.MethodBodyHandler;
+import org.moflon.compiler.sdm.democles.PatternMatcherConfiguration;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -35,8 +34,6 @@ public class TieGtControlFlowBuilder {
 	 */
 	private ResourceSet resourceSet;
 
-	private IProject project;
-
 	private EditorToControlFlowTransformation controlFlowTransformation;
 	private final EMoflonPreferencesStorage preferencesStorage;
 	private EPackage ecorePackage;
@@ -53,18 +50,17 @@ public class TieGtControlFlowBuilder {
 		this.ecorePackage = ecorePackage;
 	}
 
-	public IStatus run(final IProject project, final Resource resource, final MethodBodyHandler methodBodyHandler,
-			final IProgressMonitor monitor) {
+	public IStatus run(final IProject project, final Resource resource,
+			final PatternMatcherConfiguration patternMatcherConfiguration, final IProgressMonitor monitor) {
 
 		if (this.ecorePackage == null) {
 			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Ecore package was not set.");
 		}
 
-		this.project = project;
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
-		this.controlFlowTransformation = new EditorToControlFlowTransformation(
-				methodBodyHandler.getPatternMatcherConfiguration(), preferencesStorage);
+		this.controlFlowTransformation = new EditorToControlFlowTransformation(patternMatcherConfiguration,
+				preferencesStorage);
 		return run(monitor);
 	}
 
@@ -78,32 +74,14 @@ public class TieGtControlFlowBuilder {
 	 * @return the status of the entire task
 	 */
 	private IStatus run(final IProgressMonitor monitor) {
-		final IStatus mcfLoadStatus = this.loadControlFlowFiles();
-		if (mcfLoadStatus.matches(IStatus.ERROR))
-			return mcfLoadStatus;
-
 		final List<EClass> eClasses = eMoflonEMFUtil.getEClasses(this.ePackage);
 
 		final SubMonitor subMon = SubMonitor.convert(monitor, getTaskName() + " in " + ePackage.getName(),
 				eClasses.size());
-		final IStatus transformationStatus = processControlFlowFiles(subMon);
-		return transformationStatus.isOK() ? Status.OK_STATUS : transformationStatus;
-	}
 
-	/**
-	 * This routine identifies and loads all mcf files in the current project.
-	 *
-	 * For each mcf file, an appropriate resource is created in this generator's
-	 * resource set ({@link #getResourceSet()}
-	 */
-	private IStatus loadControlFlowFiles() {
-		try {
-			getProject().accept(new GtResourceLoadingVisitor(this.getResourceSet()));
-			getProject().accept(new McfResourceLoadingVisitor(this.getResourceSet()));
-			return Status.OK_STATUS;
-		} catch (final CoreException e) {
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
-		}
+		final IStatus transformationStatus = processControlFlowFiles(subMon);
+
+		return transformationStatus.isOK() ? Status.OK_STATUS : transformationStatus;
 	}
 
 	private IStatus processControlFlowFiles(final IProgressMonitor monitor) {
@@ -145,9 +123,5 @@ public class TieGtControlFlowBuilder {
 
 	private ResourceSet getResourceSet() {
 		return this.resourceSet;
-	}
-
-	private IProject getProject() {
-		return project;
 	}
 }

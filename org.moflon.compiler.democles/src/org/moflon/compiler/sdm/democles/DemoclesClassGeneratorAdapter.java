@@ -61,7 +61,7 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 	@Override
 	public boolean hasGeneratedMethodBody(final EOperation eOperation) {
 		return super.hasGeneratedMethodBody(eOperation) || eOperation != null && EcoreUtil
-				.getExistingAdapter(eOperation, DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION) != null;
+				.getExistingAdapter(eOperation, DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION) != null;
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 			generatedMethodBody = modelCode;
 		} else {
 			final AdapterResource cfResource = (AdapterResource) EcoreUtil.getExistingAdapter(eOperation,
-					DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION);
+					DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
 			if (cfResource != null && !cfResource.getContents().isEmpty()
 					&& cfResource.getContents().get(0) instanceof Scope) {
 				final Scope scope = (Scope) cfResource.getContents().get(0);

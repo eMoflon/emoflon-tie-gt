@@ -35,6 +35,14 @@ public enum DemoclesPatternType {
 	 */
 	BINDING_AND_BLACK_PATTERN;
 
+	public static final String CONTROL_FLOW_FILE_EXTENSION = "cf";
+	public static final String BINDING_AND_BLACK_FILE_EXTENSION = "bindingAndBlack";
+	public static final String BLACK_FILE_EXTENSION = "black";
+	public static final String RED_FILE_EXTENSION = "red";
+	public static final String GREEN_FILE_EXTENSION = "green";
+	public static final String BINDING_FILE_EXTENSION = "binding";
+	public static final String EXPRESSION_FILE_EXTENSION = "expression";
+
 	/**
 	 * Maps this object to the corresponding constants in
 	 * {@link DemoclesMethodBodyHandler}
@@ -44,17 +52,17 @@ public enum DemoclesPatternType {
 	public String getSuffix() {
 		switch (this) {
 		case BLACK_PATTERN:
-			return DemoclesMethodBodyHandler.BLACK_FILE_EXTENSION;
+			return DemoclesPatternType.BLACK_FILE_EXTENSION;
 		case GREEN_PATTERN:
-			return DemoclesMethodBodyHandler.GREEN_FILE_EXTENSION;
+			return DemoclesPatternType.GREEN_FILE_EXTENSION;
 		case RED_PATTERN:
-			return DemoclesMethodBodyHandler.RED_FILE_EXTENSION;
+			return DemoclesPatternType.RED_FILE_EXTENSION;
 		case BINDING_PATTERN:
-			return DemoclesMethodBodyHandler.BINDING_FILE_EXTENSION;
+			return DemoclesPatternType.BINDING_FILE_EXTENSION;
 		case BINDING_AND_BLACK_PATTERN:
-			return DemoclesMethodBodyHandler.BINDING_AND_BLACK_FILE_EXTENSION;
+			return DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION;
 		case EXPRESSION_PATTERN:
-			return DemoclesMethodBodyHandler.EXPRESSION_FILE_EXTENSION;
+			return DemoclesPatternType.EXPRESSION_FILE_EXTENSION;
 		default:
 			throw new IllegalArgumentException(String.format("No suffix registered for %s.", this));
 		}

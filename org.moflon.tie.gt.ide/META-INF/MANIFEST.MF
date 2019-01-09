@@ -43,7 +43,8 @@ Require-Bundle: org.moflon.core.build;bundle-version="1.0.0",
  org.gervarro.democles.codegen.stringtemplate;bundle-version="1.1.0",
  org.gervarro.democles.compiler;bundle-version="1.1.0",
  org.moflon.sdm.constraints.codegenerator,
- org.moflon.sdm.constraints.operationspecification
+ org.moflon.sdm.constraints.operationspecification,
+ org.moflon.sdm.constraints.democles;bundle-version="2.0.0"
 Export-Package: org.moflon.tie.gt.ide.core.runtime.builders,
  org.moflon.tie.gt.ide.core.runtime.natures,
  org.moflon.tie.gt.ide.preferences

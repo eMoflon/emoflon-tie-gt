@@ -20,7 +20,7 @@ import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.codegen.MoflonGenModelBuilder;
 import org.moflon.emf.ui.wizard.DefaultContentGenerator;
-import org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature;
+import org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature;
 
 public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 
@@ -82,7 +82,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 			final PluginProperties pluginProperties) throws CoreException {
 		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating project", 1);
 		final TieGTProjectCreator createMoflonProject = new TieGTProjectCreator(project, pluginProperties,
-				new TieGTNature());
+				new TieGtNature());
 		ResourcesPlugin.getWorkspace().run(createMoflonProject, subMon.split(1));
 	}
 

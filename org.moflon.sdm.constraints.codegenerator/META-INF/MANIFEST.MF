@@ -17,6 +17,7 @@ Require-Bundle: org.eclipse.core.resources;bundle-version="[3.9.0,4.0.0)",
  org.moflon.core.preferences,
  org.moflon.emf.build;bundle-version="1.0.0",
  org.moflon.sdm.compiler.eclipse;bundle-version="3.0.0",
- org.moflon.sdm.compiler.democles.validation.result
+ org.moflon.sdm.compiler.democles.validation.result,
+ org.emoflon.ibex.gt.editor
 Export-Package: org.moflon.compiler.sdm.democles.attributes
 Automatic-Module-Name: org.moflon.sdm.constraints.codegenerator

@@ -1,5 +1,7 @@
 package org.moflon.sdm.constraints.operationspecification.constraint;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.gervarro.democles.common.TypeModule;
@@ -14,8 +16,8 @@ public class AttributeVariableConstraintsTypeModule implements TypeModule {
 
 	private final List<AttributeConstraintLibrary> libraries;
 
-	public AttributeVariableConstraintsTypeModule(final List<AttributeConstraintLibrary> libraries) {
-		this.libraries = libraries;
+	public AttributeVariableConstraintsTypeModule(final Collection<AttributeConstraintLibrary> libraries) {
+		this.libraries = new ArrayList<>(libraries);
 		INSTANCE = this;
 	}
 
@@ -25,15 +27,18 @@ public class AttributeVariableConstraintsTypeModule implements TypeModule {
 	}
 
 	public final ConstraintType getConstraintType(final AttributeVariableConstraint constraint) {
-		//
-		ConstraintSpecification cSpecification = null;
-		for (AttributeConstraintLibrary attributeConstraintLibrary : libraries) {
-			cSpecification = attributeConstraintLibrary.lookupConstraintType(constraint);
-			if (cSpecification != null) {
+		ConstraintSpecification constraintSpecification = null;
+		for (final AttributeConstraintLibrary attributeConstraintLibrary : getAttributeConstraintsLibraries()) {
+			constraintSpecification = attributeConstraintLibrary.lookupConstraintType(constraint);
+			if (constraintSpecification != null) {
 				break;
 			}
 		}
-		return cSpecification;
+		return constraintSpecification;
+	}
+
+	public Collection<AttributeConstraintLibrary> getAttributeConstraintsLibraries() {
+		return libraries;
 	}
 
 }

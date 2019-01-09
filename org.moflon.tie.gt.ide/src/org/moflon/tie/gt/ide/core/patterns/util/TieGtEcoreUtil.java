@@ -1,5 +1,6 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
+import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EOperation;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
@@ -18,4 +19,13 @@ public final class TieGtEcoreUtil {
 		return eOperation.getEType() == null;
 	}
 
+	/**
+	 * Returns a representative string for the given {@link EClassifier}
+	 * 
+	 * @param eClassifier the {@link EClassifier}
+	 * @return the formatted string
+	 */
+	public static String formatEClassifier(final EClassifier eClassifier) {
+		return eClassifier == null ? "null" : eClassifier.getName();
+	}
 }

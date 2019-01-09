@@ -1,24 +1,30 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
+import java.util.Collection;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
+import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.util.BasicMonitor;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.compiler.sdm.democles.DemoclesGeneratorAdapterFactory;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
-import org.moflon.compiler.sdm.democles.MethodBodyHandler;
+import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
 import org.moflon.compiler.sdm.democles.attributes.AttributeConstraintCodeGeneratorConfig;
+import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
+import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -26,6 +32,7 @@ import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
 import org.moflon.emf.codegen.CodeGenerator;
 import org.moflon.emf.injection.ide.InjectionManager;
+import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
@@ -50,11 +57,21 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 
+			final IStatus mcfLoadStatus = this.loadControlFlowFiles();
+
+			if (mcfLoadStatus.matches(IStatus.ERROR))
+				return mcfLoadStatus;
+			if (monitor.isCanceled())
+				return Status.OK_STATUS;
+
+			final AttributeConstraintsLibraryLoader attributeConstraintsLibraryLoader = new AttributeConstraintsLibraryLoader();
+			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries = attributeConstraintsLibraryLoader
+					.run(this.getResourceSet());
+
 			final IProject project = getEcoreFile().getProject();
-			final AttributeConstraintCodeGeneratorConfig defaultCodeGeneratorConfig = new AttributeConstraintCodeGeneratorConfig(
-					getResourceSet(), project, getPreferencesStorage());
-			final MethodBodyHandler methodBodyHandler = new DemoclesMethodBodyHandler(getResourceSet(),
-					defaultCodeGeneratorConfig);
+			final AttributeConstraintCodeGeneratorConfig codeGeneratorConfig = new AttributeConstraintCodeGeneratorConfig(
+					getResourceSet(), project, getPreferencesStorage(), attributeConstraintLibraries);
+			inititializeResourceSet(getResourceSet());
 			subMon.worked(5);
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -76,7 +93,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
 			controlFlowBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
 			final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
-					methodBodyHandler, subMon.split(10));
+					codeGeneratorConfig.getSearchPlanGenerators(), subMon.split(10));
 
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -99,7 +116,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 			// Generate code
 			subMon.subTask("Generating code for project " + project.getName());
-			final TemplateConfigurationProvider templateConfig = defaultCodeGeneratorConfig
+			final TemplateConfigurationProvider templateConfig = codeGeneratorConfig
 					.createTemplateConfiguration(this.getGenModel());
 			final Descriptor codeGenerationEngine = new DemoclesGeneratorAdapterFactory(templateConfig,
 					this.getInjectorManager());
@@ -128,4 +145,56 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		}
 	}
 
+	/**
+	 * This routine identifies and loads all mcf files in the current project.
+	 *
+	 * For each mcf file, an appropriate resource is created in this generator's
+	 * resource set ({@link #getResourceSet()}
+	 */
+	private IStatus loadControlFlowFiles() {
+		try {
+			getProject().accept(new GtResourceLoadingVisitor(this.getResourceSet()));
+			getProject().accept(new McfResourceLoadingVisitor(this.getResourceSet()));
+
+			return Status.OK_STATUS;
+		} catch (final CoreException e) {
+			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
+		}
+	}
+
+	private void inititializeResourceSet(final ResourceSet resourceSet) {
+		final EList<AdapterFactory> adapterFactories = resourceSet.getAdapterFactories();
+		final Map<String, Object> extensionToFactoryMap = resourceSet.getResourceFactoryRegistry()
+				.getExtensionToFactoryMap();
+
+		createAndRegisterMethodBodyFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
+
+		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION);
+		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.BLACK_FILE_EXTENSION);
+		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.RED_FILE_EXTENSION);
+		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.GREEN_FILE_EXTENSION);
+		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.BINDING_FILE_EXTENSION);
+		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
+				DemoclesPatternType.EXPRESSION_FILE_EXTENSION);
+	}
+
+	private static void createAndRegisterMethodBodyFactory(final EList<AdapterFactory> adapterFactories,
+			final Map<String, Object> extensionToFactoryMap, final String extension) {
+		final MethodBodyResourceFactory sdmFactory = new MethodBodyResourceFactory(extension);
+		adapterFactories.add(sdmFactory);
+		extensionToFactoryMap.put(extension, sdmFactory);
+	}
+
+	private static void createAndRegisterPatternFactory(final EList<AdapterFactory> adapterFactories,
+			final Map<String, Object> extensionToFactoryMap, final String extension) {
+		final PatternResourceFactory bindingAndBlackFactory = new PatternResourceFactory(extension);
+		adapterFactories.add(bindingAndBlackFactory);
+		extensionToFactoryMap.put(extension, bindingAndBlackFactory);
+	}
 }

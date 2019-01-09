@@ -1,6 +1,7 @@
 package org.moflon.compiler.sdm.democles.attributes;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -34,24 +35,28 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 	/**
 	 * Maps operations to code fragments
 	 */
-	private final List<AttributeConstraintLibrary> attributeVariableConstraintLibraries = new LinkedList<>();
+	private final List<AttributeConstraintLibrary> attributeConstraintLibraries;
 
 	public AttributeConstraintCodeGeneratorConfig(final ResourceSet resourceSet, final IProject project,
-			final EMoflonPreferencesStorage preferencesStorage) {
+			final EMoflonPreferencesStorage preferencesStorage,
+			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
 		super(resourceSet, preferencesStorage);
 
-		final WeightedOperationBuilder<GeneratorOperation> builder = new AttributeEnabledWeightedOperationBuilder();
+		this.attributeConstraintLibraries = new ArrayList<>(attributeConstraintLibraries);
 
+		final WeightedOperationBuilder<GeneratorOperation> builder = new AttributeEnabledWeightedOperationBuilder();
 		algorithm = new DefaultAlgorithm<>(builder);
 
 		// create attribute variable constraints type module using constraint libraries
 		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
-				attributeVariableConstraintLibraries);
+				attributeConstraintLibraries);
 
 		final AttributeVariableConstraintsModule attributeVariableConstraintsModule = new AttributeVariableConstraintsModule(
 				attributeVariableConstraintsTypeModule);
 		this.bindingAndBlackPatternBuilder
 				.addConstraintTypeSwitch(attributeVariableConstraintsModule.getConstraintTypeSwitch());
+
+		initializePatternMatchers();
 	}
 
 	@Override
@@ -69,6 +74,6 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 
 	@Override
 	public TemplateConfigurationProvider createTemplateConfiguration(final GenModel genModel) {
-		return new AttributeConstraintTemplateConfig(genModel, attributeVariableConstraintLibraries);
+		return new AttributeConstraintTemplateConfig(genModel, attributeConstraintLibraries);
 	}
 }

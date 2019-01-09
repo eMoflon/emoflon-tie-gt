@@ -3,7 +3,6 @@ package org.moflon.compiler.sdm.democles.eclipse;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 
 public class DemoclesAdapterFactory implements IAdapterFactory {
 
@@ -18,7 +17,6 @@ public class DemoclesAdapterFactory implements IAdapterFactory {
 
 	@Override
 	public Class<?>[] getAdapterList() {
-		return new Class[] { DemoclesMethodBodyHandler.class, DefaultCodeGeneratorConfig.class,
-				EclipseErrorReporter.class };
+		return new Class[] { DefaultCodeGeneratorConfig.class, EclipseErrorReporter.class };
 	}
 }

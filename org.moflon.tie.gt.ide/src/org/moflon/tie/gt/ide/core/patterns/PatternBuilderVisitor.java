@@ -1,8 +1,10 @@
 package org.moflon.tie.gt.ide.core.patterns;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
@@ -21,26 +23,22 @@ import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionAdornment;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionLibrary;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionOperationalization;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionParameter;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionSpecification;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionTargetPlatform;
-import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorBindingExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorConditionReference;
 import org.emoflon.ibex.gt.editor.gT.EditorEnumExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorExpression;
-import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
 import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorParameterExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeCondition;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraint;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintArgument;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintAttributeValueExpression;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintPredicate;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
@@ -59,18 +57,18 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
-import org.moflon.compiler.sdm.democles.Adornments;
 import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.sdm.constraints.democles.AttributeVariableConstraint;
+import org.moflon.sdm.constraints.democles.DemoclesFactory;
+import org.moflon.sdm.constraints.democles.TypedConstant;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
-import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
-import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
-import org.moflon.sdm.constraints.operationspecification.OperationspecificationFactory;
-import org.moflon.sdm.constraints.operationspecification.ParamIdentifier;
 import org.moflon.sdm.constraints.operationspecification.ParameterType;
+import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintType;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.AttributeUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.ConstantUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.GtFormatter;
 import org.moflon.tie.gt.ide.core.patterns.util.LiteralExpressionUtils;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
@@ -87,7 +85,6 @@ public class PatternBuilderVisitor {
 	private VariableLookupTable variableLookup;
 	private final TypeLookup typeLookup;
 	private final MultiStatus transformationStatus;
-	private AttributeConstraintLibrary attributeConstraintsLibrary;
 
 	public PatternBuilderVisitor(final List<EPackage> ePackages, final ResourceSet resourceSet,
 			final MultiStatus transformationStatus) {
@@ -100,7 +97,9 @@ public class PatternBuilderVisitor {
 
 	public PatternLookup visit(final EditorPattern pattern) {
 
-		this.attributeConstraintsLibrary = buildAttributeConstraintsLibrary(pattern);
+		// TODO@rkluge: If pattern is contained in EditorGtFile, then select this file
+		// as main attribute library provider
+//		AttributeVariableConstraintType.getModule().setMainConstraintLibrary
 
 		if (hasErrors())
 			return null;
@@ -112,87 +111,6 @@ public class PatternBuilderVisitor {
 		pattern.getConditions().forEach(condition -> visit(condition, pattern));
 
 		return generatedDemoclesPatterns;
-	}
-
-	private AttributeConstraintLibrary buildAttributeConstraintsLibrary(final EditorPattern pattern) {
-		final EObject container = pattern.eContainer();
-		final AttributeConstraintLibrary democlesLibrary = OperationspecificationFactory.eINSTANCE
-				.createAttributeConstraintLibrary();
-		democlesLibrary.setPrefix("mylibrary");
-		if (container instanceof EditorGTFile) {
-			final EditorGTFile gtFile = EditorGTFile.class.cast(container);
-			for (final EditorAttributeConditionLibrary editorLibrary : gtFile.getAttributeConditionLibraries()) {
-
-				for (final EditorAttributeConditionSpecification editorConditionSpecification : editorLibrary
-						.getConditionSpecifications()) {
-
-					final ConstraintSpecification democlesConstraintSpecification = OperationspecificationFactory.eINSTANCE
-							.createConstraintSpecification();
-					democlesConstraintSpecification.setSymbol(editorConditionSpecification.getName());
-					democlesLibrary.getConstraintSpecifications().add(democlesConstraintSpecification);
-
-					final OperationSpecificationGroup democlesOperationSpecificationGroup = OperationspecificationFactory.eINSTANCE
-							.createOperationSpecificationGroup();
-					democlesOperationSpecificationGroup.setOperationIdentifier(editorConditionSpecification.getName());
-					democlesLibrary.getOperationSpecifications().add(democlesOperationSpecificationGroup);
-					democlesConstraintSpecification.setOperationSpecificationGroup(democlesOperationSpecificationGroup);
-
-					for (final EditorAttributeConditionParameter editorParameter : editorConditionSpecification
-							.getParameters()) {
-						final EDataType parameterType = editorParameter.getType();
-						final ParameterType democlesParameterType = OperationspecificationFactory.eINSTANCE
-								.createParameterType();
-						democlesParameterType.setType(parameterType);
-						democlesConstraintSpecification.getParameterTypes().add(democlesParameterType);
-
-						final ParamIdentifier democlesParameterIdentifier = OperationspecificationFactory.eINSTANCE
-								.createParamIdentifier();
-						democlesParameterIdentifier.setIdentifier(editorParameter.getName());
-						democlesOperationSpecificationGroup.getParameterIDs().add(democlesParameterIdentifier);
-					}
-
-					for (final EditorAttributeConditionOperationalization editorOperationalization : editorConditionSpecification
-							.getOperationalizations()) {
-						if (editorOperationalization.getTarget() == EditorAttributeConditionTargetPlatform.JAVA) {
-							final OperationSpecification operationSpecification = OperationspecificationFactory.eINSTANCE
-									.createOperationSpecification();
-							operationSpecification
-									.setAdornmentString(mapToAdornmentString(editorOperationalization.getAdornments()));
-							operationSpecification.setAlwaysSuccessful(isAlwaysSuccessfull(editorOperationalization));
-							operationSpecification.setSpecification(editorOperationalization.getSpecification());
-						}
-					}
-				}
-			}
-		} else {
-			// TODO@rkluge: Some patterns do not have a container, strange.
-//			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
-//					"Unexpected container %s of pattern %s", container, pattern);
-		}
-		return democlesLibrary;
-
-	}
-
-	private boolean isAlwaysSuccessfull(final EditorAttributeConditionOperationalization editorOperationalization) {
-		return editorOperationalization.getOperationalizationType() == EditorAttributeConditionType.EXTEND;
-	}
-
-	private String mapToAdornmentString(final EList<EditorAttributeConditionAdornment> editorAdornments) {
-		final StringBuilder adornmentString = new StringBuilder();
-		for (final EditorAttributeConditionAdornment editorAdornment : editorAdornments) {
-			switch (editorAdornment) {
-			case BOUND:
-				adornmentString.append(Adornments.ADORNMENT_BOUND);
-				break;
-			case FREE:
-				adornmentString.append(Adornments.ADORNMENT_FREE);
-				break;
-			default:
-				throw new IllegalArgumentException(
-						String.format("Unsupported adornment in editor %s", editorAdornment));
-			}
-		}
-		return adornmentString.toString();
 	}
 
 	Pattern createExpressionPatternForObjectVariables(final CFVariable returnVariable) {
@@ -395,6 +313,148 @@ public class PatternBuilderVisitor {
 
 	private void visit(final EditorPatternAttributeCondition cac, final EditorPattern pattern) {
 
+		for (final EditorPatternAttributeConstraint attributeConstraint : cac.getConstraints()) {
+			if (attributeConstraint instanceof EditorPatternAttributeConstraintPredicate) {
+				final EditorPatternAttributeConstraintPredicate predicate = (EditorPatternAttributeConstraintPredicate) attributeConstraint;
+
+				// 1. Ensure that the library contains a suitable constraint specification for
+				// the
+				// given predicate symbol
+				final String predicateSymbol = predicate.getName().getName();
+				final List<ConstraintSpecification> possibleConstraintSpecifications = getConstraintSpecificationsWithSymbol(
+						predicateSymbol);
+				if (!possibleConstraintSpecifications.isEmpty()) {
+
+					// 2. Check whether parameter
+					final List<EClassifier> predicateArgumentTypes = getPredicateArgumentTypes(predicate);
+
+					final Optional<ConstraintSpecification> selectedConstraintSpecification = possibleConstraintSpecifications
+							.stream().filter(possibleConstraintSpecification -> haveSameParameterTypes(
+									possibleConstraintSpecification, predicateArgumentTypes))
+							.findFirst();
+
+					// 3. We have found a constraint specification matching the predicate!
+					if (selectedConstraintSpecification.isPresent()) {
+						final Pattern blackPattern = this.generatedDemoclesPatterns.getBlackPattern();
+						final PatternBody body = PatternUtil.getBody(blackPattern);
+
+						final org.moflon.sdm.constraints.democles.DemoclesFactory constraintsFactory = org.moflon.sdm.constraints.democles.DemoclesFactory.eINSTANCE;
+						final AttributeVariableConstraint attributeVariableConstraint = constraintsFactory
+								.createAttributeVariableConstraint();
+						attributeVariableConstraint.setPredicateSymbol(predicateSymbol);
+						for (final EditorPatternAttributeConstraintArgument predicateArgument : predicate.getArgs()) {
+							final ConstraintVariable variable;
+							if (predicateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression) {
+								final EditorPatternAttributeConstraintAttributeValueExpression attributeValueExpression = EditorPatternAttributeConstraintAttributeValueExpression.class
+										.cast(predicateArgument);
+								final EAttribute eAttribute = attributeValueExpression.getAttribute();
+								final EditorNode editorNode = attributeValueExpression.getEditorNode();
+								variable = registerEmfVariableAndAddToLocalVariable(eAttribute, editorNode,
+										DemoclesPatternType.BLACK_PATTERN);
+
+								// TODO@rkluge: Register an Attribute constraint as usual (from editorNode to
+								// editorNode.attribute)
+							} else if (predicateArgument instanceof EditorLiteralExpression) {
+								final EditorLiteralExpression literalExpression = EditorLiteralExpression.class
+										.cast(predicateArgument);
+								final EDataType eDataType = GTEditorAttributeUtils.guessEDataType(literalExpression)
+										.orElse(null);
+								variable = createTypedConstantFromLiteralExpression(literalExpression, eDataType, body);
+							} else if (predicateArgument instanceof EditorEnumExpression) {
+								final EditorEnumExpression enumExpression = EditorEnumExpression.class
+										.cast(predicateArgument);
+								variable = createConstantForEnumConstant(body, enumExpression);
+							} else {
+								// Never happens due to preceding checks
+								variable = null;
+							}
+							final ConstraintParameter constraintParameter = PatternUtil
+									.createConstraintParameter(variable);
+							attributeVariableConstraint.getParameters().add(constraintParameter);
+						}
+
+						body.getConstraints().add(attributeVariableConstraint);
+					} else {
+						TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+								"No constraint specification with symbol %s matches the type signature %s of predicate %s",
+								predicateSymbol, formatTypeList(predicateArgumentTypes), GtFormatter.format(predicate));
+					}
+
+				} else {
+					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+							"Predicate symbol of %s not in constraints library.", GtFormatter.format(predicate));
+				}
+			}
+
+		}
+	}
+
+	private String formatTypeList(final List<EClassifier> predicateArgumentTypes) {
+		return predicateArgumentTypes.stream().map(TieGtEcoreUtil::formatEClassifier).collect(Collectors.joining(","));
+	}
+
+	/**
+	 * Collects each {@link ConstraintSpecification} whose symbol is equal to the
+	 * given symbol All libraries accessible via
+	 * {@link #getAttributeConstraintsLibraries()} are consulted in order.
+	 * 
+	 * @param predicateSymbol the symbol to search for
+	 * @return the list of {@link ConstraintSpecification} objects
+	 */
+	private List<ConstraintSpecification> getConstraintSpecificationsWithSymbol(final String predicateSymbol) {
+		return getAttributeConstraintsLibraries().stream()
+				.flatMap(library -> library.getConstraintSpecifications().stream())
+				.filter(constraintSpecification -> predicateSymbol.equals(constraintSpecification.getSymbol()))
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * @return the list of used {@link AttributeConstraintLibrary} objects
+	 */
+	private Collection<AttributeConstraintLibrary> getAttributeConstraintsLibraries() {
+		return AttributeVariableConstraintType.getModule().getAttributeConstraintsLibraries();
+	}
+
+	private List<EClassifier> getPredicateArgumentTypes(final EditorPatternAttributeConstraintPredicate predicate) {
+		final List<EClassifier> predicateArgumentTypes = new ArrayList<>();
+		for (final EditorPatternAttributeConstraintArgument prediateArgument : predicate.getArgs()) {
+			final EClassifier predicateArgumentType;
+			if (prediateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression) {
+				final EditorPatternAttributeConstraintAttributeValueExpression attributeValueExpression = (EditorPatternAttributeConstraintAttributeValueExpression) prediateArgument;
+				predicateArgumentType = attributeValueExpression.getAttribute().getEType();
+			} else if (prediateArgument instanceof EditorLiteralExpression) {
+				final EditorLiteralExpression literalExpresion = (EditorLiteralExpression) prediateArgument;
+				predicateArgumentType = GTEditorAttributeUtils.guessEDataType(literalExpresion).orElse(null);
+			} else if (prediateArgument instanceof EditorEnumExpression) {
+				final EditorEnumExpression enumExpression = (EditorEnumExpression) prediateArgument;
+				predicateArgumentType = enumExpression.getLiteral().getEEnum();
+			} else {
+				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+						"Unsupported type of argument %s of predicate %s", prediateArgument, predicate);
+				break;
+			}
+
+			predicateArgumentTypes.add(predicateArgumentType);
+		}
+		return predicateArgumentTypes;
+	}
+
+	private boolean haveSameParameterTypes(final ConstraintSpecification possibleConstraintSpecification,
+			final List<EClassifier> predicateArgumentTypes) {
+		final EList<ParameterType> constraintParameters = possibleConstraintSpecification.getParameterTypes();
+		final int constraintParameterCount = constraintParameters.size();
+
+		if (constraintParameterCount != predicateArgumentTypes.size())
+			return false;
+
+		for (int i = 0; i < constraintParameterCount; ++i) {
+			final EClassifier constraintParameterType = constraintParameters.get(i).getType();
+			final EClassifier predicateArgumentType = predicateArgumentTypes.get(i);
+			if (!constraintParameterType.equals(predicateArgumentType))
+				return false;
+		}
+
+		return true;
 	}
 
 	private void visit(final EditorCondition condition, final EditorPattern pattern) {
@@ -424,14 +484,14 @@ public class PatternBuilderVisitor {
 		final EditorExpression expr = editorAttribute.getValue();
 		final ConstraintVariable rhsVariable;
 		if (expr instanceof EditorAttributeExpression) {
-			rhsVariable = createConstraintParameterForAttributeExpression(type, body, (EditorAttributeExpression) expr);
+			rhsVariable = createVariableForAttributeExpression(type, body, (EditorAttributeExpression) expr);
 		} else if (expr instanceof EditorLiteralExpression) {
-			rhsVariable = createConstraintParameterForLiteralConstant(editorAttribute, body, source,
+			rhsVariable = createConstantForLiteralExpression(editorAttribute, body, source,
 					(EditorLiteralExpression) expr);
 		} else if (expr instanceof EditorEnumExpression) {
-			rhsVariable = createConstraintParameterForEnumConstant(body, (EditorEnumExpression) expr);
+			rhsVariable = createConstantForEnumConstant(body, (EditorEnumExpression) expr);
 		} else if (expr instanceof EditorParameterExpression) {
-			rhsVariable = createConstraintParameterForParameterExpression(type, (EditorParameterExpression) expr);
+			rhsVariable = createVariableForParameterExpression(type, (EditorParameterExpression) expr);
 		} else {
 			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus, "Cannot handle %s",
 					expr);
@@ -663,7 +723,7 @@ public class PatternBuilderVisitor {
 		body.getConstraints().add(equalConstr);
 	}
 
-	private EMFVariable createConstraintParameterForAttributeExpression(final DemoclesPatternType type,
+	private EMFVariable createVariableForAttributeExpression(final DemoclesPatternType type,
 			final PatternBody patternBody, final EditorAttributeExpression attributeExpr) {
 		final EAttribute eAttribute = attributeExpr.getAttribute();
 		final EditorNode editorNode = attributeExpr.getNode();
@@ -683,32 +743,52 @@ public class PatternBuilderVisitor {
 		return attribute;
 	}
 
-	private EMFVariable createConstraintParameterForParameterExpression(final DemoclesPatternType type,
+	private EMFVariable createVariableForParameterExpression(final DemoclesPatternType type,
 			final EditorParameterExpression eParamExpression) {
 		final EditorParameter parameter = eParamExpression.getParameter();
 		final EMFVariable newReference = variableLookup.get(parameter, type);
 		return newReference;
 	}
 
-	private Constant createConstraintParameterForLiteralConstant(final EditorAttribute editorAttribute,
+	private Constant createConstantForLiteralExpression(final EditorAttribute editorAttribute,
 			final PatternBody patternBody, final EditorNode source, final EditorLiteralExpression literalExpression) {
-		final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
 		final EClass eClass = typeLookup.getEClassifier(source.getType());
 		final EAttribute eAttribute = typeLookup.getEAttribute(editorAttribute.getAttribute(), eClass);
-		final Optional<Object> value = GTEditorAttributeUtils
-				.convertLiteralValueToObject(eAttribute.getEAttributeType(), literalExpression);
+		final EDataType eDataType = eAttribute.getEAttributeType();
+		final Constant constant = createConstantFromLiteralExpression(literalExpression, eDataType, patternBody);
+		return constant;
+	}
+
+	private Constant createConstantFromLiteralExpression(final EditorLiteralExpression literalExpression,
+			final EDataType eDataType, final PatternBody patternBody) {
+		final Optional<Object> value = GTEditorAttributeUtils.convertLiteralValueToObject(eDataType, literalExpression);
+		final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
 		if (value.isPresent()) {
 			final Object valueObject = value.get();
 			ConstantUtil.setConstantValueWithAdjustedType(constant, valueObject);
 		} else {
 			constant.setValue(literalExpression.getValue());
 		}
-
 		patternBody.getConstants().add(constant);
 		return constant;
 	}
 
-	private Constant createConstraintParameterForEnumConstant(final PatternBody patternBody,
+	private TypedConstant createTypedConstantFromLiteralExpression(final EditorLiteralExpression literalExpression,
+			final EDataType eDataType, final PatternBody patternBody) {
+		final Optional<Object> value = GTEditorAttributeUtils.convertLiteralValueToObject(eDataType, literalExpression);
+		final TypedConstant constant = DemoclesFactory.eINSTANCE.createTypedConstant();
+		constant.setEClassifier(eDataType);
+		if (value.isPresent()) {
+			final Object valueObject = value.get();
+			ConstantUtil.setConstantValueWithAdjustedType(constant, valueObject);
+		} else {
+			constant.setValue(literalExpression.getValue());
+		}
+		patternBody.getConstants().add(constant);
+		return constant;
+	}
+
+	private Constant createConstantForEnumConstant(final PatternBody patternBody,
 			final EditorEnumExpression eEnumExpression) {
 		final EEnumLiteral literal = eEnumExpression.getLiteral();
 		final Constant enumLiteralConstant = SpecificationFactory.eINSTANCE.createConstant();

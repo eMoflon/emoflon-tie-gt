@@ -4,7 +4,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.compiler.sdm.democles.DemoclesMethodBodyHandler;
 import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.compiler.sdm.democles.eclipse.DemoclesValidationUtils;
@@ -23,7 +22,7 @@ public final class AdapterResourceUtil {
 
 	public static AdapterResource attachControlFlowModelToRegisteredAdapter(final Scope rootScope,
 			final EOperation eOperation, final ResourceSet resourceSet) {
-		return attachToRegisteredAdapter(rootScope, eOperation, DemoclesMethodBodyHandler.CONTROL_FLOW_FILE_EXTENSION,
+		return attachToRegisteredAdapter(rootScope, eOperation, DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION,
 				resourceSet);
 	}
 
