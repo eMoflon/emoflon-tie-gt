@@ -10,8 +10,8 @@ import org.moflon.compiler.sdm.democles.eclipse.DemoclesValidationUtils;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.sdm.runtime.democles.Scope;
 
-public final class AdapterResourceUtil {
-	private AdapterResourceUtil() {
+public final class AdapterResources {
+	private AdapterResources() {
 		throw new UtilityClassNotInstantiableException();
 	}
 

@@ -16,7 +16,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpres
  * 
  * Taken from {@link GTEditorAttributeUtils}
  */
-public class LiteralExpressionUtils {
+public class LiteralExpressions {
 	private final static List<String> stringTypes = Arrays.asList("EChar", "ECharacterObject", "EString");
 	private final static List<String> incomparableType = Arrays.asList("EBoolean", "EBooleanObject");
 	public final static List<EditorRelation> equalityChecks = Arrays.asList(EditorRelation.EQUAL,

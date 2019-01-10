@@ -10,19 +10,22 @@ import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.specification.emf.Constant;
+import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.PatternPrintingUtil;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
-public final class PatternUtil {
+public final class Patterns {
 
-	private PatternUtil() {
+	private Patterns() {
 		throw new UtilityClassNotInstantiableException();
 	}
 
@@ -73,7 +76,7 @@ public final class PatternUtil {
 		case CREATE:
 			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
 		default:
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Unsupported operator: " + operator);
 			return null;
 		}
@@ -113,6 +116,26 @@ public final class PatternUtil {
 		throw new IllegalArgumentException(
 				String.format("No symbolic parameter with name %s in %s (available parameters: %s)", variableName,
 						pattern.getName(), PatternPrintingUtil.describeSymbolicParameters(pattern)));
+	}
+
+	public static boolean registerConstant(final PatternBody patternBody, final Constant constant) {
+		return patternBody.getConstants().add(constant);
+	}
+
+	public static boolean registerConstraint(final Constraint constraint, final PatternBody body) {
+		return body.getConstraints().add(constraint);
+	}
+
+	public static boolean registerSymbolicParameter(final Variable symbolicParameter, final Pattern pattern) {
+		return pattern.getSymbolicParameters().add(symbolicParameter);
+	}
+
+	public static boolean registerLocalVariable(final Variable newAttribute, final Pattern pattern) {
+		return getBody(pattern).getLocalVariables().add(newAttribute);
+	}
+
+	public static boolean removeSymbolicParameter(final Pattern blackPattern, final EMFVariable toBeRemoved) {
+		return blackPattern.getSymbolicParameters().remove(toBeRemoved);
 	}
 
 }

@@ -56,13 +56,12 @@ import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.SingleResultPatternInvocation;
 import org.moflon.sdm.runtime.democles.TailControlledLoop;
 import org.moflon.sdm.runtime.democles.VariableReference;
-import org.moflon.tie.gt.ide.core.patterns.util.AdapterResourceUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.AdapterResources;
 import org.moflon.tie.gt.ide.core.patterns.util.ControlFlowUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.PatternUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationActions;
+import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptionUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.ValidationUtil;
+import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptions;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
@@ -166,10 +165,10 @@ public class EditorToControlFlowTransformation {
 				.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 				.forEach(thisVariable -> thisVariable.setConstructor(null));
 
-		final AdapterResource adapterResource = AdapterResourceUtil.attachControlFlowModelToRegisteredAdapter(rootScope,
+		final AdapterResource adapterResource = AdapterResources.attachControlFlowModelToRegisteredAdapter(rootScope,
 				eOperation, resourceSet);
 
-		AdapterResourceUtil.saveResource(adapterResource);
+		AdapterResources.saveResource(adapterResource);
 	}
 
 	private void visitStatement(Statement statement, final Scope scope, final EClass eClass,
@@ -223,7 +222,7 @@ public class EditorToControlFlowTransformation {
 			emptyAction.setCfNode(returnStmtDemocles);
 		} else {
 
-			final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationUtil
+			final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationActions
 					.createSingleResultPatternInvocation(returnStmtDemocles);
 
 			final Pattern pattern;
@@ -270,7 +269,7 @@ public class EditorToControlFlowTransformation {
 					ControlFlowUtil.createVariableReference(cfReturnVariable, source, resultPatternInvocation);
 
 				} else {
-					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 							"Cannot resolve variable to be returned: %s", nameOfRequiredControlFlowVariable);
 					return;
 				}
@@ -302,7 +301,7 @@ public class EditorToControlFlowTransformation {
 					ControlFlowUtil.createVariableReference(tempCFReturnVariable, target, resultPatternInvocation);
 					ControlFlowUtil.createVariableReference(cfReturnVariable, source, resultPatternInvocation);
 				} else {
-					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 							"Cannot resolve variable to be returned: %s", nameOfRequiredControlFlowVariable);
 					return;
 				}
@@ -322,7 +321,7 @@ public class EditorToControlFlowTransformation {
 
 				ControlFlowUtil.createVariableReference(returnVariable, emfReturnVariable, resultPatternInvocation);
 			} else {
-				TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+				TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 						"Cannot handle the following expresion in a return statement '%s'", returnObject);
 				return;
 			}
@@ -340,10 +339,10 @@ public class EditorToControlFlowTransformation {
 			patternNameGenerator.setPatternDefinition(null);
 			pattern.setName(patternNameGenerator.generateName());
 
-			final AdapterResource adapterResource = AdapterResourceUtil.attachToRegisteredAdapter(pattern, eClass,
+			final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(pattern, eClass,
 					patternType, resourceSet);
 
-			AdapterResourceUtil.saveResource(adapterResource);
+			AdapterResources.saveResource(adapterResource);
 
 			createAndSaveSearchPlan(resultPatternInvocation, pattern, patternType);
 		}
@@ -506,13 +505,13 @@ public class EditorToControlFlowTransformation {
 		final ObjectVariableStatement callee = operationStatement.getObject();
 		final EOperation calledOperation = operationStatement.getCall();
 
-		final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationUtil
+		final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationActions
 				.createSingleResultPatternInvocation(cfNode);
 		final PatternBuilderVisitor patternBuilderVisitor = createPatternBuilderVisitor();
 		final Optional<CFVariable> calleeVariableCandidate = ControlFlowUtil
 				.findControlFlowVariableByName(cfNode.getScope(), callee.getName());
 		if (!calleeVariableCandidate.isPresent()) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"No variable with name %s exists.", callee);
 			return;
 		}
@@ -532,7 +531,7 @@ public class EditorToControlFlowTransformation {
 				final Optional<CFVariable> parameterCfVariableCandidate = ControlFlowUtil
 						.findControlFlowVariableByName(cfNode.getScope(), name);
 				if (!parameterCfVariableCandidate.isPresent()) {
-					TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+					TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 							"No variable with name %s exists.", callee);
 				} else {
 					parameterCFVariables.add(parameterCfVariableCandidate.get());
@@ -548,23 +547,23 @@ public class EditorToControlFlowTransformation {
 		pattern.setName(patternNameGenerator.generateName());
 
 		if (!TieGtEcoreUtil.isVoidOperation(calledOperation)) {
-			final Variable emfReturnVariable = PatternUtil.getSymbolicParameterByName(pattern,
+			final Variable emfReturnVariable = Patterns.getSymbolicParameterByName(pattern,
 					PatternBuilderVisitor.RESULT_VARIABLE_NAME);
 			ControlFlowUtil.createVariableReference(returnCFVariable, emfReturnVariable, resultPatternInvocation);
 		}
 
-		final Variable calleeEmfVariable = PatternUtil.getSymbolicParameterByName(pattern, calleeVariable.getName());
+		final Variable calleeEmfVariable = Patterns.getSymbolicParameterByName(pattern, calleeVariable.getName());
 		ControlFlowUtil.createVariableReference(calleeVariable, calleeEmfVariable, resultPatternInvocation);
 		for (final CFVariable parameterCFVariable : parameterCFVariables) {
-			final Variable parameterEmfVariable = PatternUtil.getSymbolicParameterByName(pattern,
+			final Variable parameterEmfVariable = Patterns.getSymbolicParameterByName(pattern,
 					parameterCFVariable.getName());
 			ControlFlowUtil.createVariableReference(parameterCFVariable, parameterEmfVariable, resultPatternInvocation);
 		}
 
-		final AdapterResource adapterResource = AdapterResourceUtil.attachToRegisteredAdapter(pattern, eClass,
+		final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(pattern, eClass,
 				patternType, resourceSet);
 
-		AdapterResourceUtil.saveResource(adapterResource);
+		AdapterResources.saveResource(adapterResource);
 
 		createAndSaveSearchPlan(resultPatternInvocation, pattern, patternType);
 
@@ -592,7 +591,7 @@ public class EditorToControlFlowTransformation {
 
 		for (final DemoclesPatternType patternType : getOrderedPatternTypes()) {
 
-			final Pattern democlesPattern = patterns.getPatternForType(patternType);
+			final Pattern democlesPattern = patterns.getPattern(patternType);
 
 			if (patternType.isBlack() && patterns.hasPatternForType(DemoclesPatternType.BINDING_AND_BLACK_PATTERN))
 				continue;
@@ -650,15 +649,15 @@ public class EditorToControlFlowTransformation {
 				break;
 			}
 			}
-			final AdapterResource adapterResource = AdapterResourceUtil.attachToRegisteredAdapter(democlesPattern,
+			final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(democlesPattern,
 					eClass, patternType, resourceSet);
 
-			AdapterResourceUtil.saveResource(adapterResource);
+			AdapterResources.saveResource(adapterResource);
 
 			if (hasErrors())
 				return;
 
-			final PatternInvocation patternInvocation = PatternInvocationUtil.createPatternInvocation(scope,
+			final PatternInvocation patternInvocation = PatternInvocationActions.createPatternInvocation(scope,
 					invokingCFNode, editorPattern, democlesPattern);
 			bindConstructedVariablesFromParameter(scope, democlesPattern, patternInvocation, calledParameters,
 					createdVariables, patternType);
@@ -688,7 +687,7 @@ public class EditorToControlFlowTransformation {
 		final GTFlattener flattener = new GTFlattener(editorPattern);
 		final List<String> flatteningErrors = flattener.getErrors();
 		for (final String errorMessage : flatteningErrors) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Flattening of %s failed: %s", editorPattern.getName(), errorMessage);
 		}
 		final EditorPattern flattenedPattern = flattener.getFlattenedPattern();
@@ -740,10 +739,10 @@ public class EditorToControlFlowTransformation {
 		} else {
 			suffix = DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
 		}
-		final AdapterResource adapterResource = AdapterResourceUtil.attachToRegisteredAdapter(invokedPattern, eClass,
+		final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(invokedPattern, eClass,
 				suffix, resourceSet);
 
-		AdapterResourceUtil.saveResource(adapterResource);
+		AdapterResources.saveResource(adapterResource);
 
 		final PatternMatcher patternMatcher;
 		if (constraintType == null) {
@@ -819,8 +818,8 @@ public class EditorToControlFlowTransformation {
 		final PatternMatcher patternMatcher = getPatternMatcher(type);
 		final Adornment adornment = ControlFlowUtil.calculateAdornment(invocation, type);
 
-		if (type.isRed() && !PatternUtil.isOnlyBound(adornment)) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+		if (type.isRed() && !Patterns.isOnlyBound(adornment)) {
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Red patterns should only have bound adornments. Pattern: %s. Adornment: %s", pattern.getName(),
 					adornment);
 			return;
@@ -836,7 +835,7 @@ public class EditorToControlFlowTransformation {
 	private EClass resolveEClass(final EClassDef editorEClass) {
 		final String name = editorEClass.getName().getName();
 		if (name == null) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Cannot resolve proxy: " + editorEClass.getName());
 			return null;
 		}
@@ -851,7 +850,7 @@ public class EditorToControlFlowTransformation {
 		}).findAny().orElse(null);
 
 		if (eOperation == null) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Cannot find EOperation for %s (from editor) in EClass %s ", methodDeclaration, eClass);
 		}
 
@@ -860,11 +859,11 @@ public class EditorToControlFlowTransformation {
 
 	private void createAndCheckParameterVariables(final EOperation eOperation, final MethodDec editorEOperation,
 			final Scope rootScope) {
-		ValidationUtil.validateEqualParameterCount(eOperation, editorEOperation, transformationStatus);
+		TieGtEcoreUtil.validateEqualParameterCount(eOperation, editorEOperation, transformationStatus);
 		if (hasErrors())
 			return;
 
-		ValidationUtil.validateSameParameterNames(eOperation, editorEOperation, transformationStatus);
+		TieGtEcoreUtil.validateSameParameterNames(eOperation, editorEOperation, transformationStatus);
 		if (hasErrors())
 			return;
 
@@ -898,11 +897,11 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private CFVariable createTemporaryCFVariable(final Scope scope, final Variable var) {
-		final EClassifier editorObjectVariableType = ValidationUtil.validateTypeExists(var, transformationStatus);
+		final EClassifier editorObjectVariableType = TieGtEcoreUtil.validateTypeExists(var, transformationStatus);
 		if (hasErrors())
 			return null;
 
-		ValidationUtil.validateTypeExistsInMetamodel(var, ePackage, ecorePackage, transformationStatus);
+		TieGtEcoreUtil.validateTypeExistsInMetamodel(var, ePackage, ecorePackage, transformationStatus);
 		if (hasErrors())
 			return null;
 
@@ -1021,7 +1020,7 @@ public class EditorToControlFlowTransformation {
 		final EClassifier properCfVariableType = TypeLookup.lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
 				ecorePackage);
 		if (properCfVariableType == null) {
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Cannot translate the type %s (from the editor) to an EClassifier in %s", editorObjectVariableType,
 					ePackage);
 		}

@@ -6,9 +6,9 @@ import org.eclipse.core.runtime.Status;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.core.utilities.WorkspaceHelper;
 
-public final class TransformationExceptionUtil {
+public final class TransformationExceptions {
 
-	private TransformationExceptionUtil() {
+	private TransformationExceptions() {
 		throw new UtilityClassNotInstantiableException();
 	}
 
@@ -16,7 +16,7 @@ public final class TransformationExceptionUtil {
 			final Object... arguments) {
 		final String detailedMessage = String.format(message, arguments);
 		transformationStatus.add(new Status(IStatus.ERROR,
-				WorkspaceHelper.getPluginId(TransformationExceptionUtil.class), detailedMessage));
+				WorkspaceHelper.getPluginId(TransformationExceptions.class), detailedMessage));
 	}
 
 }

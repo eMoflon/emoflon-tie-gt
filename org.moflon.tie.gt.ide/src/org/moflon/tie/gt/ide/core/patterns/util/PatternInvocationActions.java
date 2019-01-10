@@ -13,8 +13,8 @@ import org.moflon.sdm.runtime.democles.RegularPatternInvocation;
 import org.moflon.sdm.runtime.democles.Scope;
 import org.moflon.sdm.runtime.democles.SingleResultPatternInvocation;
 
-public final class PatternInvocationUtil {
-	private PatternInvocationUtil() {
+public final class PatternInvocationActions {
+	private PatternInvocationActions() {
 		throw new UtilityClassNotInstantiableException();
 	}
 

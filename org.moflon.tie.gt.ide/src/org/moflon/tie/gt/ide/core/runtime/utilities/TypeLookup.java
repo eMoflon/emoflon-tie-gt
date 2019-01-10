@@ -7,8 +7,12 @@ import java.util.Optional;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.emoflon.ibex.gt.editor.gT.EditorNode;
+import org.emoflon.ibex.gt.editor.gT.EditorParameter;
+import org.moflon.sdm.runtime.democles.CFVariable;
 
 public class TypeLookup {
 
@@ -85,12 +89,30 @@ public class TypeLookup {
 			final EPackage ecorePackage) {
 		if (statementEType == null)
 			return null;
-	
+
 		final EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
 		if (properEClassifierFromEPackage != null)
 			return properEClassifierFromEPackage;
 		else
 			return ecorePackage.getEClassifier(statementEType.getName());
+	}
+
+	public EClassifier determineTypeOfEditorElement(final EObject editorElement) {
+		if (editorElement instanceof EditorParameter) {
+			final EditorParameter editorParameter = (EditorParameter) editorElement;
+			return editorParameter.getType();
+		} else if (editorElement instanceof EditorNode) {
+			final EditorNode node = (EditorNode) editorElement;
+			return node.getType();
+		} else if (editorElement instanceof CFVariable) {
+			final CFVariable variable = (CFVariable) editorElement;
+			return variable.getType();
+		} else if (editorElement instanceof EAttribute) {
+			final EAttribute attribute = (EAttribute) editorElement;
+			return attribute.getEType();
+		}
+
+		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", editorElement));
 	}
 
 }

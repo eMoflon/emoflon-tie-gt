@@ -5,14 +5,15 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
 import org.emoflon.ibex.gt.editor.gT.EditorRelation;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
+import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
-public final class RelationalConstraintUtil {
-	private RelationalConstraintUtil() {
+public final class RelationalConstraints {
+	private RelationalConstraints() {
 		throw new UtilityClassNotInstantiableException();
 	}
 
@@ -45,7 +46,7 @@ public final class RelationalConstraintUtil {
 		case ASSIGNMENT:
 			return factory.createEqual();
 		default:
-			TransformationExceptionUtil.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
 					"Unsupported relation %s", relation);
 			return null;
 		}
@@ -59,6 +60,14 @@ public final class RelationalConstraintUtil {
 		targetConstr.setReference(target);
 		equal.getParameters().add(targetConstr);
 		equal.getParameters().add(sourceConstr);
+		return equal;
+	}
+
+	public static Equal createAndRegisterEqualConstraint(final ConstraintVariable lhsVariable,
+			final ConstraintVariable rhsVariable, final PatternBody body) {
+		final Equal equal = createEqualConstraint(lhsVariable, rhsVariable);
+		body.getConstraints().add(equal);
+
 		return equal;
 	}
 
