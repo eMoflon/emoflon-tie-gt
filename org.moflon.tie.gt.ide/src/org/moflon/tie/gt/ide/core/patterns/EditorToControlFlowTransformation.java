@@ -91,10 +91,9 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.WhileLoopStat
 
 public class EditorToControlFlowTransformation {
 
-	private static final String GENERATED_VARIABLE_NAME_PREFIX = "temp_";
 	private static final String THIS_VARIABLE_NAME = "this";
 	private static final Action THIS_VARIABLE_DUMMY_ACTION = DemoclesFactory.eINSTANCE.createAction();
-	private final PatternMatcherConfiguration patternMatcherConfiguration;
+	private final PatternMatcherConfiguration patternMatchers;
 	private int cfNodeIdCounter;
 	private CFNode recentControlFlowNode;
 
@@ -113,7 +112,7 @@ public class EditorToControlFlowTransformation {
 
 	public EditorToControlFlowTransformation(final PatternMatcherConfiguration patternMatcherConfiguration,
 			final EMoflonPreferencesStorage preferencesStorage) {
-		this.patternMatcherConfiguration = patternMatcherConfiguration;
+		this.patternMatchers = patternMatcherConfiguration;
 	}
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile controlFlowFile,
@@ -229,7 +228,7 @@ public class EditorToControlFlowTransformation {
 			final EClassifier returnType;
 			if (returnObject instanceof LiteralExpression) {
 				final LiteralExpression val = (LiteralExpression) returnObject;
-				final EClassifier returnVariableType = lookupTypeInEcoreFile(eOperation.getEType());
+				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage, ecorePackage);
 				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
@@ -245,7 +244,7 @@ public class EditorToControlFlowTransformation {
 			} else if (returnObject instanceof ObjectVariableExpression) {
 				final ObjectVariableExpression namedObject = (ObjectVariableExpression) returnObject;
 				final ObjectVariableStatement oVarStmt = namedObject.getObj();
-				returnType = lookupTypeInEcoreFile(oVarStmt.getEType());
+				returnType = TypeLookup.lookupTypeInEcoreFile(oVarStmt.getEType(), ePackage, ecorePackage);
 
 				final String nameOfRequiredControlFlowVariable = oVarStmt.getName();
 				final Optional<CFVariable> returnVariableCandidate = ControlFlowUtil
@@ -307,7 +306,7 @@ public class EditorToControlFlowTransformation {
 				}
 			} else if (returnObject instanceof EnumExpression) {
 				final EnumExpression enumExpression = (EnumExpression) returnObject;
-				final EClassifier returnVariableType = lookupTypeInEcoreFile(eOperation.getEType());
+				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage, ecorePackage);
 				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
@@ -548,7 +547,7 @@ public class EditorToControlFlowTransformation {
 
 		if (!TieGtEcoreUtil.isVoidOperation(calledOperation)) {
 			final Variable emfReturnVariable = Patterns.getSymbolicParameterByName(pattern,
-					PatternBuilderVisitor.RESULT_VARIABLE_NAME);
+					CodeConventions.RESULT_VARIABLE_NAME);
 			ControlFlowUtil.createVariableReference(returnCFVariable, emfReturnVariable, resultPatternInvocation);
 		}
 
@@ -560,8 +559,8 @@ public class EditorToControlFlowTransformation {
 			ControlFlowUtil.createVariableReference(parameterCFVariable, parameterEmfVariable, resultPatternInvocation);
 		}
 
-		final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(pattern, eClass,
-				patternType, resourceSet);
+		final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(pattern, eClass, patternType,
+				resourceSet);
 
 		AdapterResources.saveResource(adapterResource);
 
@@ -649,8 +648,8 @@ public class EditorToControlFlowTransformation {
 				break;
 			}
 			}
-			final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(democlesPattern,
-					eClass, patternType, resourceSet);
+			final AdapterResource adapterResource = AdapterResources.attachToRegisteredAdapter(democlesPattern, eClass,
+					patternType, resourceSet);
 
 			AdapterResources.saveResource(adapterResource);
 
@@ -746,9 +745,9 @@ public class EditorToControlFlowTransformation {
 
 		final PatternMatcher patternMatcher;
 		if (constraintType == null) {
-			patternMatcher = getPatternMatcher(patternType);
+			patternMatcher = patternMatchers.getPatternMatcher(patternType);
 		} else {
-			patternMatcher = getPatternMatcher(constraintType);
+			patternMatcher = patternMatchers.getPatternMatcher(constraintType);
 		}
 
 		final PatternInvocationConstraint invocationConstraint = (PatternInvocationConstraint) constraint;
@@ -815,7 +814,7 @@ public class EditorToControlFlowTransformation {
 
 	private void createAndSaveSearchPlan(final PatternInvocation invocation, final Pattern pattern,
 			final DemoclesPatternType type) {
-		final PatternMatcher patternMatcher = getPatternMatcher(type);
+		final PatternMatcher patternMatcher = patternMatchers.getPatternMatcher(type);
 		final Adornment adornment = ControlFlowUtil.calculateAdornment(invocation, type);
 
 		if (type.isRed() && !Patterns.isOnlyBound(adornment)) {
@@ -905,7 +904,7 @@ public class EditorToControlFlowTransformation {
 		if (hasErrors())
 			return null;
 
-		final String name = GENERATED_VARIABLE_NAME_PREFIX + var.getName();
+		final String name = CodeConventions.GENERATED_VARIABLE_NAME_PREFIX + var.getName();
 		final CFVariable temp = ControlFlowUtil.createControlFlowVariableWithoutConstructor(name,
 				editorObjectVariableType, scope);
 		scope.getVariables().add(temp);
@@ -970,7 +969,7 @@ public class EditorToControlFlowTransformation {
 				searchedScope = scope.getContents().get(0).getScope();
 			}
 
-			final List<String> names = Arrays.asList(GENERATED_VARIABLE_NAME_PREFIX + symbolicParameter.getName(),
+			final List<String> names = Arrays.asList(CodeConventions.GENERATED_VARIABLE_NAME_PREFIX + symbolicParameter.getName(),
 					symbolicParameter.getName());
 			final Optional<CFVariable> candidate = ControlFlowUtil.findControlFlowVariableByNames(searchedScope, names);
 			return candidate.orElse(null);
@@ -1038,20 +1037,8 @@ public class EditorToControlFlowTransformation {
 		}
 	}
 
-	private EClassifier lookupTypeInEcoreFile(final EClassifier statementEType) {
-		return TypeLookup.lookupTypeInEcoreFile(statementEType, ePackage, ecorePackage);
-	}
-
-	private PatternMatcher getPatternMatcher(final DemoclesPatternType patternType) {
-		return patternMatcherConfiguration.getPatternMatcher(patternType);
-	}
-
 	private PatternBuilderVisitor createPatternBuilderVisitor() {
 		return new PatternBuilderVisitor(Arrays.asList(ecorePackage, ePackage), resourceSet, transformationStatus);
-	}
-
-	private boolean hasErrors() {
-		return transformationStatus.matches(IStatus.ERROR);
 	}
 
 	private void setTransformationParameters(final EPackage ePackage, final ResourceSet resourceSet,
@@ -1072,5 +1059,9 @@ public class EditorToControlFlowTransformation {
 		this.ecorePackage = null;
 		this.transformationStatus = null;
 		this.patternNameGenerator = null;
+	}
+
+	private boolean hasErrors() {
+		return transformationStatus.matches(IStatus.ERROR);
 	}
 }

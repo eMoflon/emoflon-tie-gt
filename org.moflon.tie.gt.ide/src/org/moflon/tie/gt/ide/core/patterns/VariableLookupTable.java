@@ -158,4 +158,14 @@ class VariableLookupTable {
 		}
 	}
 
+	public EMFVariable getReturnVariable(final EObject returnObject, final Pattern pattern) {
+		final EMFVariable returnEmfVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
+		returnEmfVariable.setName(CodeConventions.RESULT_VARIABLE_NAME);
+		returnEmfVariable
+				.setEClassifier(typeLookup.getEClassifier(typeLookup.determineTypeOfEditorElement(returnObject)));
+		pattern.getSymbolicParameters().add(0, returnEmfVariable);
+
+		return returnEmfVariable;
+	}
+
 }
