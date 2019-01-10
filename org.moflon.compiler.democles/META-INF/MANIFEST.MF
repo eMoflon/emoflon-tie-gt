@@ -18,7 +18,8 @@ Require-Bundle:
  org.moflon.emf.codegen,
  org.moflon.emf.injection.ide,
  org.moflon.core.ui,
- org.moflon.emf.build
+ org.moflon.emf.build,
+ org.moflon.sdm.constraints.democles
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.compiler.sdm.democles,
  org.moflon.compiler.sdm.democles.eclipse,

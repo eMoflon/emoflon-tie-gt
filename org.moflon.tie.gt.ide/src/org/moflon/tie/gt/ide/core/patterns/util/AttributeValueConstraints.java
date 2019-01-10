@@ -8,21 +8,23 @@ import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
+import org.moflon.sdm.constraints.democles.AttributeValueConstraint;
+import org.moflon.sdm.constraints.democles.DemoclesFactory;
 
-public final class Attributes {
-	private Attributes() {
+public final class AttributeValueConstraints {
+	private AttributeValueConstraints() {
 		throw new UtilityClassNotInstantiableException();
 	}
 
-	public static Attribute create(final EAttribute modelElement, final ConstraintVariable objectVariable,
-			final ConstraintVariable attributeVariable) {
+	@SuppressWarnings("unchecked")
+	public static AttributeValueConstraint create(final EAttribute modelElement,
+			final ConstraintVariable objectVariable, final ConstraintVariable attributeVariable) {
 		final ConstraintParameter fromParameter = Patterns.createConstraintParameter(objectVariable);
 		final ConstraintParameter toParameter = Patterns.createConstraintParameter(attributeVariable);
 
-		final Attribute attribute = EMFTypeFactory.eINSTANCE.createAttribute();
+		final AttributeValueConstraint attribute = DemoclesFactory.eINSTANCE.createAttributeValueConstraint();
 		attribute.setEModelElement(modelElement);
 		attribute.getParameters().add(fromParameter);
 		attribute.getParameters().add(toParameter);
@@ -42,11 +44,12 @@ public final class Attributes {
 	 * @return the created {@link Attribute} it it did not exist, yet. Else the
 	 *         existing {@link Attribute} constraint.
 	 */
-	public static Attribute createAndRegister(final EAttribute attribute, final ConstraintVariable objectVariable,
-			final ConstraintVariable attributeVariable, final PatternBody body) {
-		final Attribute attributeConstraint = create(attribute, objectVariable, attributeVariable);
+	public static AttributeValueConstraint createAndRegister(final EAttribute attribute,
+			final ConstraintVariable objectVariable, final ConstraintVariable attributeVariable,
+			final PatternBody body) {
+		final AttributeValueConstraint attributeConstraint = create(attribute, objectVariable, attributeVariable);
 
-		final Optional<Attribute> existingConstraint = findExisting(attributeConstraint, body);
+		final Optional<AttributeValueConstraint> existingConstraint = findExisting(attributeConstraint, body);
 		if (!existingConstraint.isPresent()) {
 			Patterns.registerConstraint(attributeConstraint, body);
 			return attributeConstraint;
@@ -55,16 +58,17 @@ public final class Attributes {
 		}
 	}
 
-	private static Optional<Attribute> findExisting(final Attribute attributeConstraint,
+	private static Optional<AttributeValueConstraint> findExisting(final AttributeValueConstraint attributeConstraint,
 			final PatternBody patternBody) {
-		final Optional<Attribute> existingAttributeConstraint = patternBody.getConstraints().stream()
-				.filter(constraint -> constraint instanceof Attribute)//
-				.map(Attribute.class::cast)
+		final Optional<AttributeValueConstraint> existingAttributeConstraint = patternBody.getConstraints().stream()
+				.filter(constraint -> constraint instanceof AttributeValueConstraint)//
+				.map(AttributeValueConstraint.class::cast)
 				.filter(candidateConstraint -> areEqual(candidateConstraint, attributeConstraint)).findAny();
 		return existingAttributeConstraint;
 	}
 
-	private static boolean areEqual(final Attribute constraint1, final Attribute constraint2) {
+	private static boolean areEqual(final AttributeValueConstraint constraint1,
+			final AttributeValueConstraint constraint2) {
 		final List<ConstraintParameter> parameters1 = constraint1.getParameters();
 		final List<ConstraintParameter> parameters2 = constraint2.getParameters();
 		final int parameterCount1 = parameters1.size();

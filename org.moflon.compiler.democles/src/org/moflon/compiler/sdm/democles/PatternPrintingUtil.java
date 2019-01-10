@@ -4,6 +4,7 @@ import org.eclipse.emf.common.util.EList;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
@@ -21,6 +22,9 @@ import org.gervarro.democles.specification.emf.constraint.relational.Smaller;
 import org.gervarro.democles.specification.emf.constraint.relational.SmallerOrEqual;
 import org.gervarro.democles.specification.emf.constraint.relational.Unequal;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
+import org.moflon.sdm.constraints.democles.AttributeValueConstraint;
+import org.moflon.sdm.constraints.democles.AttributeVariableConstraint;
+import org.moflon.sdm.constraints.democles.TypedConstant;
 
 public final class PatternPrintingUtil {
 
@@ -91,9 +95,16 @@ public final class PatternPrintingUtil {
 		sb.append("(");
 		for (final ConstraintParameter parameter : constraint.getParameters()) {
 			final ConstraintVariable reference = parameter.getReference();
-			if (reference instanceof EMFVariable)
-				sb.append(EMFVariable.class.cast(reference).getName());
-			else
+			if (reference instanceof Variable) {
+				final Variable variable = Variable.class.cast(reference);
+				sb.append(variable.getName());
+			} else if (reference instanceof TypedConstant) {
+				final TypedConstant constant = TypedConstant.class.cast(reference);
+				sb.append(constant.getValue()).append("::").append(constant.getEClassifier().getName());
+			} else if (reference instanceof Constant) {
+				final Constant constant = Constant.class.cast(reference);
+				sb.append(constant.getValue());
+			} else
 				sb.append(parameter);
 			appendf(sb, "[%x],", reference.hashCode());
 		}
@@ -106,6 +117,12 @@ public final class PatternPrintingUtil {
 		if (constraint instanceof Attribute) {
 			final Attribute attribute = (Attribute) constraint;
 			return attribute.getEModelElement().getName();
+		} else if (constraint instanceof AttributeValueConstraint) {
+			final AttributeValueConstraint attribute = (AttributeValueConstraint) constraint;
+			return attribute.getEModelElement().getName();
+		} else if (constraint instanceof AttributeVariableConstraint) {
+			final AttributeVariableConstraint attribute = (AttributeVariableConstraint) constraint;
+			return attribute.getPredicateSymbol();
 		} else if (constraint instanceof Reference) {
 			final Reference reference = (Reference) constraint;
 			return reference.getEModelElement().getName();

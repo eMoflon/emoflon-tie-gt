@@ -42,6 +42,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintPredicate;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
+import org.emoflon.ibex.gt.editor.utils.GtPrettyPrinter;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
@@ -63,9 +64,9 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
 import org.moflon.sdm.constraints.operationspecification.ParameterType;
 import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintType;
 import org.moflon.sdm.runtime.democles.CFVariable;
+import org.moflon.tie.gt.ide.core.patterns.util.AttributeValueConstraints;
 import org.moflon.tie.gt.ide.core.patterns.util.Attributes;
 import org.moflon.tie.gt.ide.core.patterns.util.Constants;
-import org.moflon.tie.gt.ide.core.patterns.util.GtFormatter;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationActions;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationConstraints;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
@@ -309,7 +310,8 @@ public class PatternBuilderVisitor {
 								final EMFVariable emfObjectVariable = variables.getSymbolicParameter(editorNode,
 										DemoclesPatternType.BLACK_PATTERN);
 
-								Attributes.createAndRegister(eAttribute, emfObjectVariable, variable, body);
+								AttributeValueConstraints.createAndRegister(eAttribute, emfObjectVariable, variable,
+										body);
 							} else if (predicateArgument instanceof EditorLiteralExpression) {
 								final EditorLiteralExpression literalExpression = EditorLiteralExpression.class
 										.cast(predicateArgument);
@@ -333,12 +335,12 @@ public class PatternBuilderVisitor {
 					} else {
 						TransformationExceptions.recordTransformationErrorMessage(getStatus(),
 								"No constraint specification with symbol %s matches the type signature %s of predicate %s",
-								predicateSymbol, formatTypeList(predicateArgumentTypes), GtFormatter.format(predicate));
+								predicateSymbol, formatTypeList(predicateArgumentTypes), GtPrettyPrinter.format(predicate));
 					}
 
 				} else {
 					TransformationExceptions.recordTransformationErrorMessage(getStatus(),
-							"Predicate symbol of %s not in constraints library.", GtFormatter.format(predicate));
+							"Predicate symbol of %s not in constraints library.", GtPrettyPrinter.format(predicate));
 				}
 			}
 
@@ -528,11 +530,13 @@ public class PatternBuilderVisitor {
 	private void createPatternInvocation(final EditorApplicationConditionType type, final Pattern newInvokedPattern) {
 		final PatternInvocationConstraint invocationConstraint = SpecificationFactory.eINSTANCE
 				.createPatternInvocationConstraint();
-		final EList<Variable> symbolicParamsInvoker = patterns.getBlackPattern().getSymbolicParameters();
-		invocationConstraint.setPositive(type == EditorApplicationConditionType.POSITIVE ? true : false);
+		final Pattern pattern = patterns.getBlackPattern();
+		final EList<Variable> symbolicParamsInvoker = pattern.getSymbolicParameters();
+		final boolean isPositive = type == EditorApplicationConditionType.POSITIVE ? true : false;
+		invocationConstraint.setPositive(isPositive);
 		invocationConstraint.setInvokedPattern(newInvokedPattern);
 		createConstraintParameters(newInvokedPattern, invocationConstraint, symbolicParamsInvoker);
-		patterns.getBlackPattern().getBodies().get(0).getConstraints().add(invocationConstraint);
+		Patterns.registerConstraint(invocationConstraint, Patterns.getBody(pattern));
 	}
 
 	private void createConstraintParameters(final Pattern invokedPattern,

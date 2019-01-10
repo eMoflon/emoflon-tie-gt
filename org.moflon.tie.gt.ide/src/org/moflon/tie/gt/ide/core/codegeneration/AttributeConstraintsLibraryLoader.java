@@ -46,7 +46,7 @@ public class AttributeConstraintsLibraryLoader {
 		final AttributeConstraintLibrary democlesLibrary = OperationspecificationFactory.eINSTANCE
 				.createAttributeConstraintLibrary();
 		democlesLibrary.setPrefix(deriveAttributeConstraintsLibraryPrefix(gtFile));
-
+		// TODO@rkluge: Handle reuse
 		for (final EditorAttributeConditionLibrary editorLibrary : gtFile.getAttributeConditionLibraries()) {
 
 			for (final EditorAttributeConditionSpecification editorConditionSpecification : editorLibrary
@@ -86,6 +86,7 @@ public class AttributeConstraintsLibraryLoader {
 								.setAdornmentString(mapToAdornmentString(editorOperationalization.getAdornments()));
 						operationSpecification.setAlwaysSuccessful(isAlwaysSuccessfull(editorOperationalization));
 						operationSpecification.setSpecification(editorOperationalization.getSpecification());
+						democlesOperationSpecificationGroup.getOperationSpecifications().add(operationSpecification);
 					}
 				}
 			}
