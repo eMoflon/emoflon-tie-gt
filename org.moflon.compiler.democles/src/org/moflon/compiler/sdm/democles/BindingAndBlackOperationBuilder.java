@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.PatternMatcherPlugin;
 import org.gervarro.democles.common.runtime.OperationBuilder;
@@ -19,7 +19,7 @@ import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 import org.gervarro.democles.specification.impl.Constraint;
 import org.gervarro.democles.specification.impl.Variable;
 
-public class BindingAndBlackOperationBuilder implements OperationBuilder<GeneratorOperation, GeneratorVariable> {
+public class BindingAndBlackOperationBuilder implements OperationBuilder<GeneratorOperation, SpecificationExtendedVariableRuntime> {
 	private final Pattern pattern;
 
 	private final Adornment adornment;
@@ -31,7 +31,7 @@ public class BindingAndBlackOperationBuilder implements OperationBuilder<Generat
 
 	@Override
 	public final List<GeneratorOperation> getConstraintOperations(final Constraint constraint,
-			final List<GeneratorVariable> parameters) {
+			final List<SpecificationExtendedVariableRuntime> parameters) {
 		final ConstraintType cType = constraint.getType();
 		if (cType instanceof PatternInvocationConstraintType) {
 			final PatternInvocationConstraintType invocation = (PatternInvocationConstraintType) cType;
@@ -71,7 +71,7 @@ public class BindingAndBlackOperationBuilder implements OperationBuilder<Generat
 	}
 
 	@Override
-	public GeneratorOperation getVariableOperation(final Variable variable, final GeneratorVariable runtimeVariable) {
+	public GeneratorOperation getVariableOperation(final Variable variable, final SpecificationExtendedVariableRuntime runtimeVariable) {
 		return null;
 	}
 

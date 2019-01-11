@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.codegen.stringtemplate.ParameterHandler;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.impl.Variable;
@@ -19,7 +19,7 @@ public class PatternMatcherModelAdaptor extends ParameterHandler {
 		if (object instanceof GeneratorOperation) {
 			if ("freeParameters".equals(propertyName)) {
 				GeneratorOperation operation = (GeneratorOperation) object;
-				List<GeneratorVariable> freeParameters = new LinkedList<>();
+				List<SpecificationExtendedVariableRuntime> freeParameters = new LinkedList<>();
 				Adornment precondition = operation.getPrecondition();
 				for (int i = 0; i < precondition.size(); i++) {
 					if (precondition.get(i) == Adornment.FREE) {
@@ -29,7 +29,7 @@ public class PatternMatcherModelAdaptor extends ParameterHandler {
 				return freeParameters;
 			} else if ("boundParameters".equals(propertyName)) {
 				GeneratorOperation operation = (GeneratorOperation) object;
-				List<GeneratorVariable> boundParameters = new LinkedList<>();
+				List<SpecificationExtendedVariableRuntime> boundParameters = new LinkedList<>();
 				Adornment precondition = operation.getPrecondition();
 				for (int i = 0; i < precondition.size(); i++) {
 					if (precondition.get(i) == Adornment.BOUND) {

@@ -18,6 +18,7 @@ Require-Bundle: org.stringtemplate;bundle-version="[4.2.1,5.0.0)",
  org.moflon.emf.build;bundle-version="1.0.0",
  org.moflon.sdm.compiler.eclipse;bundle-version="3.0.0",
  org.moflon.sdm.compiler.democles.validation.result;bundle-version="2.0.0",
- org.emoflon.ibex.gt.editor;bundle-version="1.0.0"
+ org.emoflon.ibex.gt.editor;bundle-version="1.0.0",
+ org.gervarro.democles.common
 Export-Package: org.moflon.compiler.sdm.democles.attributes
 Automatic-Module-Name: org.moflon.sdm.constraints.codegenerator

@@ -7,7 +7,7 @@ import java.util.List;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.OperationBuilder;
 import org.gervarro.democles.constraint.emf.EMFConstraint;
@@ -16,9 +16,9 @@ import org.gervarro.democles.constraint.emf.Reference;
 import org.gervarro.democles.specification.impl.Constraint;
 import org.gervarro.democles.specification.impl.Variable;
 
-public class EMFRedOperationBuilder implements OperationBuilder<GeneratorOperation, GeneratorVariable> {
+public class EMFRedOperationBuilder implements OperationBuilder<GeneratorOperation, SpecificationExtendedVariableRuntime> {
 
-	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<GeneratorVariable> parameters) {
+	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<SpecificationExtendedVariableRuntime> parameters) {
 		if (constraint.getType() instanceof EMFConstraint<?>) {
 			List<GeneratorOperation> result = new LinkedList<GeneratorOperation>();
 			EMFConstraint<?> cType = (EMFConstraint<?>) constraint.getType();
@@ -34,7 +34,7 @@ public class EMFRedOperationBuilder implements OperationBuilder<GeneratorOperati
 		return null;
 	}
 
-	public GeneratorOperation getVariableOperation(Variable variable, GeneratorVariable runtimeVariable) {
+	public GeneratorOperation getVariableOperation(Variable variable, SpecificationExtendedVariableRuntime runtimeVariable) {
 		if (variable.getType() instanceof EMFVariable) {
 			EClassifier eClassifier = ((EMFVariable) variable.getType()).getLinkedElement();
 			if (eClassifier instanceof EClass) {

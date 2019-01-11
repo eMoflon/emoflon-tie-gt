@@ -10,7 +10,7 @@ import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.SimpleCombiner;
 import org.gervarro.democles.codegen.emf.BasicEMFOperationBuilder;
 import org.gervarro.democles.codegen.emf.EMFOperationBuilder;
-import org.gervarro.democles.compiler.CompilerPatternBuilder;
+import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.emf.EMFConstraintModule;
 import org.gervarro.democles.emf.EMFWeightedOperationBuilder;
@@ -168,12 +168,12 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	protected PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
 		// Configuring binding & black pattern matcher
-		final CompilerPatternBuilder bindingAndBlackCompilerPatternBuilder = new CompilerPatternBuilder();
-		bindingAndBlackCompilerPatternBuilder.addOperationBuilder(basicOperationBuilder);
-		bindingAndBlackCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule bindingAndBlackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		bindingAndBlackCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
+		bindingAndBlackCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = new BindingAndBlackPatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, bindingAndBlackCompilerPatternBuilder);
+				bindingAndBlackPatternBuilder, bindingAndBlackCompilerPatternMatcherModule);
 		return bindingAndBlackPatternMatcherCompiler;
 	}
 
@@ -182,13 +182,13 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcherCompiler configureBindingPatternMatcherCompiler() {
-		final CompilerPatternBuilder bindingCompilerPatternBuilder = new CompilerPatternBuilder();
-		bindingCompilerPatternBuilder.addOperationBuilder(basicOperationBuilder);
-		bindingCompilerPatternBuilder.addOperationBuilder(bindingAssignmentOperationBuilder);
-		bindingCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule bindingCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		bindingCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
+		bindingCompilerPatternMatcherModule.addOperationBuilder(bindingAssignmentOperationBuilder);
+		bindingCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler bindingPatternMatcherCompiler = new PatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, bindingCompilerPatternBuilder);
+				bindingAndBlackPatternBuilder, bindingCompilerPatternMatcherModule);
 		return bindingPatternMatcherCompiler;
 	}
 
@@ -197,13 +197,13 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
-		final CompilerPatternBuilder blackCompilerPatternBuilder = new CompilerPatternBuilder();
-		blackCompilerPatternBuilder.addOperationBuilder(emfBlackOperationBuilder);
-		blackCompilerPatternBuilder.addOperationBuilder(relationalOperationBuilder);
-		blackCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule blackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
+		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
+		blackCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, blackCompilerPatternBuilder);
+				bindingAndBlackPatternBuilder, blackCompilerPatternMatcherModule);
 		return blackPatternMatcherCompiler;
 	}
 
@@ -218,12 +218,12 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		redPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 		redPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 
-		final CompilerPatternBuilder redCompilerPatternBuilder = new CompilerPatternBuilder();
-		redCompilerPatternBuilder.addOperationBuilder(emfRedOperationBuilder);
-		redCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule redCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		redCompilerPatternMatcherModule.addOperationBuilder(emfRedOperationBuilder);
+		redCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler redPatternMatcherCompiler = new PatternMatcherCompiler(redPatternBuilder,
-				redCompilerPatternBuilder);
+				redCompilerPatternMatcherModule);
 		return redPatternMatcherCompiler;
 	}
 
@@ -239,13 +239,13 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		greenPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 		greenPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 
-		final CompilerPatternBuilder greenCompilerPatternBuilder = new CompilerPatternBuilder();
-		greenCompilerPatternBuilder.addOperationBuilder(assignmentOperationBuilder);
-		greenCompilerPatternBuilder.addOperationBuilder(emfGreenOperationBuilder);
-		greenCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule greenCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		greenCompilerPatternMatcherModule.addOperationBuilder(assignmentOperationBuilder);
+		greenCompilerPatternMatcherModule.addOperationBuilder(emfGreenOperationBuilder);
+		greenCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler greenPatternMatcherCompiler = new PatternMatcherCompiler(greenPatternBuilder,
-				greenCompilerPatternBuilder);
+				greenCompilerPatternMatcherModule);
 		return greenPatternMatcherCompiler;
 	}
 
@@ -261,13 +261,13 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		expressionPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 		expressionPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 
-		final CompilerPatternBuilder expressionCompilerPatternBuilder = new CompilerPatternBuilder();
-		expressionCompilerPatternBuilder.addOperationBuilder(assignmentOperationBuilder);
-		expressionCompilerPatternBuilder.addOperationBuilder(basicOperationBuilder);
-		expressionCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule expressionCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		expressionCompilerPatternMatcherModule.addOperationBuilder(assignmentOperationBuilder);
+		expressionCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
+		expressionCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler expressionPatternMatcherCompiler = new PatternMatcherCompiler(
-				expressionPatternBuilder, expressionCompilerPatternBuilder);
+				expressionPatternBuilder, expressionCompilerPatternMatcherModule);
 		return expressionPatternMatcherCompiler;
 	}
 

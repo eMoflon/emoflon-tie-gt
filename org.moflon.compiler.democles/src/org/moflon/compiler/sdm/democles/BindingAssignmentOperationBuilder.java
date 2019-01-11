@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.specification.ConstraintType;
@@ -13,7 +13,7 @@ import org.gervarro.democles.specification.impl.Constraint;
 public class BindingAssignmentOperationBuilder extends AssignmentOperationBuilder {
 
 	@Override
-	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<GeneratorVariable> parameters) {
+	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<SpecificationExtendedVariableRuntime> parameters) {
 		ConstraintType cType = constraint.getType();
 		if (cType == CoreConstraintModule.EQUAL) {
 			List<GeneratorOperation> result = new LinkedList<GeneratorOperation>();

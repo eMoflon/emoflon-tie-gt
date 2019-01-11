@@ -6,7 +6,7 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.CodeGeneratorProvider;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.constraint.CoreConstraintModule;
@@ -50,10 +50,10 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 	}
 
 	private final boolean forceCasting(final GeneratorOperation operation) {
-		List<GeneratorVariable> parameters = operation.getParameters();
+		List<SpecificationExtendedVariableRuntime> parameters = operation.getParameters();
 		if (EcorePackage.eINSTANCE.getEDataType()
 				.isInstance(AssignmentOperationBuilder.lookupEClassifier(parameters.get(0)))) {
-			GeneratorVariable variable = parameters.get(1);
+			SpecificationExtendedVariableRuntime variable = parameters.get(1);
 			if (variable.getSpecification() instanceof Variable && EcorePackage.eINSTANCE.getEJavaObject()
 					.equals(AssignmentOperationBuilder.lookupEClassifier(variable))) {
 				return true;

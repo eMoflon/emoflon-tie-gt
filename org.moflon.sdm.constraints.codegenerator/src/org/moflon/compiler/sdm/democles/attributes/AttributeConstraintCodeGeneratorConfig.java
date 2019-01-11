@@ -9,7 +9,7 @@ import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.SimpleCombiner;
-import org.gervarro.democles.compiler.CompilerPatternBuilder;
+import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.plan.WeightedOperationBuilder;
 import org.gervarro.democles.plan.common.DefaultAlgorithm;
 import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
@@ -61,14 +61,14 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 
 	@Override
 	protected PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
-		final CompilerPatternBuilder blackCompilerPatternBuilder = new CompilerPatternBuilder();
-		blackCompilerPatternBuilder.addOperationBuilder(emfBlackOperationBuilder);
-		blackCompilerPatternBuilder.addOperationBuilder(relationalOperationBuilder);
-		blackCompilerPatternBuilder.addOperationBuilder(attributeConstraintsOperationBuilder);
-		blackCompilerPatternBuilder.setAlgorithm(algorithm);
+		final CompilerPatternMatcherModule blackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
+		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
+		blackCompilerPatternMatcherModule.addOperationBuilder(attributeConstraintsOperationBuilder);
+		blackCompilerPatternMatcherModule.setAlgorithm(algorithm);
 
 		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, blackCompilerPatternBuilder);
+				bindingAndBlackPatternBuilder, blackCompilerPatternMatcherModule);
 		return blackPatternMatcherCompiler;
 	}
 

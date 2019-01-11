@@ -7,7 +7,7 @@ import java.util.List;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.codegen.emf.BasicEMFOperationBuilder;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.constraint.emf.EMFConstraint;
@@ -18,7 +18,7 @@ import org.gervarro.democles.specification.impl.Variable;
 
 public class EMFGreenOperationBuilder extends BasicEMFOperationBuilder {
 
-	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<GeneratorVariable> parameters) {
+	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<SpecificationExtendedVariableRuntime> parameters) {
 		if (constraint.getType() instanceof EMFConstraint<?>) {
 			List<GeneratorOperation> result = super.getConstraintOperations(constraint, parameters);
 			if (result == null) {
@@ -36,7 +36,7 @@ public class EMFGreenOperationBuilder extends BasicEMFOperationBuilder {
 		return super.getConstraintOperations(constraint, parameters);
 	}
 
-	public GeneratorOperation getVariableOperation(Variable variable, GeneratorVariable runtimeVariable) {
+	public GeneratorOperation getVariableOperation(Variable variable, SpecificationExtendedVariableRuntime runtimeVariable) {
 		if (variable.getType() instanceof EMFVariable) {
 			EClassifier eClassifier = ((EMFVariable) variable.getType()).getLinkedElement();
 			if (eClassifier instanceof EClass) {

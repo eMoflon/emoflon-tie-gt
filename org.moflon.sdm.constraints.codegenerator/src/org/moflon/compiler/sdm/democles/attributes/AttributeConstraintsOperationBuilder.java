@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.OperationBuilder;
 import org.gervarro.democles.specification.ConstraintType;
@@ -15,11 +15,11 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
 import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
 
-public class AttributeConstraintsOperationBuilder implements OperationBuilder<GeneratorOperation, GeneratorVariable> {
+public class AttributeConstraintsOperationBuilder implements OperationBuilder<GeneratorOperation, SpecificationExtendedVariableRuntime> {
 
 	@Override
 	public List<GeneratorOperation> getConstraintOperations(final Constraint constraint,
-			final List<GeneratorVariable> parameters) {
+			final List<SpecificationExtendedVariableRuntime> parameters) {
 
 		final ConstraintType constraintType = constraint.getType();
 		if (constraintType instanceof ConstraintSpecification) {
@@ -30,7 +30,7 @@ public class AttributeConstraintsOperationBuilder implements OperationBuilder<Ge
 
 	}
 
-	public List<GeneratorOperation> getOperations(final Constraint constraint, final List<GeneratorVariable> parameters,
+	public List<GeneratorOperation> getOperations(final Constraint constraint, final List<SpecificationExtendedVariableRuntime> parameters,
 			final ConstraintSpecification cType) {
 		final List<GeneratorOperation> result = new LinkedList<>();
 		final OperationSpecificationGroup opSpecGroup = cType.getOperationSpecificationGroup();
@@ -41,7 +41,7 @@ public class AttributeConstraintsOperationBuilder implements OperationBuilder<Ge
 		return result;
 	}
 
-	public GeneratorOperation getOperation(final Constraint constraint, final List<GeneratorVariable> parameters,
+	public GeneratorOperation getOperation(final Constraint constraint, final List<SpecificationExtendedVariableRuntime> parameters,
 			final ConstraintSpecification constraintType, final OperationSpecification opSpec) {
 		final String adornmentString = opSpec.getAdornmentString();
 		final int adornmentSize = adornmentString.length();
@@ -60,7 +60,7 @@ public class AttributeConstraintsOperationBuilder implements OperationBuilder<Ge
 	}
 
 	@Override
-	public GeneratorOperation getVariableOperation(final Variable variable, final GeneratorVariable runtimeVariable) {
+	public GeneratorOperation getVariableOperation(final Variable variable, final SpecificationExtendedVariableRuntime runtimeVariable) {
 		return null;
 	}
 

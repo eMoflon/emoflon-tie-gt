@@ -7,7 +7,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.OperationBuilder;
 import org.gervarro.democles.constraint.CoreConstraintModule;
@@ -16,10 +16,10 @@ import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.impl.Constraint;
 import org.gervarro.democles.specification.impl.Variable;
 
-public class AssignmentOperationBuilder implements OperationBuilder<GeneratorOperation, GeneratorVariable> {
+public class AssignmentOperationBuilder implements OperationBuilder<GeneratorOperation, SpecificationExtendedVariableRuntime> {
 
 	@Override
-	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<GeneratorVariable> parameters) {
+	public List<GeneratorOperation> getConstraintOperations(Constraint constraint, List<SpecificationExtendedVariableRuntime> parameters) {
 		ConstraintType cType = constraint.getType();
 		if (cType == CoreConstraintModule.EQUAL) {
 			List<GeneratorOperation> result = new LinkedList<GeneratorOperation>();
@@ -33,11 +33,11 @@ public class AssignmentOperationBuilder implements OperationBuilder<GeneratorOpe
 	}
 
 	@Override
-	public final GeneratorOperation getVariableOperation(Variable variable, GeneratorVariable runtimeVariable) {
+	public final GeneratorOperation getVariableOperation(Variable variable, SpecificationExtendedVariableRuntime runtimeVariable) {
 		return null;
 	}
 
-	final boolean isTypeCheckNeeded(List<GeneratorVariable> parameters) {
+	final boolean isTypeCheckNeeded(List<SpecificationExtendedVariableRuntime> parameters) {
 		final EClassifier leftType = lookupEClassifier(parameters.get(0));
 		if (EcorePackage.eINSTANCE.getEClass().isInstance(leftType)) {
 			if (parameters.get(1).getSpecification() instanceof Variable) {
@@ -49,7 +49,7 @@ public class AssignmentOperationBuilder implements OperationBuilder<GeneratorOpe
 		return false;
 	}
 
-	public static EClassifier lookupEClassifier(final GeneratorVariable variableRuntime) {
+	public static EClassifier lookupEClassifier(final SpecificationExtendedVariableRuntime variableRuntime) {
 		final Variable variable = (Variable) variableRuntime.getSpecification();
 		final EMFVariable emfVariable = (EMFVariable) variable.getType();
 		return emfVariable.getLinkedElement();

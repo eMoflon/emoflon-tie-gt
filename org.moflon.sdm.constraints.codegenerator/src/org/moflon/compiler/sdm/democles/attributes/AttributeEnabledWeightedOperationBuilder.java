@@ -4,13 +4,13 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.common.runtime.WeightedOperationBuilder;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.PatternInvocationConstraintType;
 import org.gervarro.democles.constraint.emf.EMFConstraint;
 import org.gervarro.democles.constraint.emf.Operation;
 import org.gervarro.democles.constraint.emf.Reference;
 import org.gervarro.democles.constraint.emf.StructuralFeature;
-import org.gervarro.democles.plan.WeightedOperationBuilder;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.impl.Constraint;
 import org.gervarro.democles.specification.impl.Variable;
@@ -23,7 +23,7 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
  * @author Frederik Deckwerth - Initial implementation
  *
  */
-public class AttributeEnabledWeightedOperationBuilder extends WeightedOperationBuilder<GeneratorOperation> {
+public class AttributeEnabledWeightedOperationBuilder extends WeightedOperationBuilder<GeneratorOperation, GeneratorOperation> {
 
 	@Override
 	public int getWeight(final GeneratorOperation operation) {

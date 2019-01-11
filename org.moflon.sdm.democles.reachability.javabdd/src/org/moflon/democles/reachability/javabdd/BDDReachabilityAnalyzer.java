@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.OperationRuntime;
 import org.gervarro.democles.common.runtime.VariableRuntime;
@@ -317,6 +317,6 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 	}
 
 	private static boolean isAConstant(VariableRuntime variable) {
-		return GeneratorVariable.class.cast(variable).getSpecification() instanceof Constant;
+		return SpecificationExtendedVariableRuntime.class.cast(variable).getSpecification() instanceof Constant;
 	}
 }
