@@ -10,6 +10,8 @@ import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPatternBody;
 
 class ReachabilityUtils {
+	static final int ADORNMENT_UNDEFINED = -1;
+
 	/**
 	 * Executes the given code with disabled stdout and stderr.
 	 * 
@@ -70,6 +72,4 @@ class ReachabilityUtils {
 		System.setOut(mutedStream);
 		System.setErr(mutedStream);
 	}
-
-	static final int ADORNMENT_UNDEFINED = -1;
 }

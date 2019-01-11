@@ -48,7 +48,7 @@ public class PatternMatcherCompiler extends PatternMatcher {
 	}
 
 	static Chain<GeneratorOperation> generateSearchPlan(final CompilerPatternBody body, final Adornment adornment) {
-		return body.getHeader().getBuilder().generateReverseSearchPlan(body.getOperations(),
-				body.calculateAdornment(adornment));
+		final Adornment bodyAdornment = body.calculateAdornment(adornment);
+		return body.getHeader().getBuilder().generateSearchPlan(body, bodyAdornment).getRoot();
 	}
 }

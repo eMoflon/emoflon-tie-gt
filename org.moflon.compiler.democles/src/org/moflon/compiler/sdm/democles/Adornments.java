@@ -9,10 +9,22 @@ import org.gervarro.democles.common.Adornment;
  */
 public class Adornments {
 
+	/**
+	 * Human-readable character for free adornment
+	 */
 	public static final char ADORNMENT_FREE = 'F';
+
+	/**
+	 * Human-readable character for bound adornment
+	 */
 	public static final char ADORNMENT_BOUND = 'B';
+
+	/**
+	 * Human-readable character for not-typchecked adornment
+	 */
 	public static final char ADORNMENT_NOT_TYPECHECKED = 'U';
 
+	// TODO@rkluge: Refactoring shorten
 	public static Adornment createAdornment(final String adornmentString) {
 		final int[] bindings = new int[adornmentString.length()];
 		for (int i = 0; i < adornmentString.length(); i++) {

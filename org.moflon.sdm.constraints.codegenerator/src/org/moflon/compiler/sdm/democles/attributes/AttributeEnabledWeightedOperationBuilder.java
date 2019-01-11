@@ -2,19 +2,21 @@ package org.moflon.compiler.sdm.democles.attributes;
 
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
-import org.gervarro.democles.common.runtime.WeightedOperationBuilder;
+import org.gervarro.democles.common.OperationRuntime;
+import org.gervarro.democles.common.runtime.SearchPlanOperation;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.PatternInvocationConstraintType;
 import org.gervarro.democles.constraint.emf.EMFConstraint;
 import org.gervarro.democles.constraint.emf.Operation;
 import org.gervarro.democles.constraint.emf.Reference;
 import org.gervarro.democles.constraint.emf.StructuralFeature;
+import org.gervarro.democles.plan.WeightedOperation;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.impl.Constraint;
 import org.gervarro.democles.specification.impl.Variable;
 import org.moflon.compiler.sdm.democles.Adornments;
+import org.moflon.compiler.sdm.democles.TieGtSearchPlanOperationBuilder;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
 
 /**
@@ -23,10 +25,22 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
  * @author Frederik Deckwerth - Initial implementation
  *
  */
-public class AttributeEnabledWeightedOperationBuilder extends WeightedOperationBuilder<GeneratorOperation, GeneratorOperation> {
+public class AttributeEnabledWeightedOperationBuilder implements TieGtSearchPlanOperationBuilder {
 
 	@Override
-	public int getWeight(final GeneratorOperation operation) {
+	public WeightedOperation<SearchPlanOperation<OperationRuntime>, Integer> createSearchPlanOperation(
+			final SearchPlanOperation<OperationRuntime> operation) {
+
+		final Integer weight = getWeight(operation);
+		if (weight != null) {
+			return WeightedOperation.createOperation(operation, weight);
+		} else {
+			return null;
+		}
+
+	}
+
+	public Integer getWeight(final SearchPlanOperation<OperationRuntime> operation) {
 		final Adornment adornment = operation.getPrecondition();
 		final Object object = operation.getOrigin();
 		if (object instanceof Constraint) {
@@ -71,7 +85,7 @@ public class AttributeEnabledWeightedOperationBuilder extends WeightedOperationB
 			return -5;
 		}
 
-		throw new IllegalArgumentException(
-				String.format("Invalid combination of constraint type '%s' and adornment '%s'", object, adornment));
+		return null;
 	}
+
 }

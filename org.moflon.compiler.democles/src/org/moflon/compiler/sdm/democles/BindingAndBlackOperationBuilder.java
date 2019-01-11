@@ -1,25 +1,22 @@
 package org.moflon.compiler.sdm.democles;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
+import org.gervarro.democles.codegen.CompilableAdornedOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.PatternMatcherPlugin;
-import org.gervarro.democles.common.runtime.OperationBuilder;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.constraint.PatternInvocationConstraintType;
 import org.gervarro.democles.specification.ConstraintType;
+import org.gervarro.democles.specification.VariableType;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
-import org.gervarro.democles.specification.impl.Constraint;
-import org.gervarro.democles.specification.impl.Variable;
 
-public class BindingAndBlackOperationBuilder implements OperationBuilder<GeneratorOperation, SpecificationExtendedVariableRuntime> {
+public class BindingAndBlackOperationBuilder implements TieGtOperationBuilder {
 	private final Pattern pattern;
 
 	private final Adornment adornment;
@@ -30,11 +27,10 @@ public class BindingAndBlackOperationBuilder implements OperationBuilder<Generat
 	}
 
 	@Override
-	public final List<GeneratorOperation> getConstraintOperations(final Constraint constraint,
-			final List<SpecificationExtendedVariableRuntime> parameters) {
-		final ConstraintType cType = constraint.getType();
-		if (cType instanceof PatternInvocationConstraintType) {
-			final PatternInvocationConstraintType invocation = (PatternInvocationConstraintType) cType;
+	public List<CompilableAdornedOperation> getConstraintOperation(final ConstraintType constraint,
+			final List<? extends SpecificationExtendedVariableRuntime> parameters) {
+		if (constraint instanceof PatternInvocationConstraintType) {
+			final PatternInvocationConstraintType invocation = (PatternInvocationConstraintType) constraint;
 			if (invocation.isPositive()) {
 				final PatternBody body = pattern.getBodies().get(0);
 
@@ -42,26 +38,23 @@ public class BindingAndBlackOperationBuilder implements OperationBuilder<Generat
 				Adornment current = getBodyAdornment(pattern, adornment);
 
 				// Apply operations one by one
-				for (final org.gervarro.democles.specification.emf.Constraint c : body.getConstraints()) {
-					if (c instanceof PatternInvocationConstraint) {
-						final PatternInvocationConstraint pic = (PatternInvocationConstraint) c;
+				for (final org.gervarro.democles.specification.emf.Constraint bodyConstraint : body.getConstraints()) {
+					if (bodyConstraint instanceof PatternInvocationConstraint) {
+						final PatternInvocationConstraint invocationConstraint = (PatternInvocationConstraint) bodyConstraint;
 
-						final Pattern emfPattern = pic.getInvokedPattern();
+						final Pattern emfPattern = invocationConstraint.getInvokedPattern();
 						final org.gervarro.democles.specification.impl.Pattern internalPattern = invocation
 								.getInvokedPattern();
 						if (PatternMatcherPlugin
 								.getIdentifier(emfPattern.getName(), emfPattern.getSymbolicParameters().size())
 								.equals(PatternMatcherPlugin.getIdentifier(internalPattern.getName(),
 										internalPattern.getSymbolicParameters().size()))) {
-							final int[] allBoundArray = new int[pic.getParameters().size()];
-							Arrays.fill(allBoundArray, Adornment.BOUND);
-							final List<GeneratorOperation> result = new LinkedList<GeneratorOperation>();
-							result.add(new GeneratorOperation(constraint, parameters,
-									getOperationAdornment(this.pattern, current, pic), Adornment.create(allBoundArray),
+							final List<CompilableAdornedOperation> result = new LinkedList<>();
+							result.add(new CompilableAdornedOperation(getOperationAdornment(this.pattern, current, invocationConstraint),
 									invocation));
 							return result;
 						}
-						current = getNextAdornment(this.pattern, current, pic);
+						current = getNextAdornment(this.pattern, current, invocationConstraint);
 					}
 				}
 			}
@@ -71,7 +64,8 @@ public class BindingAndBlackOperationBuilder implements OperationBuilder<Generat
 	}
 
 	@Override
-	public GeneratorOperation getVariableOperation(final Variable variable, final SpecificationExtendedVariableRuntime runtimeVariable) {
+	public CompilableAdornedOperation getVariableOperation(final VariableType variable,
+			final SpecificationExtendedVariableRuntime runtimeVariable) {
 		return null;
 	}
 
@@ -139,4 +133,5 @@ public class BindingAndBlackOperationBuilder implements OperationBuilder<Generat
 		}
 		return new Adornment(result);
 	}
+
 }

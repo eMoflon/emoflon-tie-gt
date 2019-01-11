@@ -10,9 +10,9 @@ import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
+import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
@@ -38,45 +38,7 @@ public final class PatternPrintingUtil {
 		throw new UtilityClassNotInstantiableException();
 	}
 
-	public static Object describeSymbolicParameters(final Pattern pattern) {
-		return describeSymbolicParameters(pattern, NO_ADORNMENT);
-	}
-
-	public static String describeSymbolicParameters(final Pattern pattern, final Adornment adornment) {
-		final StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		final EList<Variable> parameters = pattern.getSymbolicParameters();
-		for (int i = 0; i < parameters.size(); ++i) {
-			final Variable parameter = parameters.get(i);
-			if (parameter instanceof EMFVariable)
-				sb.append(EMFVariable.class.cast(parameter).getName());
-			else
-				sb.append(parameter);
-
-			if (adornment != NO_ADORNMENT)
-				appendf(sb, "^%s,", describeAdornment(adornment.get(i)));
-		}
-		sb.replace(sb.length() - 1, sb.length(), "]");
-		return sb.toString();
-	}
-
-	public static String describeLocalVariables(final Pattern pattern) {
-		final StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		final EList<Variable> localVariables = pattern.getBodies().get(0).getLocalVariables();
-		for (int i = 0; i < localVariables.size(); ++i) {
-			final Variable parameter = localVariables.get(i);
-			if (parameter instanceof EMFVariable)
-				sb.append(EMFVariable.class.cast(parameter).getName());
-			else
-				sb.append(parameter);
-			sb.append("^F,");
-		}
-		sb.replace(sb.length() - 1, sb.length(), "]");
-		return sb.toString();
-	}
-
-	public static String describeAdornment(final int adornment) {
+	public static String describe(final int adornment) {
 		switch (adornment) {
 		case Adornment.BOUND:
 			return "B";
@@ -89,9 +51,9 @@ public final class PatternPrintingUtil {
 		}
 	}
 
-	public static String describeConstraint(final Constraint constraint) {
+	public static String describe(final Constraint constraint) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(describeConstraintName(constraint));
+		sb.append(getName(constraint));
 		sb.append("(");
 		for (final ConstraintParameter parameter : constraint.getParameters()) {
 			final ConstraintVariable reference = parameter.getReference();
@@ -109,61 +71,80 @@ public final class PatternPrintingUtil {
 			appendf(sb, "[%x],", reference.hashCode());
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
+		appendf(sb, "    [class: %s]", constraint.getClass());
+		return sb.toString();
+	}
+
+	public static String describe(final org.gervarro.democles.specification.Constraint constraint) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(getName(constraint));
+		sb.append("(");
+		for (final Object parameter : constraint.getParameters()) {
+			appendf(sb, "%s[%x],", getName(parameter), parameter.hashCode());
+		}
+		sb.replace(sb.length() - 1, sb.length(), ")");
 		appendf(sb, "    [class: %s]", constraint);
 		return sb.toString();
 	}
 
-	public static String describeConstraintName(final Constraint constraint) {
-		if (constraint instanceof Attribute) {
-			final Attribute attribute = (Attribute) constraint;
+	public static String getName(final Object object) {
+		if (object instanceof Variable) {
+			final Variable variable = Variable.class.cast(object);
+			return variable.getName();
+		} else if (object instanceof TypedConstant) {
+			final TypedConstant constant = TypedConstant.class.cast(object);
+			return constant.getValue() + "::" + constant.getEClassifier().getName();
+		} else if (object instanceof Constant) {
+			final Constant constant = Constant.class.cast(object);
+			return constant.getValue().toString();
+		} else if (object instanceof Attribute) {
+			final Attribute attribute = (Attribute) object;
 			return attribute.getEModelElement().getName();
-		} else if (constraint instanceof AttributeValueConstraint) {
-			final AttributeValueConstraint attribute = (AttributeValueConstraint) constraint;
+		} else if (object instanceof AttributeValueConstraint) {
+			final AttributeValueConstraint attribute = (AttributeValueConstraint) object;
 			return attribute.getEModelElement().getName();
-		} else if (constraint instanceof AttributeVariableConstraint) {
-			final AttributeVariableConstraint attribute = (AttributeVariableConstraint) constraint;
+		} else if (object instanceof AttributeVariableConstraint) {
+			final AttributeVariableConstraint attribute = (AttributeVariableConstraint) object;
 			return attribute.getPredicateSymbol();
-		} else if (constraint instanceof Reference) {
-			final Reference reference = (Reference) constraint;
+		} else if (object instanceof Reference) {
+			final Reference reference = (Reference) object;
 			return reference.getEModelElement().getName();
-		} else if (constraint instanceof Operation) {
-			final Operation operation = (Operation) constraint;
+		} else if (object instanceof Operation) {
+			final Operation operation = (Operation) object;
 			return operation.getEModelElement().getName();
-		} else if (constraint instanceof Smaller) {
+		} else if (object instanceof PatternInvocationConstraint) {
+			final PatternInvocationConstraint invocationConstraint = (PatternInvocationConstraint) object;
+			final Pattern invokedPattern = invocationConstraint.getInvokedPattern();
+			final String modality = invocationConstraint.isPositive() ? "exists" : "not exists";
+			return String.format("%s %s", modality, describePatternName(invokedPattern));
+		} else if (object instanceof org.gervarro.democles.specification.Constraint) {
+			return org.gervarro.democles.specification.Constraint.class.cast(object).getType().toString();
+		} else if (object instanceof Smaller) {
 			return "<";
-		} else if (constraint instanceof SmallerOrEqual) {
+		} else if (object instanceof SmallerOrEqual) {
 			return "<=";
-		} else if (constraint instanceof Equal) {
+		} else if (object instanceof Equal) {
 			return "==";
-		} else if (constraint instanceof Unequal) {
+		} else if (object instanceof Unequal) {
 			return "!=";
-		} else if (constraint instanceof LargerOrEqual) {
+		} else if (object instanceof LargerOrEqual) {
 			return ">=";
-		} else if (constraint instanceof Larger) {
+		} else if (object instanceof Larger) {
 			return ">";
 		}
-		return constraint.toString();
+		return object.toString();
 	}
 
-	public static Object describeOperation(final GeneratorOperation operation) {
+	public static Object describe(final GeneratorOperation operation) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(operation.toString());
-		sb.append(" [origin:");
-		final Object origin = operation.getOrigin();
-		if (origin instanceof Constraint) {
-			final Constraint constraint = (Constraint) origin;
-			sb.append(describeConstraintName(constraint));
-		} else {
-			sb.append(origin.toString());
-		}
-		sb.append("]");
+		sb.append("  [origin:").append(describe(operation.getOrigin())).append("]");
 		return sb.toString();
 	}
 
-	public static String describePattern(final Pattern pattern, final CompilerPatternBody body,
-			final Adornment adornment) {
+	public static String describe(final Pattern pattern, final CompilerPatternBody body, final Adornment adornment) {
 		final StringBuilder sb = new StringBuilder();
-		appendf(sb, "Pattern:%s", NL);
+		appendf(sb, "Pattern: %s%s", describePatternName(pattern), NL);
 		appendf(sb, "Symbolic parameters: %s%s", describeSymbolicParameters(pattern, adornment), NL);
 		appendf(sb, "Local variables:     %s%s", describeLocalVariables(pattern), NL);
 
@@ -171,15 +152,63 @@ public final class PatternPrintingUtil {
 
 		sb.append("Constraints").append(NL);
 		for (final Constraint constraint : originalPattern.getConstraints()) {
-			appendf(sb, "  %s%s", describeConstraint(constraint), NL);
+			appendf(sb, "  %s%s", describe(constraint), NL);
 		}
 
 		sb.append("Operations");
 		for (final GeneratorOperation operation : body.getOperations()) {
-			appendf(sb, "  %s%s", describeOperation(operation), NL);
+			appendf(sb, "  %s%s", describe(operation), NL);
 		}
 		final String formattedPattern = sb.toString();
 		return formattedPattern;
+	}
+
+	public static String describePatternName(final Pattern pattern) {
+		return pattern == null ? "null" : pattern.getName();
+	}
+
+	public static Object describeSymbolicParameters(final Pattern pattern) {
+		return describeSymbolicParameters(pattern, NO_ADORNMENT);
+	}
+
+	public static String describeSymbolicParameters(final Pattern pattern, final Adornment adornment) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		final EList<Variable> parameters = pattern.getSymbolicParameters();
+		for (int i = 0; i < parameters.size(); ++i) {
+			final Variable parameter = parameters.get(i);
+			sb.append(getName(parameter));
+
+			if (adornment != NO_ADORNMENT)
+				appendf(sb, "^%s", describe(adornment.get(i)));
+			if (i < parameters.size() - 1)
+				sb.append(",");
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+
+	public static String describeLocalVariables(final Pattern pattern) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		final EList<Variable> localVariables = pattern.getBodies().get(0).getLocalVariables();
+		for (int i = 0; i < localVariables.size(); ++i) {
+			sb.append(localVariables.get(i));
+			sb.append("^F,");
+			if (i < localVariables.size() - 1)
+				sb.append(",");
+		}
+		sb.append("]");
+		return sb.toString();
+	}
+
+	public static Object describe(final Object object) {
+		if (object instanceof Constraint)
+			return describe(Constraint.class.cast(object));
+		if (object instanceof org.gervarro.democles.specification.Constraint)
+			return describe(org.gervarro.democles.specification.Constraint.class.cast(object));
+		else
+			return object.toString();
 	}
 
 	/**
