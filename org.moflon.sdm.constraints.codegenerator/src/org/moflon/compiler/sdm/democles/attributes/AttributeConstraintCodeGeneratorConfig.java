@@ -49,7 +49,7 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 
 		// create attribute variable constraints type module using constraint libraries
 		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
-				attributeConstraintLibraries);
+				attributeConstraintLibraries, resourceSet);
 
 		final AttributeVariableConstraintsModule attributeVariableConstraintsModule = new AttributeVariableConstraintsModule(
 				attributeVariableConstraintsTypeModule);
