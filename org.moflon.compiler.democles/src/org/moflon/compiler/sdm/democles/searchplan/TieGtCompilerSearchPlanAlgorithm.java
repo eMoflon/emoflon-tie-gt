@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles.config;
+package org.moflon.compiler.sdm.democles.searchplan;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.SimpleCombiner;

@@ -28,7 +28,7 @@ public class AttributeConstraintTemplateConfig extends DefaultTemplateConfigurat
 			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
 		super(genModel);
 		addAttributeConstraintTemplatesToBlackTemplates(attributeConstraintLibs);
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
 				createBlackOperationSequenceCompiler());
 	}
 
@@ -47,7 +47,7 @@ public class AttributeConstraintTemplateConfig extends DefaultTemplateConfigurat
 	 *                                constraints and operations
 	 */
 	private void addAttributeConstraintTemplatesToBlackTemplates(final List<AttributeConstraintLibrary> attributeConstraintLibs) {
-		final STGroup group = getTemplateGroup(DefaultCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR);
+		final STGroup group = getTemplateGroup(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR);
 		for (final AttributeConstraintLibrary library : attributeConstraintLibs) {
 
 			for (final OperationSpecificationGroup operationSpecificationGroup : library.getOperationSpecifications()) {

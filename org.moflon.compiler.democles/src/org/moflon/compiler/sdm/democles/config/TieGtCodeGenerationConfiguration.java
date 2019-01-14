@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.emf.BasicEMFOperationBuilder;
@@ -39,22 +40,43 @@ import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentSearchPlanOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentWeightedOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.AttributeConstraintOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.AttributeConstraintSearchPlanOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.AttributeConstraintWeightedOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.BindingAndBlackPatternMatcherCompiler;
 import org.moflon.compiler.sdm.democles.searchplan.BindingAssignmentOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EMFGreenOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EMFRedOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EmfGreenSearchPlanOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EmfGreenWeightedOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.ExpressionPatternMatcherGenerator;
+import org.moflon.compiler.sdm.democles.searchplan.PatternInvocationSearchPlanOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.PatternInvocationWeightedOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
+import org.moflon.compiler.sdm.democles.searchplan.RegularPatternMatcherGenerator;
 import org.moflon.compiler.sdm.democles.searchplan.TieGtCompilerPatternMatcherModule;
+import org.moflon.compiler.sdm.democles.searchplan.TieGtCompilerSearchPlanAlgorithm;
+import org.moflon.compiler.sdm.democles.searchplan.TieGtSearchPlanAlgorithm;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
 import org.moflon.sdm.constraints.operationspecification.constraint.util.AttributeVariableConstraintsModule;
 
 //TODO@rkluge: The flatten inheritance hierarchy
-public class DefaultValidatorConfig implements CodeGenerationConfiguration {
+public class TieGtCodeGenerationConfiguration implements CodeGenerationConfiguration {
+	public static final String BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR = "BindingAndBlackPatternMatcherGenerator";
+
+	public static final String BINDING_PATTERN_MATCHER_GENERATOR = "BindingPatternMatcherGenerator";
+
+	public static final String BLACK_PATTERN_MATCHER_GENERATOR = "BlackPatternMatcherGenerator";
+
+	public static final String RED_PATTERN_MATCHER_GENERATOR = "RedPatternMatcherGenerator";
+
+	public static final String GREEN_PATTERN_MATCHER_GENERATOR = "GreenPatternMatcherGenerator";
+
+	public static final String EXPRESSION_PATTERN_MATCHER_GENERATOR = "ExpressionPatternMatcherGenerator";
+
 	protected final ResourceSet resourceSet;
 
 	// Constraint modules
@@ -92,7 +114,7 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	 */
 	private final List<AttributeConstraintLibrary> attributeConstraintLibraries;
 
-	public DefaultValidatorConfig(final ResourceSet resourceSet, final EMoflonPreferencesStorage preferencesStorage,
+	public TieGtCodeGenerationConfiguration(final ResourceSet resourceSet, final EMoflonPreferencesStorage preferencesStorage,
 			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
 		this.resourceSet = resourceSet;
 		this.preferencesStorage = preferencesStorage;
@@ -274,7 +296,9 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcher configureBindingAndBlackPatternMatcher() throws IOException {
-		return configureBindingAndBlackPatternMatcherCompiler();
+		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = configureBindingAndBlackPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(bindingAndBlackPatternMatcherCompiler,
+				BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR);
 	}
 
 	protected PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
@@ -292,7 +316,9 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcher configureBindingPatternMatcher() throws IOException {
-		return configureBindingPatternMatcherCompiler();
+		final PatternMatcherCompiler bindingPatternMatcherCompiler = configureBindingPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(bindingPatternMatcherCompiler,
+				BINDING_PATTERN_MATCHER_GENERATOR);
 	}
 
 	protected PatternMatcherCompiler configureBindingPatternMatcherCompiler() {
@@ -307,7 +333,9 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcher configureBlackPatternMatcher() throws IOException {
-		return configureBlackPatternMatcherCompiler();
+		final PatternMatcherCompiler blackPatternMatcherCompiler = configureBlackPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(blackPatternMatcherCompiler,
+				BLACK_PATTERN_MATCHER_GENERATOR);
 	}
 
 	protected PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
@@ -323,7 +351,9 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcher configureRedPatternMatcher() throws IOException {
-		return configureRedPatternMatcherCompiler();
+		final PatternMatcherCompiler redPatternMatcherCompiler = configureRedPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(redPatternMatcherCompiler,
+				RED_PATTERN_MATCHER_GENERATOR);
 	}
 
 	protected PatternMatcherCompiler configureRedPatternMatcherCompiler() {
@@ -343,7 +373,9 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcher configureGreenPatternMatcher() throws IOException {
-		return configureGreenPatternMatcherCompiler();
+		final PatternMatcherCompiler greenPatternMatcherCompiler = configureGreenPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(greenPatternMatcherCompiler,
+				GREEN_PATTERN_MATCHER_GENERATOR);
 	}
 
 	protected PatternMatcherCompiler configureGreenPatternMatcherCompiler() {
@@ -365,7 +397,10 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcher configureExpressionPatternMatcher() throws IOException {
-		return configureExpressionPatternMatcherCompiler();
+		final PatternMatcherCompiler expressionPatternMatcherCompiler = configureExpressionPatternMatcherCompiler();
+		final ExpressionPatternMatcherGenerator expressionPatternMatcherGenerator = new ExpressionPatternMatcherGenerator(
+				expressionPatternMatcherCompiler, EXPRESSION_PATTERN_MATCHER_GENERATOR, getPreferencesStorage());
+		return expressionPatternMatcherGenerator;
 	}
 
 	protected PatternMatcherCompiler configureExpressionPatternMatcherCompiler() {
@@ -389,5 +424,21 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	@Override
 	public TemplateConfigurationProvider createTemplateConfiguration(final GenModel genModel) {
 		return new AttributeConstraintTemplateConfig(genModel, attributeConstraintLibraries);
+	}
+
+	/**
+	 * Creates a {@link RegularPatternMatcherGenerator} from the given
+	 * {@link PatternMatcherCompiler} and registers it a the {@link Resource}
+	 *
+	 * @param patternMatcherCompiler
+	 * @param generatorName
+	 * @param resource
+	 * @return
+	 */
+	protected PatternMatcher createAndRegisterRegularPatternMatcherGenerator(
+			final PatternMatcherCompiler patternMatcherCompiler, final String generatorName) {
+		final RegularPatternMatcherGenerator bindingAndBlackPatternMatcherGenerator = new RegularPatternMatcherGenerator(
+				patternMatcherCompiler, generatorName, getPreferencesStorage());
+		return bindingAndBlackPatternMatcherGenerator;
 	}
 }

@@ -3,7 +3,6 @@ package org.moflon.compiler.sdm.democles.searchplan;
 import org.gervarro.democles.common.SearchPlanAlgorithm;
 import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.compiler.CompilerSearchPlanAlgorithm;
-import org.moflon.compiler.sdm.democles.config.TieGtCompilerSearchPlanAlgorithm;
 
 /**
  * Same as {@link CompilerPatternMatcherModule}, but provides access to the

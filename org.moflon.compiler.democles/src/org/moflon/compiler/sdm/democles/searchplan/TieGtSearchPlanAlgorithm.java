@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles.config;
+package org.moflon.compiler.sdm.democles.searchplan;
 
 import java.util.List;
 

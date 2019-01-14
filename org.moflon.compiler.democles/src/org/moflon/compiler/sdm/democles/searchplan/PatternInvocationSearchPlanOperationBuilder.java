@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles.config;
+package org.moflon.compiler.sdm.democles.searchplan;
 
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
@@ -7,7 +7,6 @@ import org.gervarro.democles.constraint.PatternInvocationConstraintType;
 import org.gervarro.democles.specification.Constraint;
 import org.gervarro.democles.specification.ConstraintType;
 import org.moflon.compiler.sdm.democles.pattern.Adornments;
-import org.moflon.compiler.sdm.democles.searchplan.TieGtSearchPlanOperationBuilder;
 
 public class PatternInvocationSearchPlanOperationBuilder implements TieGtSearchPlanOperationBuilder {
 

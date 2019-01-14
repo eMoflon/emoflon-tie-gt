@@ -16,7 +16,6 @@ import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.codegen.PatternMatcher;
 import org.moflon.codegen.preferences.TieGtCodeGenerationPreferences;
-import org.moflon.compiler.sdm.democles.config.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.compiler.sdm.democles.pattern.PatternPrintingUtil;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;

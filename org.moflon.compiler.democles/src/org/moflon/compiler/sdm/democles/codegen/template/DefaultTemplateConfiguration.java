@@ -23,7 +23,7 @@ import org.gervarro.democles.common.runtime.VariableRuntime;
 import org.gervarro.democles.constraint.emf.EMFVariable;
 import org.gervarro.democles.relational.RelationalConstraintTemplateProvider;
 import org.gervarro.democles.specification.ConstraintVariable;
-import org.moflon.compiler.sdm.democles.config.DefaultCodeGeneratorConfig;
+import org.moflon.compiler.sdm.democles.config.TieGtCodeGenerationConfiguration;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentTemplateProvider;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.sdm.runtime.democles.CFNode;
@@ -56,7 +56,7 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 		bindingAndBlackTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
 		bindingAndBlackTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
 		bindingAndBlackTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(DefaultCodeGeneratorConfig.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
+		templates.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
 				bindingAndBlackTemplateGroup);
 
 		final STGroup bindingTemplateGroup = createBindingTemplates();
@@ -64,47 +64,47 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 		bindingTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
 		bindingTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
 		bindingTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(DefaultCodeGeneratorConfig.BINDING_PATTERN_MATCHER_GENERATOR, bindingTemplateGroup);
+		templates.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR, bindingTemplateGroup);
 
 		final STGroup blackTemplateGroup = createBlackTemplates();
 		blackTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
 		blackTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
 		blackTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
 		blackTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(DefaultCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR, blackTemplateGroup);
+		templates.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR, blackTemplateGroup);
 
 		final STGroup redTemplateGroup = createRedTemplates();
 		redTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
 		redTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
 		redTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
 		redTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(DefaultCodeGeneratorConfig.RED_PATTERN_MATCHER_GENERATOR, redTemplateGroup);
+		templates.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR, redTemplateGroup);
 
 		final STGroup greenTemplateGroup = createGreenTemplates();
 		greenTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
 		greenTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
 		greenTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
 		greenTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(DefaultCodeGeneratorConfig.GREEN_PATTERN_MATCHER_GENERATOR, greenTemplateGroup);
+		templates.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR, greenTemplateGroup);
 
 		final STGroup expressionTemplateGroup = createExpressionTemplates();
 		expressionTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
 		expressionTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
 		expressionTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
 		expressionTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(DefaultCodeGeneratorConfig.EXPRESSION_PATTERN_MATCHER_GENERATOR, expressionTemplateGroup);
+		templates.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR, expressionTemplateGroup);
 
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
 				createBindingAndBlackOperationSequenceCompiler());
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.BINDING_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR,
 				createBindingOperationSequenceCompiler());
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.BLACK_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
 				createBlackOperationSequenceCompiler());
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.RED_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR,
 				createRedOperationSequenceCompiler());
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.GREEN_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR,
 				createGreenOperationSequenceCompiler());
-		operationSequenceCompilers.put(DefaultCodeGeneratorConfig.EXPRESSION_PATTERN_MATCHER_GENERATOR,
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR,
 				createExpressionOperationSequenceCompiler());
 	}
 

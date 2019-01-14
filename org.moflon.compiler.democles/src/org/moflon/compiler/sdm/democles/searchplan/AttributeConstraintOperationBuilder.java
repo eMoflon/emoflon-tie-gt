@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles.config;
+package org.moflon.compiler.sdm.democles.searchplan;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +9,6 @@ import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.VariableType;
 import org.moflon.compiler.sdm.democles.pattern.Adornments;
-import org.moflon.compiler.sdm.democles.searchplan.TieGtOperationBuilder;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
