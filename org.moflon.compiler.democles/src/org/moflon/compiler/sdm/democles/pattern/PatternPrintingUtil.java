@@ -32,6 +32,7 @@ import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.sdm.constraints.democles.AttributeValueConstraint;
 import org.moflon.sdm.constraints.democles.AttributeVariableConstraint;
 import org.moflon.sdm.constraints.democles.TypedConstant;
+import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
 
 public final class PatternPrintingUtil {
 
@@ -155,6 +156,9 @@ public final class PatternPrintingUtil {
 			return ">=";
 		} else if (object instanceof Larger) {
 			return ">";
+		} else if (object instanceof ConstraintSpecification) {
+			final ConstraintSpecification constraint = ConstraintSpecification.class.cast(object);
+			return constraint.getSymbol();
 		}
 		return object.toString();
 	}

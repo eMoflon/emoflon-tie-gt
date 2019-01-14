@@ -1,6 +1,7 @@
 package org.moflon.compiler.sdm.democles.config;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -9,6 +10,7 @@ import org.moflon.compiler.sdm.democles.searchplan.ExpressionPatternMatcherGener
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
 import org.moflon.compiler.sdm.democles.searchplan.RegularPatternMatcherGenerator;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
+import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 
 public class DefaultCodeGeneratorConfig extends DefaultValidatorConfig {
 	public static final String BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR = "BindingAndBlackPatternMatcherGenerator";
@@ -18,9 +20,9 @@ public class DefaultCodeGeneratorConfig extends DefaultValidatorConfig {
 	public static final String GREEN_PATTERN_MATCHER_GENERATOR = "GreenPatternMatcherGenerator";
 	public static final String EXPRESSION_PATTERN_MATCHER_GENERATOR = "ExpressionPatternMatcherGenerator";
 
-	public DefaultCodeGeneratorConfig(final ResourceSet resourceSet,
-			final EMoflonPreferencesStorage preferencesStorage) {
-		super(resourceSet, preferencesStorage);
+	public DefaultCodeGeneratorConfig(final ResourceSet resourceSet, final EMoflonPreferencesStorage preferencesStorage,
+			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
+		super(resourceSet, preferencesStorage, attributeConstraintLibraries);
 	}
 
 	@Override

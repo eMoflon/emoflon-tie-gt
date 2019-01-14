@@ -32,6 +32,7 @@ import org.moflon.sdm.runtime.democles.PatternInvocation;
 import org.moflon.sdm.runtime.democles.VariableReference;
 import org.stringtemplate.v4.STGroup;
 
+//TODO@rkluge: Flatten inheritance hierarchy
 public class DefaultTemplateConfiguration implements TemplateConfigurationProvider {
 	private static final Logger logger = Logger.getLogger(DefaultTemplateConfiguration.class);
 

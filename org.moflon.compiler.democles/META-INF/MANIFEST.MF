@@ -20,7 +20,8 @@ Require-Bundle:
  org.moflon.core.ui,
  org.moflon.emf.build,
  org.moflon.sdm.constraints.democles,
- org.gervarro.democles.plan
+ org.gervarro.democles.plan,
+ org.moflon.sdm.constraints.operationspecification
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.compiler.sdm.democles.codegen,
  org.moflon.compiler.sdm.democles.codegen.template,

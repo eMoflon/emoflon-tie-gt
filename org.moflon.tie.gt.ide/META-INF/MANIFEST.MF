@@ -40,7 +40,6 @@ Require-Bundle:
  org.moflon.sdm.runtime.democles;bundle-version="2.0.0",
  org.moflon.sdm.compiler.democles;bundle-version="2.1.0",
  org.moflon.sdm.compiler.democles.validation.result;bundle-version="2.0.0",
- org.moflon.sdm.constraints.codegenerator,
  org.moflon.sdm.constraints.operationspecification,
  org.moflon.sdm.constraints.democles;bundle-version="2.0.0"
 Export-Package: org.moflon.tie.gt.ide.core.runtime.builders,

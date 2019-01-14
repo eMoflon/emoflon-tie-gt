@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles.attributes;
+package org.moflon.compiler.sdm.democles.config;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -14,7 +14,7 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
 import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
 
-public class AttributeConstraintsOperationBuilder implements TieGtOperationBuilder {
+public class AttributeConstraintOperationBuilder implements TieGtOperationBuilder {
 
 	@Override
 	public List<CompilableAdornedOperation> getConstraintOperation(final ConstraintType constraint,
@@ -30,11 +30,11 @@ public class AttributeConstraintsOperationBuilder implements TieGtOperationBuild
 
 	public List<CompilableAdornedOperation> getOperations(final ConstraintType constraint,
 			final List<? extends SpecificationExtendedVariableRuntime> parameters,
-			final ConstraintSpecification cType) {
+			final ConstraintSpecification constraintType) {
 		final List<CompilableAdornedOperation> result = new LinkedList<>();
-		final OperationSpecificationGroup opSpecGroup = cType.getOperationSpecificationGroup();
-		for (final OperationSpecification opSpec : opSpecGroup.getOperationSpecifications()) {
-			result.add(getOperation(constraint, parameters, cType, opSpec));
+		final OperationSpecificationGroup operationSpecificationGroup = constraintType.getOperationSpecificationGroup();
+		for (final OperationSpecification operationSpecification : operationSpecificationGroup.getOperationSpecifications()) {
+			result.add(getOperation(constraint, parameters, constraintType, operationSpecification));
 		}
 
 		return result;

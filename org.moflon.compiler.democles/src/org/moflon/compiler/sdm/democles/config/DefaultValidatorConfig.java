@@ -1,8 +1,11 @@
 package org.moflon.compiler.sdm.democles.config;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
@@ -31,7 +34,6 @@ import org.gervarro.democles.specification.impl.DefaultPatternBody;
 import org.gervarro.democles.specification.impl.DefaultPatternFactory;
 import org.gervarro.democles.specification.impl.PatternInvocationConstraintModule;
 import org.moflon.codegen.PatternMatcher;
-import org.moflon.compiler.sdm.democles.codegen.template.DefaultTemplateConfiguration;
 import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
 import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentOperationBuilder;
@@ -47,8 +49,11 @@ import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.compiler.sdm.democles.searchplan.TieGtCompilerPatternMatcherModule;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
+import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
+import org.moflon.sdm.constraints.operationspecification.constraint.util.AttributeVariableConstraintsModule;
 
-//TODO@rkluge: The separation of DefaultValidatorConfig and DefaultCodeGeneratorConfig is no longer necessary
+//TODO@rkluge: The flatten inheritance hierarchy
 public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	protected final ResourceSet resourceSet;
 
@@ -82,11 +87,17 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	private final EMoflonPreferencesStorage preferencesStorage;
 
-	public DefaultValidatorConfig(final ResourceSet resourceSet, final EMoflonPreferencesStorage preferencesStorage) {
+	/**
+	 * Maps operations to code fragments
+	 */
+	private final List<AttributeConstraintLibrary> attributeConstraintLibraries;
+
+	public DefaultValidatorConfig(final ResourceSet resourceSet, final EMoflonPreferencesStorage preferencesStorage,
+			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
 		this.resourceSet = resourceSet;
 		this.preferencesStorage = preferencesStorage;
 
-		emfTypeModule = new EMFConstraintModule(this.resourceSet);
+		emfTypeModule = new EMFConstraintModule(resourceSet);
 		internalEMFTypeModule = new EMFTypeModule(emfTypeModule);
 
 		final PatternInvocationConstraintModule<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternInvocationTypeModule = new PatternInvocationConstraintModule<>(
@@ -98,6 +109,19 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
 		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 		bindingAndBlackPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
+
+		this.attributeConstraintLibraries = new ArrayList<>(attributeConstraintLibraries);
+
+		// create attribute variable constraints type module using constraint libraries
+		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
+				attributeConstraintLibraries, resourceSet);
+
+		final AttributeVariableConstraintsModule attributeVariableConstraintsModule = new AttributeVariableConstraintsModule(
+				attributeVariableConstraintsTypeModule);
+		this.bindingAndBlackPatternBuilder
+				.addConstraintTypeSwitch(attributeVariableConstraintsModule.getConstraintTypeSwitch());
+
+		initializePatternMatchers();
 
 	}
 
@@ -114,14 +138,15 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperationBuilders(
 			final DemoclesPatternType patternType) {
 
-		// TODO@rkluge Operation builders for pattern invocation constraints are missing
-
 		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = new LinkedList<>();
 		builders.add(createEmfSearchPlanOperationBuilder());
 		builders.add(createRelationalConstraintsSearchPlanOperationBuilder());
 		builders.add(createPatternInvocationSearchPlanOperationBuilder());
 
 		switch (patternType) {
+		case BLACK_PATTERN:
+			builders.add(createAttributeConstraintSearchPlanOperationBuilder());
+			break;
 		case BINDING_PATTERN:
 			builders.add(createAssignmentSearchPlanOperationBuilder());
 			break;
@@ -137,6 +162,11 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 			break;
 		}
 		return builders;
+	}
+
+	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createAttributeConstraintSearchPlanOperationBuilder() {
+		return new CombinedSearchPlanOperationBuilder<>(//
+				new AttributeConstraintSearchPlanOperationBuilder(), new AttributeConstraintWeightedOperationBuilder());
 	}
 
 	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createPatternInvocationSearchPlanOperationBuilder() {
@@ -180,19 +210,19 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	@Override
 	public void initializePatternMatchers() {
 		try {
-			this.setBindingAndBlackPatternMatcher(configureBindingAndBlackPatternMatcher());
-			this.setBindingPatternMatcher(configureBindingPatternMatcher());
-			this.setBlackPatternMatcher(configureBlackPatternMatcher());
-			this.setRedPatternMatcher(configureRedPatternMatcher());
-			this.setGreenPatternMatcher(configureGreenPatternMatcher());
-			this.setExpressionPatternMatcher(configureExpressionPatternMatcher());
+			setBindingAndBlackPatternMatcher(configureBindingAndBlackPatternMatcher());
+			setBindingPatternMatcher(configureBindingPatternMatcher());
+			setBlackPatternMatcher(configureBlackPatternMatcher());
+			setRedPatternMatcher(configureRedPatternMatcher());
+			setGreenPatternMatcher(configureGreenPatternMatcher());
+			setExpressionPatternMatcher(configureExpressionPatternMatcher());
 		} catch (final IOException e) {
 			// Do nothing
 		}
 	}
 
 	public EMoflonPreferencesStorage getPreferencesStorage() {
-		return this.preferencesStorage;
+		return preferencesStorage;
 	}
 
 	protected PatternMatcher getBindingAndBlackPatternSearchPlanGenerator() {
@@ -284,6 +314,7 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		final TieGtCompilerPatternMatcherModule blackCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
 		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
+		blackCompilerPatternMatcherModule.addOperationBuilder(new AttributeConstraintOperationBuilder());
 		blackCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
 
 		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
@@ -357,6 +388,6 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	@Override
 	public TemplateConfigurationProvider createTemplateConfiguration(final GenModel genModel) {
-		return new DefaultTemplateConfiguration(genModel);
+		return new AttributeConstraintTemplateConfig(genModel, attributeConstraintLibraries);
 	}
 }
