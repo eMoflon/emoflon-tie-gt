@@ -124,7 +124,8 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 					.getCompilablePatternBuilder().getAlgorithm().getSearchPlanAlgorithm().getOperationBuilders();
 			final String formattedPattern = PatternPrintingUtil.describe(pattern, body, adornment,
 					compilerSearchPlanAlgorithm);
-			LogUtils.debug(logger, formattedPattern);
+			LogUtils.debug(logger, "Debug information of search plan generation%s%s", PatternPrintingUtil.NL,
+					formattedPattern);
 		}
 	}
 

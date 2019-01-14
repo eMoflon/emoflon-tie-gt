@@ -119,6 +119,7 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = new LinkedList<>();
 		builders.add(createEmfSearchPlanOperationBuilder());
 		builders.add(createRelationalConstraintsSearchPlanOperationBuilder());
+		builders.add(createPatternInvocationSearchPlanOperationBuilder());
 
 		switch (patternType) {
 		case BINDING_PATTERN:
@@ -138,24 +139,29 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		return builders;
 	}
 
+	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createPatternInvocationSearchPlanOperationBuilder() {
+		return new CombinedSearchPlanOperationBuilder<>(//
+				new PatternInvocationSearchPlanOperationBuilder(), new PatternInvocationWeightedOperationBuilder());
+	}
+
 	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createObjectCreatingSearchPlanOperationBuilder() {
-		return new CombinedSearchPlanOperationBuilder<>(new EmfGreenSearchPlanOperationBuilder(),
-				new EmfGreenWeightedOperationBuilder());
+		return new CombinedSearchPlanOperationBuilder<>(//
+				new EmfGreenSearchPlanOperationBuilder(), new EmfGreenWeightedOperationBuilder());
 	}
 
 	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createAssignmentSearchPlanOperationBuilder() {
-		return new CombinedSearchPlanOperationBuilder<>(new AssignmentSearchPlanOperationBuilder(),
-				new AssignmentWeightedOperationBuilder());
+		return new CombinedSearchPlanOperationBuilder<>(//
+				new AssignmentSearchPlanOperationBuilder(), new AssignmentWeightedOperationBuilder());
 	}
 
 	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createRelationalConstraintsSearchPlanOperationBuilder() {
-		return new CombinedSearchPlanOperationBuilder<>(new RelationalSearchPlanOperationBuilder<>(),
-				new RelationalWeightedOperationBuilder<>());
+		return new CombinedSearchPlanOperationBuilder<>(//
+				new RelationalSearchPlanOperationBuilder<>(), new RelationalWeightedOperationBuilder<>());
 	}
 
 	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createEmfSearchPlanOperationBuilder() {
-		return new CombinedSearchPlanOperationBuilder<>(new EMFSearchPlanOperationBuilder<>(),
-				new EMFWeightedOperationBuilder<>());
+		return new CombinedSearchPlanOperationBuilder<>(//
+				new EMFSearchPlanOperationBuilder<>(), new EMFWeightedOperationBuilder<>());
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
  * @author Frederik Deckwerth - Initial implementation
  *
  */
+//TODO@rkluge: This builder will only be queried for a subset of the given operations
 public class AttributeEnabledWeightedOperationBuilder implements TieGtWeightedOperationBuilder {
 
 	@Override

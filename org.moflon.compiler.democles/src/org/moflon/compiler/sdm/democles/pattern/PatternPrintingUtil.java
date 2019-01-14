@@ -38,7 +38,7 @@ public final class PatternPrintingUtil {
 	/**
 	 * Newline token to use
 	 */
-	private static final String NL = "\n";
+	public static final String NL = "\n";
 	private static final Adornment NO_ADORNMENT = null;
 
 	private PatternPrintingUtil() {
@@ -187,12 +187,17 @@ public final class PatternPrintingUtil {
 
 		appendf(sb, "Search plan operations%s", NL);
 		for (final GeneratorOperation operation : body.getOperations()) {
+			boolean foundSearchPlanOperation = false;
 			for (final SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> builder : operationBuilders) {
 				final WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> weightedOperation = builder
 						.createSearchPlanOperation(operation);
 				if (weightedOperation != null) {
 					appendf(sb, "  %s [origin: %s]%s", describe(weightedOperation), describe(operation), NL);
+					foundSearchPlanOperation = true;
 				}
+			}
+			if (!foundSearchPlanOperation) {
+				appendf(sb, "  [Warning] No search plan operation for %s", describe(operation));
 			}
 		}
 
