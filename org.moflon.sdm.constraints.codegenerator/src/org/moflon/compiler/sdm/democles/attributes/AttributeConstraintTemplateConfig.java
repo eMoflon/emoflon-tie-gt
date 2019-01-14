@@ -8,7 +8,7 @@ import org.gervarro.democles.codegen.PatternInvocationConstraintTemplateProvider
 import org.gervarro.democles.codegen.emf.EMFTemplateProvider;
 import org.gervarro.democles.relational.RelationalConstraintTemplateProvider;
 import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
-import org.moflon.compiler.sdm.democles.DefaultTemplateConfiguration;
+import org.moflon.compiler.sdm.democles.codegen.template.DefaultTemplateConfiguration;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintsOperationActivator;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;

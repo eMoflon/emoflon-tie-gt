@@ -14,20 +14,15 @@ import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.plan.WeightedOperation;
 import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
 import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
-import org.moflon.compiler.sdm.democles.PatternMatcherCompiler;
-import org.moflon.compiler.sdm.democles.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
 import org.moflon.sdm.constraints.operationspecification.constraint.util.AttributeVariableConstraintsModule;
 
 public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGeneratorConfig {
-
-	/**
-	 * Maps constraints to operations (constraint + adornment)
-	 */
-	private final AttributeConstraintsOperationBuilder attributeConstraintsOperationBuilder = new AttributeConstraintsOperationBuilder();
 
 	/**
 	 * Maps operations to code fragments
@@ -40,9 +35,6 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 		super(resourceSet, preferencesStorage);
 
 		this.attributeConstraintLibraries = new ArrayList<>(attributeConstraintLibraries);
-
-		// TODO@rkluge: Previously, this was the only builder
-//		final WeightedOperationBuilder<GeneratorOperation> builder = new AttributeEnabledWeightedOperationBuilder();
 
 		// create attribute variable constraints type module using constraint libraries
 		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
@@ -61,7 +53,7 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 		final CompilerPatternMatcherModule blackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
 		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
 		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
-		blackCompilerPatternMatcherModule.addOperationBuilder(attributeConstraintsOperationBuilder);
+		blackCompilerPatternMatcherModule.addOperationBuilder(new AttributeConstraintsOperationBuilder());
 		blackCompilerPatternMatcherModule.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
 
 		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
@@ -75,10 +67,15 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 	}
 
 	@Override
-	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createBuilders() {
+	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperatoinBuilders(
+			final DemoclesPatternType patternType) {
 		// TODO@rkluge: Need to integrate AttributeEnabledWeightedOperationBuilder and
-		// AttributeConstraintsOperationBuilder here?
-		return super.createBuilders();
-	}
+		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = super.createSearchPlanOperatoinBuilders(
+				patternType);
+		if (patternType.isBlack()) {
+			// builders.add(createAssignmentOperationBuilder());
+		}
 
+		return builders;
+	}
 }

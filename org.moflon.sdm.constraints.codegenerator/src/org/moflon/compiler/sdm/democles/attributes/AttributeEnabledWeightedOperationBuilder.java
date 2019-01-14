@@ -2,8 +2,8 @@ package org.moflon.compiler.sdm.democles.attributes;
 
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
-import org.gervarro.democles.common.OperationRuntime;
 import org.gervarro.democles.common.runtime.SearchPlanOperation;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.PatternInvocationConstraintType;
@@ -15,8 +15,8 @@ import org.gervarro.democles.plan.WeightedOperation;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.impl.Constraint;
 import org.gervarro.democles.specification.impl.Variable;
-import org.moflon.compiler.sdm.democles.Adornments;
-import org.moflon.compiler.sdm.democles.TieGtSearchPlanOperationBuilder;
+import org.moflon.compiler.sdm.democles.pattern.Adornments;
+import org.moflon.compiler.sdm.democles.searchplan.TieGtWeightedOperationBuilder;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
 
 /**
@@ -25,11 +25,11 @@ import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification
  * @author Frederik Deckwerth - Initial implementation
  *
  */
-public class AttributeEnabledWeightedOperationBuilder implements TieGtSearchPlanOperationBuilder {
+public class AttributeEnabledWeightedOperationBuilder implements TieGtWeightedOperationBuilder {
 
 	@Override
-	public WeightedOperation<SearchPlanOperation<OperationRuntime>, Integer> createSearchPlanOperation(
-			final SearchPlanOperation<OperationRuntime> operation) {
+	public WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> createSearchPlanOperation(
+			final SearchPlanOperation<GeneratorOperation> operation) {
 
 		final Integer weight = getWeight(operation);
 		if (weight != null) {
@@ -40,7 +40,7 @@ public class AttributeEnabledWeightedOperationBuilder implements TieGtSearchPlan
 
 	}
 
-	public Integer getWeight(final SearchPlanOperation<OperationRuntime> operation) {
+	public Integer getWeight(final SearchPlanOperation<GeneratorOperation> operation) {
 		final Adornment adornment = operation.getPrecondition();
 		final Object object = operation.getOrigin();
 		if (object instanceof Constraint) {
@@ -59,17 +59,17 @@ public class AttributeEnabledWeightedOperationBuilder implements TieGtSearchPlan
 
 			if (constraintType instanceof Reference && ((Reference) constraintType).isBidirectional()) {
 				final Reference emfType = (Reference) constraintType;
-				if (Adornments.isEqual(adornment, "BF")) {
+				if (Adornments.equals(adornment, "BF")) {
 					final int upperBound = emfType.getLinkedElement().getUpperBound();
 					return upperBound > 1 || upperBound == EStructuralFeature.UNBOUNDED_MULTIPLICITY ? 10 : 1;
-				} else if (Adornments.isEqual(adornment, "FB")) {
+				} else if (Adornments.equals(adornment, "FB")) {
 					final EReference opposite = emfType.getLinkedElement().getEOpposite();
 					final int upperBound = opposite.getUpperBound();
 					return upperBound > 1 || upperBound == EStructuralFeature.UNBOUNDED_MULTIPLICITY ? 10 : 1;
 				}
 			} else if (constraintType instanceof StructuralFeature<?>) {
 				final StructuralFeature<?> emfType = (StructuralFeature<?>) constraintType;
-				if (Adornments.isEqual(adornment, "BF")) {
+				if (Adornments.equals(adornment, "BF")) {
 					final int upperBound = emfType.getLinkedElement().getUpperBound();
 					return upperBound > 1 || upperBound == EStructuralFeature.UNBOUNDED_MULTIPLICITY ? 10 : 1;
 				}

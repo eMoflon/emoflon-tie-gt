@@ -2,6 +2,8 @@ package org.moflon.compiler.sdm.democles;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.moflon.codegen.PatternMatcher;
+import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 
 public interface CodeGenerationConfiguration {
 	void initializePatternMatchers();

@@ -19,11 +19,15 @@ Require-Bundle:
  org.moflon.emf.injection.ide,
  org.moflon.core.ui,
  org.moflon.emf.build,
- org.moflon.sdm.constraints.democles
+ org.moflon.sdm.constraints.democles,
+ org.gervarro.democles.plan
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.compiler.sdm.democles,
+ org.moflon.compiler.sdm.democles.codegen,
+ org.moflon.compiler.sdm.democles.codegen.template,
  org.moflon.compiler.sdm.democles.eclipse,
- org.moflon.compiler.sdm.democles.stringtemplate
+ org.moflon.compiler.sdm.democles.pattern,
+ org.moflon.compiler.sdm.democles.searchplan
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: eMoflon Developers
 Automatic-Module-Name: org.moflon.sdm.compiler.democles

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gervarro.democles.specification.emf.Pattern;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 
 public class PatternLookup {

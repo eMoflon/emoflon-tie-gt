@@ -5,6 +5,9 @@ import java.io.IOException;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.codegen.PatternMatcher;
+import org.moflon.compiler.sdm.democles.searchplan.ExpressionPatternMatcherGenerator;
+import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
+import org.moflon.compiler.sdm.democles.searchplan.RegularPatternMatcherGenerator;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 
 public class DefaultCodeGeneratorConfig extends DefaultValidatorConfig {

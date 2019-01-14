@@ -4,9 +4,9 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.compiler.sdm.democles.eclipse.DemoclesValidationUtils;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.sdm.runtime.democles.Scope;
 

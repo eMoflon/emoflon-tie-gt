@@ -34,8 +34,21 @@ import org.gervarro.democles.specification.impl.DefaultPatternBody;
 import org.gervarro.democles.specification.impl.DefaultPatternFactory;
 import org.gervarro.democles.specification.impl.PatternInvocationConstraintModule;
 import org.moflon.codegen.PatternMatcher;
+import org.moflon.compiler.sdm.democles.codegen.template.DefaultTemplateConfiguration;
+import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.searchplan.AssignmentOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.AssignmentSearchPlanOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.AssignmentWeightedOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.BindingAndBlackPatternMatcherCompiler;
+import org.moflon.compiler.sdm.democles.searchplan.BindingAssignmentOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.EMFGreenOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.EMFRedOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
+import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 
+//TODO@rkluge: The separation of DefaultValidatorConfig and DefaultCodeGeneratorConfig is no longer necessary
 public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	protected final ResourceSet resourceSet;
 
@@ -89,7 +102,8 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected CompilerSearchPlanAlgorithm createAlgorithm(final DemoclesPatternType patternType) {
-		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = createBuilders();
+		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = createSearchPlanOperatoinBuilders(
+				patternType);
 		// TODO@rkluge Operation builders for pattern invocation constraints are missing
 
 		final DefaultAlgorithm<SimpleCombiner, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> defaultAlgorithm = new DefaultAlgorithm<>(
@@ -98,11 +112,27 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		return createdAlgorithm;
 	}
 
-	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createBuilders() {
+	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperatoinBuilders(
+			final DemoclesPatternType patternType) {
 		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = new LinkedList<>();
 		builders.add(createOperationBuilderForEmf());
 		builders.add(createOperationBuilderForRelationalConstraints());
+
+		switch (patternType) {
+		case EXPRESSION_PATTERN:
+		case GREEN_PATTERN:
+			builders.add(createOperationBuilderForAssignment());
+			break;
+		default:
+			// Nothing to do
+			break;
+		}
 		return builders;
+	}
+
+	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createOperationBuilderForAssignment() {
+		return new CombinedSearchPlanOperationBuilder<>(new AssignmentSearchPlanOperationBuilder(),
+				new AssignmentWeightedOperationBuilder());
 	}
 
 	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createOperationBuilderForRelationalConstraints() {

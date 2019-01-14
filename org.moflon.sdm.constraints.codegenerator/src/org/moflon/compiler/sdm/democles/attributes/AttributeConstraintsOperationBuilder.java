@@ -8,8 +8,8 @@ import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.VariableType;
-import org.moflon.compiler.sdm.democles.Adornments;
-import org.moflon.compiler.sdm.democles.TieGtOperationBuilder;
+import org.moflon.compiler.sdm.democles.pattern.Adornments;
+import org.moflon.compiler.sdm.democles.searchplan.TieGtOperationBuilder;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
@@ -44,7 +44,7 @@ public class AttributeConstraintsOperationBuilder implements TieGtOperationBuild
 			final List<? extends SpecificationExtendedVariableRuntime> parameters,
 			final ConstraintSpecification constraintType, final OperationSpecification operationSpecification) {
 		final String adornmentString = operationSpecification.getAdornmentString();
-		final Adornment precondition = Adornments.createAdornment(adornmentString);
+		final Adornment precondition = Adornments.create(adornmentString);
 		final CompilableAdornedOperation operation;
 		if (operationSpecification.isAlwaysSuccessful()) {
 			operation = new CompilableAdornedOperation(precondition, constraint,

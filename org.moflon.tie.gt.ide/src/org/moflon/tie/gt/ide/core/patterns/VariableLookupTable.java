@@ -11,7 +11,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;

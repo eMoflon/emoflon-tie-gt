@@ -57,7 +57,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.sdm.constraints.democles.AttributeVariableConstraint;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
