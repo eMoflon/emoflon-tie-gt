@@ -5,7 +5,6 @@ import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPattern;
 import org.gervarro.democles.compiler.CompilerPatternBody;
-import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.specification.emf.EMFPatternBuilder;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.impl.DefaultPattern;
@@ -16,10 +15,10 @@ import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
 
 public class PatternMatcherCompiler extends PatternMatcher {
 	private final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder;
-	private final CompilerPatternMatcherModule compilablePatternBuilder;
+	private final TieGtCompilerPatternMatcherModule compilablePatternBuilder;
 
 	public PatternMatcherCompiler(final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder,
-			final CompilerPatternMatcherModule CompilerPatternMatcherModule) {
+			final TieGtCompilerPatternMatcherModule CompilerPatternMatcherModule) {
 		this.patternBuilder = patternBuilder;
 		this.compilablePatternBuilder = CompilerPatternMatcherModule;
 	}
@@ -41,7 +40,7 @@ public class PatternMatcherCompiler extends PatternMatcher {
 		return patternBuilder;
 	}
 
-	public CompilerPatternMatcherModule getCompilablePatternBuilder() {
+	public TieGtCompilerPatternMatcherModule getCompilablePatternBuilder() {
 		return compilablePatternBuilder;
 	}
 

@@ -335,7 +335,8 @@ public class PatternBuilderVisitor {
 					} else {
 						TransformationExceptions.recordTransformationErrorMessage(getStatus(),
 								"No constraint specification with symbol %s matches the type signature %s of predicate %s",
-								predicateSymbol, formatTypeList(predicateArgumentTypes), GtPrettyPrinter.format(predicate));
+								predicateSymbol, formatTypeList(predicateArgumentTypes),
+								GtPrettyPrinter.format(predicate));
 					}
 
 				} else {
@@ -664,6 +665,7 @@ public class PatternBuilderVisitor {
 	private EMFVariable createVariable(final EditorParameterExpression editorParamExpression,
 			final DemoclesPatternType type) {
 		final EditorParameter parameter = editorParamExpression.getParameter();
+		// TODO@rkluge: Add to symbolic parameters?
 		final EMFVariable newReference = variables.get(parameter, type);
 		return newReference;
 	}

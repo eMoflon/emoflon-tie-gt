@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles;
+package org.moflon.compiler.sdm.democles.config;
 
 import java.io.IOException;
 

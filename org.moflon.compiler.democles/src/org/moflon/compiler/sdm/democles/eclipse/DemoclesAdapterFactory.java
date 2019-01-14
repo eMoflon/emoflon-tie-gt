@@ -2,7 +2,7 @@ package org.moflon.compiler.sdm.democles.eclipse;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IAdapterFactory;
-import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
+import org.moflon.compiler.sdm.democles.config.DefaultCodeGeneratorConfig;
 
 public class DemoclesAdapterFactory implements IAdapterFactory {
 

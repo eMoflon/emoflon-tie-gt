@@ -23,7 +23,7 @@ import org.gervarro.democles.common.runtime.VariableRuntime;
 import org.gervarro.democles.constraint.emf.EMFVariable;
 import org.gervarro.democles.relational.RelationalConstraintTemplateProvider;
 import org.gervarro.democles.specification.ConstraintVariable;
-import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
+import org.moflon.compiler.sdm.democles.config.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentTemplateProvider;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.sdm.runtime.democles.CFNode;

@@ -27,6 +27,77 @@ class VariableLookupTable {
 		this.typeLookup = typeLookup;
 	}
 
+	public EMFVariable getSymbolicParameter(final Object object, final EClassifier type,
+			final DemoclesPatternType patternType) {
+		return getSymbolicParameter(object, type, patternType);
+	}
+
+	public EMFVariable getSymbolicParameter(final EObject object, final DemoclesPatternType patternType) {
+		final EClassifier type = typeLookup.determineTypeOfEditorElement(object);
+	
+		return getSymbolicParameter(object, type, patternType);
+	}
+
+	public EMFVariable getSymbolicParameter(final EObject object, final EClassifier type,
+			final DemoclesPatternType patternType) {
+		if (!containsKey(object, patternType)) {
+			final EMFVariable variable = getOrCreateEMFVariable(object, patternType);
+	
+			variable.setEClassifier(typeLookup.getEClassifier(type));
+			final Pattern pattern = patternLookup.getPattern(patternType);
+			Patterns.registerSymbolicParameter(variable, pattern);
+			return variable;
+		} else {
+			return get(object, patternType);
+		}
+	}
+
+	public EMFVariable getLocalVariable(final EObject object, final DemoclesPatternType patternType) {
+		return getLocalVariable(object, (Object) null, patternType);
+	}
+
+	public EMFVariable getLocalVariable(final Object object, final EClassifier type,
+			final DemoclesPatternType patternType) {
+		return getLocalVariable(object, null, type, patternType);
+	}
+
+	public EMFVariable getLocalVariable(final EObject child, final Object parent,
+			final DemoclesPatternType patternType) {
+	
+		final EClassifier type = typeLookup.determineTypeOfEditorElement(child);
+	
+		return getLocalVariable(child, parent, type, patternType);
+	}
+
+	public EMFVariable getLocalVariable(final Object child, final Object parent, final EClassifier type,
+			final DemoclesPatternType patternType) {
+		if (!containsKey(child, parent, patternType)) {
+			final EMFVariable newAttribute = getOrCreateVariable(child, parent, patternType);
+	
+			newAttribute.setEClassifier(typeLookup.getEClassifier(type));
+			final Pattern pattern = patternLookup.getPattern(patternType);
+			Patterns.registerLocalVariable(newAttribute, pattern);
+			return newAttribute;
+		} else {
+			return get(child, parent, patternType);
+		}
+	}
+
+	public EMFVariable getReturnVariable(final EObject returnObject, final Pattern pattern) {
+		final EMFVariable returnEmfVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
+		returnEmfVariable.setName(CodeConventions.RESULT_VARIABLE_NAME);
+		returnEmfVariable
+				.setEClassifier(typeLookup.getEClassifier(typeLookup.determineTypeOfEditorElement(returnObject)));
+		pattern.getSymbolicParameters().add(0, returnEmfVariable);
+	
+		return returnEmfVariable;
+	}
+
+	public EMFVariable get(final Object object, final DemoclesPatternType type) {
+		final String key = calculateLookupKey(object, null);
+		return this.getVariableLookupForPatternType(type).get(key);
+	}
+
 	private boolean containsKey(final Object object, final Object parent, final DemoclesPatternType type) {
 		final String key = calculateLookupKey(object, parent);
 		return this.getVariableLookupForPatternType(type).containsKey(key);
@@ -38,11 +109,6 @@ class VariableLookupTable {
 
 	private EMFVariable get(final Object object, final Object parent, final DemoclesPatternType type) {
 		final String key = calculateLookupKey(object, parent);
-		return this.getVariableLookupForPatternType(type).get(key);
-	}
-
-	public EMFVariable get(final Object object, final DemoclesPatternType type) {
-		final String key = calculateLookupKey(object, null);
 		return this.getVariableLookupForPatternType(type).get(key);
 	}
 
@@ -100,72 +166,6 @@ class VariableLookupTable {
 			this.data.put(patternType, new HashMap<>());
 		}
 		return this.data.get(patternType);
-	}
-
-	public EMFVariable getSymbolicParameter(final Object object, final EClassifier type,
-			final DemoclesPatternType patternType) {
-		return getSymbolicParameter(object, type, patternType);
-	}
-
-	public EMFVariable getSymbolicParameter(final EObject object, final DemoclesPatternType patternType) {
-		final EClassifier type = typeLookup.determineTypeOfEditorElement(object);
-
-		return getSymbolicParameter(object, type, patternType);
-	}
-
-	public EMFVariable getSymbolicParameter(final EObject object, final EClassifier type,
-			final DemoclesPatternType patternType) {
-		if (!containsKey(object, patternType)) {
-			final EMFVariable variable = getOrCreateEMFVariable(object, patternType);
-
-			variable.setEClassifier(typeLookup.getEClassifier(type));
-			final Pattern pattern = patternLookup.getPattern(patternType);
-			Patterns.registerSymbolicParameter(variable, pattern);
-			return variable;
-		} else {
-			return get(object, patternType);
-		}
-	}
-
-	public EMFVariable getLocalVariable(final EObject object, final DemoclesPatternType patternType) {
-		return getLocalVariable(object, (Object) null, patternType);
-	}
-
-	public EMFVariable getLocalVariable(final Object object, final EClassifier type,
-			final DemoclesPatternType patternType) {
-		return getLocalVariable(object, null, type, patternType);
-	}
-
-	public EMFVariable getLocalVariable(final EObject child, final Object parent,
-			final DemoclesPatternType patternType) {
-
-		final EClassifier type = typeLookup.determineTypeOfEditorElement(child);
-
-		return getLocalVariable(child, parent, type, patternType);
-	}
-
-	public EMFVariable getLocalVariable(final Object child, final Object parent, final EClassifier type,
-			final DemoclesPatternType patternType) {
-		if (!containsKey(child, parent, patternType)) {
-			final EMFVariable newAttribute = getOrCreateVariable(child, parent, patternType);
-
-			newAttribute.setEClassifier(typeLookup.getEClassifier(type));
-			final Pattern pattern = patternLookup.getPattern(patternType);
-			Patterns.registerLocalVariable(newAttribute, pattern);
-			return newAttribute;
-		} else {
-			return get(child, parent, patternType);
-		}
-	}
-
-	public EMFVariable getReturnVariable(final EObject returnObject, final Pattern pattern) {
-		final EMFVariable returnEmfVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
-		returnEmfVariable.setName(CodeConventions.RESULT_VARIABLE_NAME);
-		returnEmfVariable
-				.setEClassifier(typeLookup.getEClassifier(typeLookup.determineTypeOfEditorElement(returnObject)));
-		pattern.getSymbolicParameters().add(0, returnEmfVariable);
-
-		return returnEmfVariable;
 	}
 
 }

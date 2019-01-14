@@ -1,17 +1,22 @@
 package org.moflon.compiler.sdm.democles.searchplan;
 
+import java.util.List;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.EClass;
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.common.runtime.SearchPlanOperation;
 import org.gervarro.democles.compiler.CompilerPattern;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.gervarro.democles.plan.WeightedOperation;
+import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.codegen.PatternMatcher;
 import org.moflon.codegen.preferences.TieGtCodeGenerationPreferences;
-import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
+import org.moflon.compiler.sdm.democles.config.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
 import org.moflon.compiler.sdm.democles.pattern.PatternPrintingUtil;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
@@ -84,7 +89,6 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 			}
 		} catch (final RuntimeException e) {
 			handleExceptionDuringSearchPlanGeneration(pattern, body, adornment, report, e);
-
 		}
 		return report;
 	}
@@ -116,7 +120,10 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 		}
 
 		if (logger.isDebugEnabled()) {
-			final String formattedPattern = PatternPrintingUtil.describe(pattern, body, adornment);
+			final List<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> compilerSearchPlanAlgorithm = this.patternMatcher
+					.getCompilablePatternBuilder().getAlgorithm().getSearchPlanAlgorithm().getOperationBuilders();
+			final String formattedPattern = PatternPrintingUtil.describe(pattern, body, adornment,
+					compilerSearchPlanAlgorithm);
 			LogUtils.debug(logger, formattedPattern);
 		}
 	}

@@ -10,13 +10,13 @@ import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.runtime.SearchPlanOperation;
-import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.plan.WeightedOperation;
 import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
-import org.moflon.compiler.sdm.democles.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.config.DefaultCodeGeneratorConfig;
 import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
+import org.moflon.compiler.sdm.democles.searchplan.TieGtCompilerPatternMatcherModule;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
@@ -50,11 +50,11 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 
 	@Override
 	protected PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
-		final CompilerPatternMatcherModule blackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule blackCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
 		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
 		blackCompilerPatternMatcherModule.addOperationBuilder(new AttributeConstraintsOperationBuilder());
-		blackCompilerPatternMatcherModule.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
+		blackCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
 
 		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
 				bindingAndBlackPatternBuilder, blackCompilerPatternMatcherModule);
@@ -67,10 +67,10 @@ public class AttributeConstraintCodeGeneratorConfig extends DefaultCodeGenerator
 	}
 
 	@Override
-	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperatoinBuilders(
+	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperationBuilders(
 			final DemoclesPatternType patternType) {
 		// TODO@rkluge: Need to integrate AttributeEnabledWeightedOperationBuilder and
-		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = super.createSearchPlanOperatoinBuilders(
+		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = super.createSearchPlanOperationBuilders(
 				patternType);
 		if (patternType.isBlack()) {
 			// builders.add(createAssignmentOperationBuilder());

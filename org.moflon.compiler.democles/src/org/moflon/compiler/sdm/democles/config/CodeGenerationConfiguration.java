@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles;
+package org.moflon.compiler.sdm.democles.config;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.moflon.codegen.PatternMatcher;

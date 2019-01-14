@@ -1,9 +1,14 @@
 package org.moflon.compiler.sdm.democles.pattern;
 
+import java.util.List;
+
 import org.eclipse.emf.common.util.EList;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
+import org.gervarro.democles.common.runtime.SearchPlanOperation;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.gervarro.democles.plan.WeightedOperation;
+import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
@@ -71,7 +76,7 @@ public final class PatternPrintingUtil {
 			appendf(sb, "%s[%x],", getName(parameter), parameter.hashCode());
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
-		appendf(sb, "    [class: %s]", constraint);
+		appendf(sb, "    [class: %s]", constraint.getClass().getName());
 		return sb.toString();
 	}
 
@@ -86,7 +91,7 @@ public final class PatternPrintingUtil {
 		} else if (object instanceof org.gervarro.democles.specification.Variable) {
 			final org.gervarro.democles.specification.Variable variable = org.gervarro.democles.specification.Variable.class
 					.cast(object);
-			return getName(variable.getType());
+			return variable.getName();
 		} else if (object instanceof Variable) {
 			final Variable variable = Variable.class.cast(object);
 			return variable.getName();
@@ -96,6 +101,14 @@ public final class PatternPrintingUtil {
 		} else if (object instanceof Constant) {
 			final Constant constant = Constant.class.cast(object);
 			return constant.getValue().toString();
+		} else if (object instanceof org.gervarro.democles.specification.impl.Constraint) {
+			final org.gervarro.democles.specification.impl.Constraint constraint = org.gervarro.democles.specification.impl.Constraint.class
+					.cast(object);
+			return getName(constraint.getType());
+		} else if (object instanceof org.gervarro.democles.constraint.emf.Attribute) {
+			final org.gervarro.democles.constraint.emf.Attribute attribute = org.gervarro.democles.constraint.emf.Attribute.class
+					.cast(object);
+			return attribute.getLinkedElement().getName();
 		} else if (object instanceof Attribute) {
 			final Attribute attribute = (Attribute) object;
 			return attribute.getEModelElement().getName();
@@ -108,6 +121,10 @@ public final class PatternPrintingUtil {
 		} else if (object instanceof Reference) {
 			final Reference reference = (Reference) object;
 			return reference.getEModelElement().getName();
+		} else if (object instanceof org.gervarro.democles.constraint.emf.Reference) {
+			final org.gervarro.democles.constraint.emf.Reference reference = org.gervarro.democles.constraint.emf.Reference.class
+					.cast(object);
+			return reference.getLinkedElement().getName();
 		} else if (object instanceof Operation) {
 			final Operation operation = (Operation) object;
 			return operation.getEModelElement().getName();
@@ -141,7 +158,8 @@ public final class PatternPrintingUtil {
 		return sb.toString();
 	}
 
-	public static String describe(final Pattern pattern, final CompilerPatternBody body, final Adornment adornment) {
+	public static String describe(final Pattern pattern, final CompilerPatternBody body, final Adornment adornment,
+			final List<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> operationBuilders) {
 		final StringBuilder sb = new StringBuilder();
 		appendf(sb, "Pattern: %s%s", describePatternName(pattern), NL);
 		appendf(sb, "Symbolic parameters: %s%s", describeSymbolicParameters(pattern, adornment), NL);
@@ -149,34 +167,26 @@ public final class PatternPrintingUtil {
 
 		final PatternBody originalPattern = pattern.getBodies().get(0);
 
-		sb.append("Constraints").append(NL);
+		appendf(sb, "Constraints%s", NL);
 		for (final Constraint constraint : originalPattern.getConstraints()) {
 			appendf(sb, "  %s%s", describe(constraint), NL);
 		}
 
-		sb.append("Operations");
+		appendf(sb, "Operations%s", NL);
 		for (final GeneratorOperation operation : body.getOperations()) {
 			appendf(sb, "  %s%s", describe(operation), NL);
 		}
 
-		// TODO@rkluge: To print the resulting search plan operations, we need access to
-		// the searchPlanOperationBuilders of DefaultAlgorithm
-		// The only way to access this algorithm is to store it somehow in
-		// AttributeConstraintCodeGeneratorConfig
-//		sb.append("Search plan operations");
-//		final CompilerPatternMatcherModule builder = body.getHeader().getBuilder();
-//		final ArrayList<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>> weightedOperations = new ArrayList<>(
-//				body.getOperations().size());
-//		for (final GeneratorOperation operation : body.getOperations()) {
-//			final Object origin = operation.getOrigin();
-//			for (final SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, O> builder : searchPlanOperationBuilders) {
-//				final WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> weightedOperation = builder
-//						.createSearchPlanOperation(operation);
-//				if (weightedOperation != null) {
-//					weightedOperations.add(weightedOperation);
-//				}
-//			}
-//		}
+		appendf(sb, "Search plan operations%s", NL);
+		for (final GeneratorOperation operation : body.getOperations()) {
+			for (final SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> builder : operationBuilders) {
+				final WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> weightedOperation = builder
+						.createSearchPlanOperation(operation);
+				if (weightedOperation != null) {
+					appendf(sb, "  %s [origin: %s]%s", describe(weightedOperation), describe(operation), NL);
+				}
+			}
+		}
 
 		final String formattedPattern = sb.toString();
 		return formattedPattern;

@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles;
+package org.moflon.compiler.sdm.democles.config;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -8,17 +8,14 @@ import java.util.Map;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.SimpleCombiner;
 import org.gervarro.democles.codegen.emf.BasicEMFOperationBuilder;
 import org.gervarro.democles.codegen.emf.EMFOperationBuilder;
 import org.gervarro.democles.common.runtime.SearchPlanOperation;
-import org.gervarro.democles.compiler.CompilerPatternMatcherModule;
 import org.gervarro.democles.compiler.CompilerSearchPlanAlgorithm;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.emf.EMFConstraintModule;
 import org.gervarro.democles.plan.WeightedOperation;
 import org.gervarro.democles.plan.common.CombinedSearchPlanOperationBuilder;
-import org.gervarro.democles.plan.common.DefaultAlgorithm;
 import org.gervarro.democles.plan.common.RelationalSearchPlanOperationBuilder;
 import org.gervarro.democles.plan.common.RelationalWeightedOperationBuilder;
 import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
@@ -46,6 +43,7 @@ import org.moflon.compiler.sdm.democles.searchplan.EMFGreenOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EMFRedOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
+import org.moflon.compiler.sdm.democles.searchplan.TieGtCompilerPatternMatcherModule;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 
 //TODO@rkluge: The separation of DefaultValidatorConfig and DefaultCodeGeneratorConfig is no longer necessary
@@ -102,26 +100,31 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected CompilerSearchPlanAlgorithm createAlgorithm(final DemoclesPatternType patternType) {
-		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = createSearchPlanOperatoinBuilders(
+		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = createSearchPlanOperationBuilders(
 				patternType);
-		// TODO@rkluge Operation builders for pattern invocation constraints are missing
 
-		final DefaultAlgorithm<SimpleCombiner, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> defaultAlgorithm = new DefaultAlgorithm<>(
-				builders);
-		final CompilerSearchPlanAlgorithm createdAlgorithm = new CompilerSearchPlanAlgorithm(defaultAlgorithm);
+		final TieGtSearchPlanAlgorithm defaultAlgorithm = new TieGtSearchPlanAlgorithm(builders);
+		final TieGtCompilerSearchPlanAlgorithm createdAlgorithm = new TieGtCompilerSearchPlanAlgorithm(
+				defaultAlgorithm);
 		return createdAlgorithm;
 	}
 
-	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperatoinBuilders(
+	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperationBuilders(
 			final DemoclesPatternType patternType) {
+
+		// TODO@rkluge Operation builders for pattern invocation constraints are missing
+
 		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = new LinkedList<>();
-		builders.add(createOperationBuilderForEmf());
-		builders.add(createOperationBuilderForRelationalConstraints());
+		builders.add(createEmfSearchPlanOperationBuilder());
+		builders.add(createRelationalConstraintsSearchPlanOperationBuilder());
 
 		switch (patternType) {
 		case EXPRESSION_PATTERN:
+			builders.add(createAssignmentSearchPlanOperationBuilder());
+			break;
 		case GREEN_PATTERN:
-			builders.add(createOperationBuilderForAssignment());
+			builders.add(createObjectCreatingSearchPlanOperationBuilder());
+			builders.add(createAssignmentSearchPlanOperationBuilder());
 			break;
 		default:
 			// Nothing to do
@@ -130,17 +133,22 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		return builders;
 	}
 
-	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createOperationBuilderForAssignment() {
+	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createObjectCreatingSearchPlanOperationBuilder() {
+		return new CombinedSearchPlanOperationBuilder<>(new ObjectCreatingSearchPlanOperationBuilder(),
+				new ObjectCreatingWeightedOperationBuilder());
+	}
+
+	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createAssignmentSearchPlanOperationBuilder() {
 		return new CombinedSearchPlanOperationBuilder<>(new AssignmentSearchPlanOperationBuilder(),
 				new AssignmentWeightedOperationBuilder());
 	}
 
-	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createOperationBuilderForRelationalConstraints() {
+	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createRelationalConstraintsSearchPlanOperationBuilder() {
 		return new CombinedSearchPlanOperationBuilder<>(new RelationalSearchPlanOperationBuilder<>(),
 				new RelationalWeightedOperationBuilder<>());
 	}
 
-	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createOperationBuilderForEmf() {
+	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createEmfSearchPlanOperationBuilder() {
 		return new CombinedSearchPlanOperationBuilder<>(new EMFSearchPlanOperationBuilder<>(),
 				new EMFWeightedOperationBuilder<>());
 	}
@@ -230,12 +238,12 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	protected PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
 
-		// TODO@rkluge: Create factory for CompilerPatternMatcherModule
+		// TODO@rkluge: Create factory for TieGtCompilerPatternMatcherModule
 		// Configuring binding & black pattern matcher
-		final CompilerPatternMatcherModule bindingAndBlackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule bindingAndBlackCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		bindingAndBlackCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
 		bindingAndBlackCompilerPatternMatcherModule
-				.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.BINDING_AND_BLACK_PATTERN));
+				.setAlgorithm(createAlgorithm(DemoclesPatternType.BINDING_AND_BLACK_PATTERN));
 
 		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = new BindingAndBlackPatternMatcherCompiler(
 				bindingAndBlackPatternBuilder, bindingAndBlackCompilerPatternMatcherModule);
@@ -247,11 +255,10 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcherCompiler configureBindingPatternMatcherCompiler() {
-		final CompilerPatternMatcherModule bindingCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule bindingCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		bindingCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
 		bindingCompilerPatternMatcherModule.addOperationBuilder(bindingAssignmentOperationBuilder);
-		bindingCompilerPatternMatcherModule
-				.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.BINDING_PATTERN));
+		bindingCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.BINDING_PATTERN));
 
 		final PatternMatcherCompiler bindingPatternMatcherCompiler = new PatternMatcherCompiler(
 				bindingAndBlackPatternBuilder, bindingCompilerPatternMatcherModule);
@@ -263,10 +270,10 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	protected PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
-		final CompilerPatternMatcherModule blackCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule blackCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
 		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
-		blackCompilerPatternMatcherModule.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
+		blackCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
 
 		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
 				bindingAndBlackPatternBuilder, blackCompilerPatternMatcherModule);
@@ -279,14 +286,14 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	protected PatternMatcherCompiler configureRedPatternMatcherCompiler() {
 		// Configuring red pattern matcher
-		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> redPatternBuilder = new EMFPatternBuilder<DefaultPattern, DefaultPatternBody>(
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> redPatternBuilder = new EMFPatternBuilder<>(
 				new DefaultPatternFactory());
 		redPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 		redPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 
-		final CompilerPatternMatcherModule redCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule redCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		redCompilerPatternMatcherModule.addOperationBuilder(emfRedOperationBuilder);
-		redCompilerPatternMatcherModule.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.RED_PATTERN));
+		redCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.RED_PATTERN));
 
 		final PatternMatcherCompiler redPatternMatcherCompiler = new PatternMatcherCompiler(redPatternBuilder,
 				redCompilerPatternMatcherModule);
@@ -299,16 +306,16 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	protected PatternMatcherCompiler configureGreenPatternMatcherCompiler() {
 		// Configuring green pattern matcher
-		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> greenPatternBuilder = new EMFPatternBuilder<DefaultPattern, DefaultPatternBody>(
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> greenPatternBuilder = new EMFPatternBuilder<>(
 				new DefaultPatternFactory());
 		greenPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
 		greenPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 		greenPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 
-		final CompilerPatternMatcherModule greenCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule greenCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		greenCompilerPatternMatcherModule.addOperationBuilder(assignmentOperationBuilder);
 		greenCompilerPatternMatcherModule.addOperationBuilder(emfGreenOperationBuilder);
-		greenCompilerPatternMatcherModule.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.GREEN_PATTERN));
+		greenCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.GREEN_PATTERN));
 
 		final PatternMatcherCompiler greenPatternMatcherCompiler = new PatternMatcherCompiler(greenPatternBuilder,
 				greenCompilerPatternMatcherModule);
@@ -321,17 +328,16 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 
 	protected PatternMatcherCompiler configureExpressionPatternMatcherCompiler() {
 		// Configuring expression pattern matcher
-		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> expressionPatternBuilder = new EMFPatternBuilder<DefaultPattern, DefaultPatternBody>(
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> expressionPatternBuilder = new EMFPatternBuilder<>(
 				new DefaultPatternFactory());
 		expressionPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
 		expressionPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
 		expressionPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
 
-		final CompilerPatternMatcherModule expressionCompilerPatternMatcherModule = new CompilerPatternMatcherModule();
+		final TieGtCompilerPatternMatcherModule expressionCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
 		expressionCompilerPatternMatcherModule.addOperationBuilder(assignmentOperationBuilder);
 		expressionCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
-		expressionCompilerPatternMatcherModule
-				.setSearchPlanAlgorithm(createAlgorithm(DemoclesPatternType.EXPRESSION_PATTERN));
+		expressionCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.EXPRESSION_PATTERN));
 
 		final PatternMatcherCompiler expressionPatternMatcherCompiler = new PatternMatcherCompiler(
 				expressionPatternBuilder, expressionCompilerPatternMatcherModule);

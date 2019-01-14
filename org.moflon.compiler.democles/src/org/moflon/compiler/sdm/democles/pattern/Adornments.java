@@ -108,9 +108,9 @@ public class Adornments {
 		case Adornment.BOUND:
 			return Character.toString(ADORNMENT_SYMBOL_BOUND);
 		case Adornment.NOT_TYPECHECKED:
-			return Character.toString(ADORNMENT_SYMBOL_FREE);
-		case Adornment.FREE:
 			return Character.toString(ADORNMENT_SYMBOL_NOT_TYPECHECKED);
+		case Adornment.FREE:
+			return Character.toString(ADORNMENT_SYMBOL_FREE);
 		default:
 			return Character.toString(ADORNMENT_SYMBOL_UNKNOWN);
 		}

@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles;
+package org.moflon.compiler.sdm.democles.config;
 
 import org.eclipse.emf.common.notify.Adapter;
 import org.moflon.compiler.sdm.democles.codegen.DemoclesClassGeneratorAdapter;
