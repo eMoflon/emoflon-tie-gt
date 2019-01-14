@@ -7,6 +7,7 @@ import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.SearchPlanOperation;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.gervarro.democles.constraint.PatternInvocationConstraintType;
 import org.gervarro.democles.plan.WeightedOperation;
 import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
 import org.gervarro.democles.specification.emf.Constant;
@@ -128,6 +129,13 @@ public final class PatternPrintingUtil {
 		} else if (object instanceof Operation) {
 			final Operation operation = (Operation) object;
 			return operation.getEModelElement().getName();
+		} else if (object instanceof org.gervarro.democles.constraint.PatternInvocationConstraintType) {
+			final PatternInvocationConstraintType invocationConstraintType = org.gervarro.democles.constraint.PatternInvocationConstraintType.class
+					.cast(object);
+			final String modality = invocationConstraintType.isPositive() ? "exists" : "not exists";
+			final org.gervarro.democles.specification.impl.Pattern invokedPattern = invocationConstraintType
+					.getInvokedPattern();
+			return String.format("%s %s", modality, describePatternName(invokedPattern));
 		} else if (object instanceof PatternInvocationConstraint) {
 			final PatternInvocationConstraint invocationConstraint = (PatternInvocationConstraint) object;
 			final Pattern invokedPattern = invocationConstraint.getInvokedPattern();
@@ -193,6 +201,10 @@ public final class PatternPrintingUtil {
 	}
 
 	public static String describePatternName(final Pattern pattern) {
+		return pattern == null ? "null" : pattern.getName();
+	}
+
+	private static Object describePatternName(final org.gervarro.democles.specification.Pattern pattern) {
 		return pattern == null ? "null" : pattern.getName();
 	}
 

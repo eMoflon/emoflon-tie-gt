@@ -41,6 +41,8 @@ import org.moflon.compiler.sdm.democles.searchplan.BindingAndBlackPatternMatcher
 import org.moflon.compiler.sdm.democles.searchplan.BindingAssignmentOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EMFGreenOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.EMFRedOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.EmfGreenSearchPlanOperationBuilder;
+import org.moflon.compiler.sdm.democles.searchplan.EmfGreenWeightedOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherCompiler;
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.compiler.sdm.democles.searchplan.TieGtCompilerPatternMatcherModule;
@@ -56,10 +58,6 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	final RelationalTypeModule internalRelationalTypeModule = new RelationalTypeModule(CoreConstraintModule.INSTANCE);
 	protected final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternBuilder = new EMFPatternBuilder<>(
 			new DefaultPatternFactory());
-	final PatternInvocationConstraintModule<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternInvocationTypeModule = new PatternInvocationConstraintModule<>(
-			bindingAndBlackPatternBuilder);
-	final PatternInvocationTypeModule<DefaultPattern, DefaultPatternBody> internalPatternInvocationTypeModule = new PatternInvocationTypeModule<>(
-			bindingAndBlackPatternInvocationTypeModule);
 
 	// Operation modules (constraint to operation (constraint + adornment) mappings)
 	protected final RelationalOperationBuilder relationalOperationBuilder = new RelationalOperationBuilder();
@@ -91,6 +89,10 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		emfTypeModule = new EMFConstraintModule(this.resourceSet);
 		internalEMFTypeModule = new EMFTypeModule(emfTypeModule);
 
+		final PatternInvocationConstraintModule<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternInvocationTypeModule = new PatternInvocationConstraintModule<>(
+				bindingAndBlackPatternBuilder);
+		final PatternInvocationTypeModule<DefaultPattern, DefaultPatternBody> internalPatternInvocationTypeModule = new PatternInvocationTypeModule<>(
+				bindingAndBlackPatternInvocationTypeModule);
 		bindingAndBlackPatternBuilder
 				.addConstraintTypeSwitch(internalPatternInvocationTypeModule.getConstraintTypeSwitch());
 		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
@@ -119,6 +121,9 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 		builders.add(createRelationalConstraintsSearchPlanOperationBuilder());
 
 		switch (patternType) {
+		case BINDING_PATTERN:
+			builders.add(createAssignmentSearchPlanOperationBuilder());
+			break;
 		case EXPRESSION_PATTERN:
 			builders.add(createAssignmentSearchPlanOperationBuilder());
 			break;
@@ -134,8 +139,8 @@ public class DefaultValidatorConfig implements CodeGenerationConfiguration {
 	}
 
 	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createObjectCreatingSearchPlanOperationBuilder() {
-		return new CombinedSearchPlanOperationBuilder<>(new ObjectCreatingSearchPlanOperationBuilder(),
-				new ObjectCreatingWeightedOperationBuilder());
+		return new CombinedSearchPlanOperationBuilder<>(new EmfGreenSearchPlanOperationBuilder(),
+				new EmfGreenWeightedOperationBuilder());
 	}
 
 	private CombinedSearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, SearchPlanOperation<GeneratorOperation>, GeneratorOperation> createAssignmentSearchPlanOperationBuilder() {
