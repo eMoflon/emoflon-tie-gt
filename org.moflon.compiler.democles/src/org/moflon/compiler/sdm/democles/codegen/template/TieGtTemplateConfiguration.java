@@ -100,6 +100,8 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		expressionTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
 		templates.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR, expressionTemplateGroup);
 
+		addAttributeConstraintTemplatesToBlackTemplates(attributeConstraintLibs);
+
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
 				createBindingAndBlackOperationSequenceCompiler());
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR,
@@ -113,9 +115,6 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR,
 				createExpressionOperationSequenceCompiler());
 
-		addAttributeConstraintTemplatesToBlackTemplates(attributeConstraintLibs);
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
-				createBlackOperationSequenceCompiler());
 	}
 
 	@Override
