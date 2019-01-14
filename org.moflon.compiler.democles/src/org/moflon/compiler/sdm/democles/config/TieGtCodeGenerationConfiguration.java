@@ -35,6 +35,7 @@ import org.gervarro.democles.specification.impl.DefaultPatternBody;
 import org.gervarro.democles.specification.impl.DefaultPatternFactory;
 import org.gervarro.democles.specification.impl.PatternInvocationConstraintModule;
 import org.moflon.codegen.PatternMatcher;
+import org.moflon.compiler.sdm.democles.codegen.template.TieGtTemplateConfiguration;
 import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
 import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentOperationBuilder;
@@ -114,7 +115,8 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	 */
 	private final List<AttributeConstraintLibrary> attributeConstraintLibraries;
 
-	public TieGtCodeGenerationConfiguration(final ResourceSet resourceSet, final EMoflonPreferencesStorage preferencesStorage,
+	public TieGtCodeGenerationConfiguration(final ResourceSet resourceSet,
+			final EMoflonPreferencesStorage preferencesStorage,
 			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
 		this.resourceSet = resourceSet;
 		this.preferencesStorage = preferencesStorage;
@@ -423,7 +425,7 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 
 	@Override
 	public TemplateConfigurationProvider createTemplateConfiguration(final GenModel genModel) {
-		return new AttributeConstraintTemplateConfig(genModel, attributeConstraintLibraries);
+		return new TieGtTemplateConfiguration(genModel, attributeConstraintLibraries);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package org.moflon.compiler.sdm.democles.codegen.template;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.codegen.ecore.genmodel.GenBase;
@@ -26,15 +27,19 @@ import org.gervarro.democles.specification.ConstraintVariable;
 import org.moflon.compiler.sdm.democles.config.TieGtCodeGenerationConfiguration;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentTemplateProvider;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.sdm.constraints.operationspecification.AttributeConstraintsOperationActivator;
+import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
 import org.moflon.sdm.runtime.democles.CFNode;
 import org.moflon.sdm.runtime.democles.CFVariable;
 import org.moflon.sdm.runtime.democles.PatternInvocation;
 import org.moflon.sdm.runtime.democles.VariableReference;
+import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.STGroupString;
 
-//TODO@rkluge: Flatten inheritance hierarchy
-public class DefaultTemplateConfiguration implements TemplateConfigurationProvider {
-	private static final Logger logger = Logger.getLogger(DefaultTemplateConfiguration.class);
+public class TieGtTemplateConfiguration implements TemplateConfigurationProvider {
+	private static final Logger logger = Logger.getLogger(TieGtTemplateConfiguration.class);
 
 	public static final String CONTROL_FLOW_GENERATOR = "ControlFlowGenerator";
 
@@ -42,7 +47,8 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 
 	protected final HashMap<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<String, OperationSequenceCompiler>();
 
-	public DefaultTemplateConfiguration(final GenModel genModel) {
+	public TieGtTemplateConfiguration(final GenModel genModel,
+			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
 		final EcoreToGenModelConverter ecoreToGenModelConverter = new EcoreToGenModelConverter(genModel);
 		final EcoreModelAdaptor ecoreModelAdaptor = new EcoreModelAdaptor(ecoreToGenModelConverter);
 
@@ -106,6 +112,10 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 				createGreenOperationSequenceCompiler());
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR,
 				createExpressionOperationSequenceCompiler());
+
+		addAttributeConstraintTemplatesToBlackTemplates(attributeConstraintLibs);
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
+				createBlackOperationSequenceCompiler());
 	}
 
 	@Override
@@ -192,7 +202,8 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 	@SuppressWarnings("unchecked")
 	public static OperationSequenceCompiler createBlackOperationSequenceCompiler() {
 		return new OperationSequenceCompiler(new PatternInvocationConstraintTemplateProvider(),
-				new RelationalConstraintTemplateProvider(), new EMFTemplateProvider());
+				new RelationalConstraintTemplateProvider(), new EMFTemplateProvider(),
+				new AttributeConstraintsTemplateProvider());
 	}
 
 	public static final STGroup createBlackTemplates() {
@@ -303,7 +314,7 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 	}
 
 	private static String getCompilerURI() {
-		final String pluginId = WorkspaceHelper.getPluginId(DefaultTemplateConfiguration.class);
+		final String pluginId = WorkspaceHelper.getPluginId(TieGtTemplateConfiguration.class);
 		return "platform:/plugin/" + pluginId + "/";
 	}
 
@@ -313,5 +324,41 @@ public class DefaultTemplateConfiguration implements TemplateConfigurationProvid
 
 	private static String getDemoclesEMFURI() {
 		return "platform:/plugin/org.gervarro.democles.codegen.emf/";
+	}
+
+	/**
+	 * Adds the templates for user-defined constraints to the template group for
+	 * black patterns (i.e., patterns that represent preserved variables).
+	 *
+	 * @param attributeConstraintLibs the library containing user-defined attribute
+	 *                                constraints and operations
+	 */
+	private void addAttributeConstraintTemplatesToBlackTemplates(
+			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
+		final STGroup group = getTemplateGroup(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR);
+		for (final AttributeConstraintLibrary library : attributeConstraintLibs) {
+
+			for (final OperationSpecificationGroup operationSpecificationGroup : library.getOperationSpecifications()) {
+
+				if (!operationSpecificationGroup.isTemplateGroupGenerated()) {
+					operationSpecificationGroup.gernerateTemplate();
+				}
+
+				final STGroup newGroup = new STGroupString("someName",
+						operationSpecificationGroup.getTemplateGroupString(),
+						AttributeConstraintsOperationActivator.OUTER_ST_DELIMITER,
+						AttributeConstraintsOperationActivator.OUTER_ST_DELIMITER);
+
+				for (final String templateName : newGroup.getTemplateNames()) {
+					final ST template = newGroup.getInstanceOf(templateName);
+					final String fullyQualifiedTemplateName = "/" + library.getPrefix() + "/"
+							+ operationSpecificationGroup.getOperationIdentifier() + template.getName();
+					group.rawDefineTemplate(fullyQualifiedTemplateName, template.impl, null);
+				}
+
+			}
+
+		}
+
 	}
 }

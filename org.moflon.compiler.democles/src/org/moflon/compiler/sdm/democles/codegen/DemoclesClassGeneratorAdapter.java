@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.democles.codegen.ImportManager;
 import org.gervarro.democles.codegen.OperationSequenceCompiler;
 import org.gervarro.democles.codegen.TemplateInvocation;
-import org.moflon.compiler.sdm.democles.codegen.template.DefaultTemplateConfiguration;
+import org.moflon.compiler.sdm.democles.codegen.template.TieGtTemplateConfiguration;
 import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
 import org.moflon.compiler.sdm.democles.config.DemoclesGeneratorAdapterFactory;
 import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
@@ -88,8 +88,8 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 						.getTemplateConfigurationProvider();
 
 				final STGroup group = templateProvider
-						.getTemplateGroup(DefaultTemplateConfiguration.CONTROL_FLOW_GENERATOR);
-				final ST template = group.getInstanceOf("/" + DefaultTemplateConfiguration.CONTROL_FLOW_GENERATOR + "/"
+						.getTemplateGroup(TieGtTemplateConfiguration.CONTROL_FLOW_GENERATOR);
+				final ST template = group.getInstanceOf("/" + TieGtTemplateConfiguration.CONTROL_FLOW_GENERATOR + "/"
 						+ scope.getClass().getSimpleName());
 				template.add("scope", scope);
 				template.add("importManager", democlesImportManager);

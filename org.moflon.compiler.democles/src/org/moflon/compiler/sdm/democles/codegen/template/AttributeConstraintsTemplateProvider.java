@@ -1,4 +1,4 @@
-package org.moflon.compiler.sdm.democles.config;
+package org.moflon.compiler.sdm.democles.codegen.template;
 
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.CodeGeneratorProvider;
