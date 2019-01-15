@@ -8,6 +8,10 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCall
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowPackage
 import org.eclipse.emf.ecore.EClassifier
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.impl.MethodDecImpl
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
 
 /**
  * This class contains custom validation rules.
@@ -19,6 +23,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val TOO_MANY_ARGUMENTS = 'tooManyArguments'
 	public static val TOO_FEW_ARGUMENTS = 'tooFewArguments'
 	public static val CANNOT_RESOLVE_TYPE = 'cannotResolveType'
+	public static val DUPLICATE_VARIABLE_NAME = 'duplicateVariable'
 
 @Check
 def checkParametersofMethodCall(OperationCallStatement callStatement){
@@ -53,6 +58,37 @@ def notSet(){
 
 }
 
+@Check
+def uniqueVariableNames(ObjectVariableStatement oVar){
+	val name=oVar.name
+	var methodCall = oVar.eContainer
+	while(!(methodCall instanceof MethodDecImpl)){
+		methodCall=methodCall.eContainer
+		if(methodCall instanceof PatternStatement||methodCall instanceof OperationCallStatement){
+			return
+		}
+	}
+	methodCall = methodCall as MethodDecImpl
+	val contents=methodCall.eAllContents
+	val result=contents.filter[obj|obj instanceof ObjectVariableStatement||obj instanceof MethodParameter].findFirst[candidate| 
+		if(candidate instanceof MethodParameter){
+			val methodParam=candidate as MethodParameter
+			if(methodParam.name.equals(name)){
+				return true
+			}
+		}
+		else{
+			val oVarCandidate= candidate as ObjectVariableStatement
+			if(oVarCandidate.name.equals(name)&&!(oVarCandidate===oVar)){
+				return true
+			}
+		}
+		return false
+	]
+	if(result !== null){
+		error("Multiple ObjectVariables with name "+name,oVar,MoslControlFlowPackage.Literals.OBJECT_VARIABLE_STATEMENT.getEStructuralFeature(MoslControlFlowPackage.OBJECT_VARIABLE_STATEMENT__NAME),DUPLICATE_VARIABLE_NAME)
+	}
+}
 //	public static val INVALID_NAME = 'invalidName'
 //
 //	@Check
