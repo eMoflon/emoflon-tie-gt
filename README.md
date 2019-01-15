@@ -13,8 +13,6 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
    * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
 - eMoflon::Core
    * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
-- StringTemplate 
-   * Update site: http://gervarro.org/external/
 - Democles 0.5.0
    * Update site: http://gervarro.org/democles/integration-0.5.0/
    * Install
