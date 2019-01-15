@@ -12,6 +12,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariabl
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.impl.MethodDecImpl
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
 
 /**
  * This class contains custom validation rules.
@@ -24,10 +25,11 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val TOO_FEW_ARGUMENTS = 'tooFewArguments'
 	public static val CANNOT_RESOLVE_TYPE = 'cannotResolveType'
 	public static val DUPLICATE_VARIABLE_NAME = 'duplicateVariable'
+	public static val DUPLICATE_OPERATION_DECLARATION = 'duplicateOperation'
 
 @Check
 def checkParametersofMethodCall(OperationCallStatement callStatement){
-	val operation = getOperartion(callStatement)
+	val operation = getOperation(callStatement)
 	if (operation === null)
 	 return
 	val eparameters = operation.EParameters
@@ -45,7 +47,7 @@ def checkParametersofMethodCall(OperationCallStatement callStatement){
 	}
 }
 
-def getOperartion(OperationCallStatement callStatement){
+def getOperation(OperationCallStatement callStatement){
 		return callStatement.call
 }
 
@@ -88,6 +90,15 @@ def uniqueVariableNames(ObjectVariableStatement oVar){
 	if(result !== null){
 		error("Multiple ObjectVariables with name "+name,oVar,MoslControlFlowPackage.Literals.OBJECT_VARIABLE_STATEMENT.getEStructuralFeature(MoslControlFlowPackage.OBJECT_VARIABLE_STATEMENT__NAME),DUPLICATE_VARIABLE_NAME)
 	}
+}
+@Check
+def uniqueMethodImplementations(MethodDecImpl methodImpl){
+	val methodName = methodImpl.name
+	val eClass = methodImpl.eContainer as EClassDef
+	if(!(eClass.operations.filter[method | !(method===methodImpl)&&method.name.equals(methodName)].empty)){
+		error("Multiple declarations of operation with name "+methodName,methodImpl,MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC__NAME),DUPLICATE_VARIABLE_NAME)
+	}
+	
 }
 //	public static val INVALID_NAME = 'invalidName'
 //
