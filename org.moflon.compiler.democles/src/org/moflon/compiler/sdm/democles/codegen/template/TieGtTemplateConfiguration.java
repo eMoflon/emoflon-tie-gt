@@ -181,7 +181,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
 		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
 		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
-		group.loadGroupFile("/emf/", getDemoclesEMFURI() + "templates/stringtemplate/EMFOperation.stg");
+		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
 		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
 		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
 		final ImportHandler importRenderer = new ImportHandler();
@@ -211,7 +211,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
 		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
 		group.loadGroupFile("/core/", getDemoclesCoreURI() + "templates/stringtemplate/RelationalOperation.stg");
-		group.loadGroupFile("/emf/", getDemoclesEMFURI() + "templates/stringtemplate/EMFOperation.stg");
+		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
 		group.loadGroupFile("/pattern/", getDemoclesCoreURI() + "templates/stringtemplate/PatternCallOperation.stg");
 		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
 		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
@@ -267,7 +267,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
 		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
 		group.loadGroupFile("/emf-create/", getCompilerURI() + "templates/stringtemplate/EMFCreateOperation.stg");
-		group.loadGroupFile("/emf/", getDemoclesEMFURI() + "templates/stringtemplate/EMFOperation.stg");
+		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
 		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
 		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
 		final ImportHandler importRenderer = new ImportHandler();
@@ -295,7 +295,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
 		group.loadGroupFile("/expression/", getCompilerURI() + "templates/stringtemplate/ExpressionPatternMatcher.stg");
 		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
-		group.loadGroupFile("/emf/", getDemoclesEMFURI() + "templates/stringtemplate/EMFOperation.stg");
+		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
 		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
 		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
 		final ImportHandler importRenderer = new ImportHandler();

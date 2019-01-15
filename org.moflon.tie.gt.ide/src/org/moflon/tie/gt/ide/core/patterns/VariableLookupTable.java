@@ -34,7 +34,7 @@ class VariableLookupTable {
 
 	public EMFVariable getSymbolicParameter(final EObject object, final DemoclesPatternType patternType) {
 		final EClassifier type = typeLookup.determineTypeOfEditorElement(object);
-	
+
 		return getSymbolicParameter(object, type, patternType);
 	}
 
@@ -42,7 +42,7 @@ class VariableLookupTable {
 			final DemoclesPatternType patternType) {
 		if (!containsKey(object, patternType)) {
 			final EMFVariable variable = getOrCreateEMFVariable(object, patternType);
-	
+
 			variable.setEClassifier(typeLookup.getEClassifier(type));
 			final Pattern pattern = patternLookup.getPattern(patternType);
 			Patterns.registerSymbolicParameter(variable, pattern);
@@ -63,9 +63,9 @@ class VariableLookupTable {
 
 	public EMFVariable getLocalVariable(final EObject child, final Object parent,
 			final DemoclesPatternType patternType) {
-	
+
 		final EClassifier type = typeLookup.determineTypeOfEditorElement(child);
-	
+
 		return getLocalVariable(child, parent, type, patternType);
 	}
 
@@ -73,7 +73,7 @@ class VariableLookupTable {
 			final DemoclesPatternType patternType) {
 		if (!containsKey(child, parent, patternType)) {
 			final EMFVariable newAttribute = getOrCreateVariable(child, parent, patternType);
-	
+
 			newAttribute.setEClassifier(typeLookup.getEClassifier(type));
 			final Pattern pattern = patternLookup.getPattern(patternType);
 			Patterns.registerLocalVariable(newAttribute, pattern);
@@ -89,7 +89,7 @@ class VariableLookupTable {
 		returnEmfVariable
 				.setEClassifier(typeLookup.getEClassifier(typeLookup.determineTypeOfEditorElement(returnObject)));
 		pattern.getSymbolicParameters().add(0, returnEmfVariable);
-	
+
 		return returnEmfVariable;
 	}
 
@@ -129,36 +129,46 @@ class VariableLookupTable {
 		}
 	}
 
-	private String calculateLookupKey(final Object object, final Object parent) {
-		final String name;
+	private String calculateLookupKey(final Object childObject, final Object parentObject) {
+		final String childName;
 
-		if (object instanceof EditorNode) {
-			name = ((EditorNode) object).getName();
-		} else if (object instanceof EditorParameter) {
-			name = ((EditorParameter) object).getName();
-		} else if (object instanceof EAttribute) {
-			name = ((EAttribute) object).getName();
-		} else if (object instanceof CFVariable) {
-			name = ((CFVariable) object).getName();
-		} else if (object instanceof String) {
-			name = (String) object;
+		if (childObject instanceof EditorNode) {
+			childName = ((EditorNode) childObject).getName();
+		} else if (childObject instanceof EditorParameter) {
+			childName = ((EditorParameter) childObject).getName();
+		} else if (childObject instanceof EAttribute) {
+			childName = ((EAttribute) childObject).getName();
+		} else if (childObject instanceof CFVariable) {
+			childName = ((CFVariable) childObject).getName();
+		} else if (childObject instanceof String) {
+			childName = (String) childObject;
 		} else {
-			throw new RuntimeException("Type " + object.getClass() + " is not supported for this operation");
+			throw new RuntimeException("Type " + childObject.getClass() + " is not supported for this operation");
 		}
 
 		final String parentName;
-		if (parent == null) {
+		if (parentObject == null) {
 			parentName = "";
-		} else if (parent instanceof EditorNode) {
-			parentName = EditorNode.class.cast(parent).getName() + "_";
-		} else if (parent instanceof String) {
-			parentName = String.class.cast(parent);
+		} else if (parentObject instanceof EditorNode) {
+			parentName = EditorNode.class.cast(parentObject).getName();
+		} else if (parentObject instanceof String) {
+			parentName = String.class.cast(parentObject);
 		} else {
-			throw new RuntimeException("Unsupported type of parent object " + object.getClass());
+			throw new RuntimeException("Unsupported type of parent object " + childObject.getClass());
 		}
 
-		final String keyForLookup = parentName + name;
+		final String keyForLookup = combineParentAndChildName(childName, parentName);
 		return keyForLookup;
+	}
+
+	public String combineParentAndChildName(final String childName, final String parentName) {
+		if (parentName.isEmpty())
+			return childName;
+		else if (childName.isEmpty())
+			return parentName;
+		else
+//			return parentName + childName.substring(0, 1).toUpperCase() + childName.substring(1);
+			return parentName + "_" + childName;
 	}
 
 	private Map<Object, EMFVariable> getVariableLookupForPatternType(final DemoclesPatternType patternType) {

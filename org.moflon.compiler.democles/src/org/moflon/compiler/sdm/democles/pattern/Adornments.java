@@ -29,7 +29,6 @@ public class Adornments {
 	 */
 	public static final char ADORNMENT_SYMBOL_UNKNOWN = '?';
 
-	// TODO@rkluge: Refactoring shorten
 	public static Adornment create(final String adornmentString) {
 		final int[] bindings = new int[adornmentString.length()];
 		for (int i = 0; i < adornmentString.length(); i++) {
@@ -37,6 +36,10 @@ public class Adornments {
 		}
 		return Adornment.create(bindings);
 
+	}
+
+	public static Adornment createBoundAdornment(final int length) {
+		return createConstantAdornment(length, ADORNMENT_SYMBOL_BOUND);
 	}
 
 	public static Adornment createConstantAdornment(final int length, final char adornmentChar) {

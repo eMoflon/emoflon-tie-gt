@@ -17,8 +17,8 @@ public class PatternInvocationSearchPlanOperationBuilder implements TieGtSearchP
 			final Constraint constraint = (Constraint) origin;
 			final ConstraintType constraintType = constraint.getType();
 			if (constraintType instanceof PatternInvocationConstraintType) {
-				final Adornment postcondition = Adornments.createConstantAdornment(constraint.getParameters().size(),
-						Adornments.ADORNMENT_SYMBOL_BOUND);
+				final int length = constraint.getParameters().size();
+				final Adornment postcondition = Adornments.createBoundAdornment(length);
 				return new SearchPlanOperation<>(operation, postcondition);
 			}
 		}
