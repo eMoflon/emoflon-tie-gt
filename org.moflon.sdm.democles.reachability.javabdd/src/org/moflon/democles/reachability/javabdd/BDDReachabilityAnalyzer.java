@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.gervarro.democles.codegen.GeneratorOperation;
-import org.gervarro.democles.codegen.GeneratorVariable;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.OperationRuntime;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.common.runtime.VariableRuntime;
 import org.gervarro.democles.compiler.CompilerPattern;
 import org.gervarro.democles.compiler.CompilerPatternBody;
@@ -72,8 +72,7 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 	 * Initializes this analyzer to only analyze patterns with an adornment of at
 	 * most the given adornment size
 	 * 
-	 * @param maximumAdornmentSize
-	 *            the maximum adornment size
+	 * @param maximumAdornmentSize the maximum adornment size
 	 */
 	public BDDReachabilityAnalyzer(final int maximumAdornmentSize) {
 		this.maximumAdornmentSize = Math.min(maximumAdornmentSize, HIGHEST_POSSIBLE_MAXIMUM_ADORNMENT_SIZE);
@@ -123,8 +122,9 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 		// i = 1: post-variables
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 2 * adornmentSize; j += 2) {
-				bdd[i][j] = bddFactory.ithVar(i * 2 * adornmentSize + j);
-				bdd[i][j + 1] = bddFactory.ithVar(i * 2 * adornmentSize + j + 1);
+				final int offset = i * 2 * adornmentSize + j;
+				bdd[i][j] = bddFactory.ithVar(offset);
+				bdd[i][j + 1] = bddFactory.ithVar(offset + 1);
 			}
 		}
 
@@ -151,26 +151,32 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 		this.currentAdornmentBDD = bddFactory.one();
 		for (int i = 0; i < adornment.size(); ++i) {
 			// Handle precondition
+			final int offset = 2 * i;
+			final BDD preLower = bdd[0][offset];
+			final BDD preUpper = bdd[0][offset + 1];
 			switch (adornment.get(i)) {
 			case Adornment.FREE:
-				this.currentAdornmentBDD.andWith(bdd[0][2 * i].id());
-				this.currentAdornmentBDD.andWith(bdd[0][2 * i + 1].id());
+				this.currentAdornmentBDD.andWith(preLower.id());
+				this.currentAdornmentBDD.andWith(preUpper.id());
 				break;
 			case Adornment.BOUND:
-				this.currentAdornmentBDD.andWith(bdd[0][2 * i].not());
-				this.currentAdornmentBDD.andWith(bdd[0][2 * i + 1].not());
+				this.currentAdornmentBDD.andWith(preLower.not());
+				this.currentAdornmentBDD.andWith(preUpper.not());
 				break;
 			case Adornment.NOT_TYPECHECKED:
-				this.currentAdornmentBDD.andWith(bdd[0][2 * i].not());
-				this.currentAdornmentBDD.andWith(bdd[0][2 * i + 1].id());
+				this.currentAdornmentBDD.andWith(preLower.not());
+				this.currentAdornmentBDD.andWith(preUpper.id());
 				break;
 			}
 		}
-		final int offset = adornment.size();
+		final int adornmentSize = adornment.size();
 		// Local variables are always free initially
-		for (int i = offset; i < offset + body.getLocalVariables().size(); ++i) {
-			this.currentAdornmentBDD.andWith(bdd[0][2 * i].id());
-			this.currentAdornmentBDD.andWith(bdd[0][2 * i + 1].id());
+		for (int i = adornmentSize; i < adornmentSize + body.getLocalVariables().size(); ++i) {
+			final int offset = 2 * i;
+			final BDD preLower = bdd[0][offset];
+			final BDD preUpper = bdd[0][offset + 1];
+			this.currentAdornmentBDD.andWith(preLower.id());
+			this.currentAdornmentBDD.andWith(preUpper.id());
 		}
 	}
 
@@ -186,28 +192,33 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 				final BDD cube = bddFactory.one(); // Represents R_o
 				for (int param = 0; param < bodyPrecondition.size(); ++param) {
 					final int preconditionAdornment = bodyPrecondition.get(param);
+					final int offset = 2 * param;
+					final BDD preLower = bdd[0][offset];
+					final BDD preUpper = bdd[0][offset + 1];
+					final BDD postLower = bdd[1][offset];
+					final BDD postUpper = bdd[1][offset + 1];
 					switch (preconditionAdornment) {
 					case Adornment.FREE:
-						cube.andWith(bdd[0][2 * param].id());
-						cube.andWith(bdd[0][2 * param + 1].id());
+						cube.andWith(preLower.id());
+						cube.andWith(preUpper.id());
 						break;
 					case Adornment.BOUND:
-						cube.andWith(bdd[0][2 * param].not());
-						cube.andWith(bdd[0][2 * param + 1].not());
+						cube.andWith(preLower.not());
+						cube.andWith(preUpper.not());
 						break;
 					case Adornment.NOT_TYPECHECKED:
-						cube.andWith(bdd[0][2 * param].not());
-						cube.andWith(bdd[0][2 * param + 1].id());
+						cube.andWith(preLower.not());
+						cube.andWith(preUpper.id());
 						break;
 					case ReachabilityUtils.ADORNMENT_UNDEFINED:
-						cube.andWith(bdd[0][2 * param].biimp(bdd[1][2 * param]));
-						cube.andWith(bdd[0][2 * param + 1].biimp(bdd[1][2 * param + 1]));
+						cube.andWith(preLower.biimp(postLower));
+						cube.andWith(preUpper.biimp(postUpper));
 
 						// Reduce transition relation by pruning the unused combinations v_i1=1,v_i2=0
 						// and v'_i1=1,v'_i2=0
-						BDD pruningTermForPrevariable = bddFactory.one();
-						pruningTermForPrevariable.andWith(bdd[0][2 * param].id());
-						pruningTermForPrevariable.andWith(bdd[0][2 * param + 1].not());
+						final BDD pruningTermForPrevariable = bddFactory.one();
+						pruningTermForPrevariable.andWith(preLower.id());
+						pruningTermForPrevariable.andWith(preUpper.not());
 						cube.andWith(pruningTermForPrevariable.not());
 						break;
 					}
@@ -216,16 +227,16 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 					// Handle postcondition
 					switch (postconditionAdornment) {
 					case Adornment.FREE:
-						cube.andWith(bdd[1][2 * param].id());
-						cube.andWith(bdd[1][2 * param + 1].id());
+						cube.andWith(postLower.id());
+						cube.andWith(postUpper.id());
 						break;
 					case Adornment.BOUND:
-						cube.andWith(bdd[1][2 * param].not());
-						cube.andWith(bdd[1][2 * param + 1].not());
+						cube.andWith(postLower.not());
+						cube.andWith(postUpper.not());
 						break;
 					case Adornment.NOT_TYPECHECKED:
-						cube.andWith(bdd[1][2 * param].not());
-						cube.andWith(bdd[1][2 * param + 1].id());
+						cube.andWith(postLower.not());
+						cube.andWith(postUpper.id());
 						break;
 					case ReachabilityUtils.ADORNMENT_UNDEFINED:
 						// nop because previous switch-case has cared about this
@@ -251,10 +262,11 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 		return adornment;
 	}
 
-	private Adornment calculatePostconditionAdornment(CompilerPatternBody body, OperationRuntime operation) {
+	private Adornment calculatePostconditionAdornment(final CompilerPatternBody body,
+			final OperationRuntime operation) {
 		final Adornment adornment = createBodyAdornment(body);
-		for (int p = 0; p < operation.getPostcondition().size(); ++p) {
-			final int adornmentEntry = operation.getPostcondition().get(p);
+		for (int p = 0; p < operation.getPrecondition().size(); ++p) {
+			final int adornmentEntry = Adornment.BOUND;
 			final VariableRuntime variable = operation.getParameters().get(p);
 			if (!isAConstant(variable)) {
 				final int indexInAdornment = operation.getParameters().get(p).getIndex();
@@ -304,19 +316,22 @@ public class BDDReachabilityAnalyzer implements ReachabilityAnalyzer {
 		return isReachable;
 	}
 
-	private int[] getVarOrder(int adornmentSize) {
+	private int[] getVarOrder(final int adornmentSize) {
 
-		int[] varorder = new int[4 * adornmentSize];
+		final int[] varorder = new int[4 * adornmentSize];
 		for (int j = 0; j < adornmentSize; ++j) {
-			varorder[4 * j] = 2 * j; // pre-variable 1
-			varorder[4 * j + 1] = 2 * j + 1; // pre-variable 2
-			varorder[4 * j + 2] = 2 * adornmentSize + 2 * j; // post-variable 1
-			varorder[4 * j + 3] = 2 * adornmentSize + 2 * j + 1; // post-variable 2
+			final int offsetVarOrder = 4 * j;
+			final int offsetPre = 2 * j;
+			final int offsetPost = 2 * adornmentSize + offsetPre;
+			varorder[offsetVarOrder] = offsetPre; // pre-variable lower
+			varorder[offsetVarOrder + 1] = offsetPre + 1; // pre-variable upper
+			varorder[offsetVarOrder + 2] = offsetPost; // post-variable lower
+			varorder[offsetVarOrder + 3] = offsetPost + 1; // post-variable upper
 		}
 		return varorder;
 	}
 
-	private static boolean isAConstant(VariableRuntime variable) {
-		return GeneratorVariable.class.cast(variable).getSpecification() instanceof Constant;
+	private static boolean isAConstant(final VariableRuntime variable) {
+		return SpecificationExtendedVariableRuntime.class.cast(variable).getSpecification() instanceof Constant;
 	}
 }

@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.sdm.runtime.democles.Action;
 import org.moflon.sdm.runtime.democles.CFNode;

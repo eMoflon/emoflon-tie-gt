@@ -16,7 +16,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionSpecification;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionTargetPlatform;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
-import org.moflon.compiler.sdm.democles.Adornments;
+import org.moflon.compiler.sdm.democles.pattern.Adornments;
 import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
 import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
@@ -107,10 +107,10 @@ public class AttributeConstraintsLibraryLoader {
 		for (final EditorAttributeConditionAdornment editorAdornment : editorAdornments) {
 			switch (editorAdornment) {
 			case BOUND:
-				adornmentString.append(Adornments.ADORNMENT_BOUND);
+				adornmentString.append(Adornments.ADORNMENT_SYMBOL_BOUND);
 				break;
 			case FREE:
-				adornmentString.append(Adornments.ADORNMENT_FREE);
+				adornmentString.append(Adornments.ADORNMENT_SYMBOL_FREE);
 				break;
 			default:
 				throw new IllegalArgumentException(

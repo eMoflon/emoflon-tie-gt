@@ -1,5 +1,5 @@
 PatternCall(engine, importManager, body, chain) ::= <<
-<importManager.("java.lang.Object")>[] result_<chain.value.operation.origin.type.invokedPattern.name> = <chain.value.operation.origin.type.invokedPattern.name><chain.value.operation.precondition>(<chain.value.operation.boundParameters:/democles/ParameterName(importManager); separator=", ">);
+<GenericDataFrame()> result_<chain.value.operation.origin.type.invokedPattern.name> = <chain.value.operation.origin.type.invokedPattern.name><chain.value.operation.precondition>(<chain.value.operation.boundParameters:/democles/ParameterName(importManager); separator=", ">);
 if (result_<chain.value.operation.origin.type.invokedPattern.name> != null) {
 	<chain.value.operation:WriteFreeVariables(importManager)>
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
@@ -7,6 +7,10 @@ if (result_<chain.value.operation.origin.type.invokedPattern.name> != null) {
 >>
 
 WriteFreeVariables(operation, importManager) ::= <<
-<operation.parameters,operation.precondition.rawBindingInformation:{ variable,binding | <if(binding.isFree)><variable:/democles/ParameterType(importManager)> <variable:/democles/ParameterName(importManager,false)> = (<variable:/democles/ParameterType(importManager)>) result_<operation.origin.type.invokedPattern.name>[<i0>];
+<operation.parameters,operation.precondition.rawBindingInformation:{ variable,binding | <if(binding.isFree)><variable:/democles/ParameterType(importManager)> <variable:/democles/ParameterName(importManager,false)> = (<variable:/democles/ParameterType(importManager)>) result_<operation.origin.type.invokedPattern.name>.getValue(<i0>);
 <endif> }>
+>>
+
+GenericDataFrame() ::= <<
+<importManager.("org.gervarro.democles.common.GenericDataFrame")>
 >>

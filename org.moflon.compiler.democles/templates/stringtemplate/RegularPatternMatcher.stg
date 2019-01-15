@@ -1,25 +1,48 @@
+VariableName(variable) ::= <<
+<first(variable.parameters).specification.name; format="lowercase">
+>>
+
+VariableTypeAndName(variable, importManager) ::= <<
+<importManager.(variable.type)> <VariableName(variable)>
+>>
+
 AllMatches(engine, importManager, body, chain) ::= <<
-_result.add(new <importManager.("java.lang.Object")>[] { <body.header.internalSymbolicParameters:/democles/Name(importManager); separator=", "> });
+result.add(new <GenericDataFrame()>(<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">));
 >> 
 
 SingleMatch(engine, importManager, body, chain) ::= <<
-return new <importManager.("java.lang.Object")>[] { <body.header.internalSymbolicParameters:/democles/Name(importManager); separator=", "> };
+return new <GenericDataFrame()>(new <Object()>[]{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">});
 >>
 
 MatchSingleMethod(engine, importManager, body, adornment, boundSymbolicParameters, chain, alwaysSuccessful) ::= <<
-public static final <importManager.("java.lang.Object")>[] <body.header.name><adornment>(<boundSymbolicParameters:/democles/TypeAndName(importManager); separator=", ">) {
-	<if (chain)><(chain.value.template)(engine, importManager, body, chain)>
-<if (!alwaysSuccessful)>return null;<endif>
-<else><SingleMatch(engine, importManager, body, chain)>
-	<endif>
+public final <GenericDataFrame()> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
+  <if (chain)><(chain.value.template)(engine, importManager, body, chain)>
+  <if (!alwaysSuccessful)>return null;<endif>
+  <else><SingleMatch(engine, importManager, body, chain)>
+  <endif>
 }
 >>
 
 MatchAllMethod(engine, importManager, body, adornment, boundSymbolicParameters, chain, alwaysSuccessful) ::= <<
-public static final <importManager.("java.lang.Iterable")>\<<importManager.("java.lang.Object")>[]> <body.header.name><adornment>(<boundSymbolicParameters:/democles/TypeAndName(importManager); separator=", ">) {
-	<importManager.("java.util.LinkedList")>\<<importManager.("java.lang.Object")>[]> _result =
-		new <importManager.("java.util.LinkedList")>\<<importManager.("java.lang.Object")>[]>();
-	<if (chain)><(chain.value.template)(engine, importManager, body, chain)><else>_result.add(new <importManager.("java.lang.Object")>[] { <boundSymbolicParameters:/democles/Name(importManager); separator=", "> });<endif>
-	return _result;
+public final <Iterable()>\<<GenericDataFrame()>\> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
+  <LinkedList()>\<<GenericDataFrame()>\> result = new <LinkedList()>\<<GenericDataFrame()>\>();
+  <(chain.value.template)(engine, importManager, body, chain)>
+  return result;
 }
+>>
+
+Object() ::= <<
+<importManager.("java.lang.Object")>
+>>
+
+Iterable() ::= <<
+<importManager.("java.lang.Iterable")>
+>>
+
+GenericDataFrame() ::= <<
+<importManager.("org.gervarro.democles.common.GenericDataFrame")>
+>>
+
+LinkedList() ::= <<
+<importManager.("java.util.LinkedList")>
 >>

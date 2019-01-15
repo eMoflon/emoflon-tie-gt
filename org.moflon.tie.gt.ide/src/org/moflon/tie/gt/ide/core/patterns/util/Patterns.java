@@ -19,8 +19,8 @@ import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
-import org.moflon.compiler.sdm.democles.DemoclesPatternType;
-import org.moflon.compiler.sdm.democles.PatternPrintingUtil;
+import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
+import org.moflon.compiler.sdm.democles.pattern.PatternPrintingUtil;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
 public final class Patterns {
