@@ -167,7 +167,6 @@ class VariableLookupTable {
 		else if (childName.isEmpty())
 			return parentName;
 		else
-//			return parentName + childName.substring(0, 1).toUpperCase() + childName.substring(1);
 			return parentName + "_" + childName;
 	}
 
