@@ -8,14 +8,15 @@
 eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 
 ## Prerequisites
+- Eclipse 2018-09 or 2018-12
 - Xtext Complete SDK
    * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
 - eMoflon::Core
    * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
 - StringTemplate 
    * Update site: http://gervarro.org/external/
-- Democles 0.4.0
-   * Update site: http://gervarro.org/democles/integration-0.4.0/
+- Democles 0.5.0
+   * Update site: http://gervarro.org/democles/integration-0.5.0/
    * Install
       * Pattern Matcher Specification
       * Pattern Matcher Compiler
