@@ -1,5 +1,7 @@
 package org.moflon.compiler.sdm.democles.config;
 
+import static java.util.Arrays.asList;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,10 +13,14 @@ import java.util.Map;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.util.Switch;
+import org.gervarro.democles.codegen.CompilableAdornedOperation;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.emf.BasicEMFOperationBuilder;
 import org.gervarro.democles.codegen.emf.EMFOperationBuilder;
+import org.gervarro.democles.common.runtime.OperationBuilder;
 import org.gervarro.democles.common.runtime.SearchPlanOperation;
+import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.compiler.CompilerSearchPlanAlgorithm;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.emf.EMFConstraintModule;
@@ -26,6 +32,7 @@ import org.gervarro.democles.plan.common.SearchPlanOperationBuilder;
 import org.gervarro.democles.plan.emf.EMFSearchPlanOperationBuilder;
 import org.gervarro.democles.plan.emf.EMFWeightedOperationBuilder;
 import org.gervarro.democles.relational.RelationalOperationBuilder;
+import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.emf.EMFPatternBuilder;
 import org.gervarro.democles.specification.emf.constraint.EMFTypeModule;
 import org.gervarro.democles.specification.emf.constraint.PatternInvocationTypeModule;
@@ -35,8 +42,8 @@ import org.gervarro.democles.specification.impl.DefaultPatternBody;
 import org.gervarro.democles.specification.impl.DefaultPatternFactory;
 import org.gervarro.democles.specification.impl.PatternInvocationConstraintModule;
 import org.moflon.codegen.PatternMatcher;
-import org.moflon.compiler.sdm.democles.codegen.template.TieGtTemplateConfiguration;
 import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
+import org.moflon.compiler.sdm.democles.codegen.template.TieGtTemplateConfiguration;
 import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentOperationBuilder;
 import org.moflon.compiler.sdm.democles.searchplan.AssignmentSearchPlanOperationBuilder;
@@ -64,7 +71,6 @@ import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibr
 import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
 import org.moflon.sdm.constraints.operationspecification.constraint.util.AttributeVariableConstraintsModule;
 
-//TODO@rkluge: The flatten inheritance hierarchy
 public class TieGtCodeGenerationConfiguration implements CodeGenerationConfiguration {
 	public static final String BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR = "BindingAndBlackPatternMatcherGenerator";
 
@@ -78,21 +84,18 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 
 	public static final String EXPRESSION_PATTERN_MATCHER_GENERATOR = "ExpressionPatternMatcherGenerator";
 
-	protected final ResourceSet resourceSet;
-
 	// Constraint modules
-	final EMFConstraintModule emfTypeModule;
-	final EMFTypeModule internalEMFTypeModule;
-	final RelationalTypeModule internalRelationalTypeModule = new RelationalTypeModule(CoreConstraintModule.INSTANCE);
-	protected final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternBuilder = new EMFPatternBuilder<>(
-			new DefaultPatternFactory());
+	private final EMFConstraintModule emfTypeModule;
+	private final EMFTypeModule internalEMFTypeModule;
+	private final RelationalTypeModule internalRelationalTypeModule;
+	private final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternBuilder;
 
 	// Operation modules (constraint to operation (constraint + adornment) mappings)
-	protected final RelationalOperationBuilder relationalOperationBuilder = new RelationalOperationBuilder();
+	private final RelationalOperationBuilder relationalOperationBuilder = new RelationalOperationBuilder();
 	private final AssignmentOperationBuilder assignmentOperationBuilder = new AssignmentOperationBuilder();
 	private final BindingAssignmentOperationBuilder bindingAssignmentOperationBuilder = new BindingAssignmentOperationBuilder();
 	private final BasicEMFOperationBuilder basicOperationBuilder = new BasicEMFOperationBuilder();
-	protected final EMFOperationBuilder emfBlackOperationBuilder = new EMFOperationBuilder();
+	private final EMFOperationBuilder emfBlackOperationBuilder = new EMFOperationBuilder();
 	private final EMFRedOperationBuilder emfRedOperationBuilder = new EMFRedOperationBuilder();
 	private final EMFGreenOperationBuilder emfGreenOperationBuilder = new EMFGreenOperationBuilder();
 
@@ -118,38 +121,29 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	public TieGtCodeGenerationConfiguration(final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage,
 			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
-		this.resourceSet = resourceSet;
 		this.preferencesStorage = preferencesStorage;
+		this.attributeConstraintLibraries = new ArrayList<>(attributeConstraintLibraries);
 
 		emfTypeModule = new EMFConstraintModule(resourceSet);
 		internalEMFTypeModule = new EMFTypeModule(emfTypeModule);
+		internalRelationalTypeModule = new RelationalTypeModule(CoreConstraintModule.INSTANCE);
 
-		final PatternInvocationConstraintModule<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternInvocationTypeModule = new PatternInvocationConstraintModule<>(
-				bindingAndBlackPatternBuilder);
-		final PatternInvocationTypeModule<DefaultPattern, DefaultPatternBody> internalPatternInvocationTypeModule = new PatternInvocationTypeModule<>(
-				bindingAndBlackPatternInvocationTypeModule);
-		bindingAndBlackPatternBuilder
-				.addConstraintTypeSwitch(internalPatternInvocationTypeModule.getConstraintTypeSwitch());
-		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
-		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
-		bindingAndBlackPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
+		bindingAndBlackPatternBuilder = createEmfPatternBuilderWithRelationalConstraintSupport();
+		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(createPatternInvocationTypeSwitch());
 
-		this.attributeConstraintLibraries = new ArrayList<>(attributeConstraintLibraries);
-
-		// create attribute variable constraints type module using constraint libraries
-		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
-				attributeConstraintLibraries, resourceSet);
-
-		final AttributeVariableConstraintsModule attributeVariableConstraintsModule = new AttributeVariableConstraintsModule(
-				attributeVariableConstraintsTypeModule);
-		this.bindingAndBlackPatternBuilder
-				.addConstraintTypeSwitch(attributeVariableConstraintsModule.getConstraintTypeSwitch());
+		bindingAndBlackPatternBuilder.addConstraintTypeSwitch(
+				createAttributeConstraintsTypeSwitch(resourceSet, attributeConstraintLibraries));
 
 		initializePatternMatchers();
 
 	}
 
-	protected CompilerSearchPlanAlgorithm createAlgorithm(final DemoclesPatternType patternType) {
+	@Override
+	public TemplateConfigurationProvider createTemplateConfiguration(final GenModel genModel) {
+		return new TieGtTemplateConfiguration(genModel, attributeConstraintLibraries);
+	}
+
+	private CompilerSearchPlanAlgorithm createAlgorithm(final DemoclesPatternType patternType) {
 		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = createSearchPlanOperationBuilders(
 				patternType);
 
@@ -159,7 +153,7 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 		return createdAlgorithm;
 	}
 
-	protected LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperationBuilders(
+	private LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> createSearchPlanOperationBuilders(
 			final DemoclesPatternType patternType) {
 
 		final LinkedList<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> builders = new LinkedList<>();
@@ -186,6 +180,15 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 			break;
 		}
 		return builders;
+	}
+
+	private Switch<ConstraintType> createAttributeConstraintsTypeSwitch(final ResourceSet resourceSet,
+			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
+		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
+				attributeConstraintLibraries, resourceSet);
+		final AttributeVariableConstraintsModule attributeVariableConstraintsModule = new AttributeVariableConstraintsModule(
+				attributeVariableConstraintsTypeModule);
+		return attributeVariableConstraintsModule.getConstraintTypeSwitch();
 	}
 
 	private SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> createAttributeConstraintSearchPlanOperationBuilder() {
@@ -231,8 +234,7 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 		return new PatternMatcherConfiguration(searchPlanGenerators);
 	}
 
-	@Override
-	public void initializePatternMatchers() {
+	private void initializePatternMatchers() {
 		try {
 			setBindingAndBlackPatternMatcher(configureBindingAndBlackPatternMatcher());
 			setBindingPatternMatcher(configureBindingPatternMatcher());
@@ -249,198 +251,188 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 		return preferencesStorage;
 	}
 
-	protected PatternMatcher getBindingAndBlackPatternSearchPlanGenerator() {
+	private PatternMatcher getBindingAndBlackPatternSearchPlanGenerator() {
 		return bindingAndBlackPatternMatcher;
 	}
 
-	protected PatternMatcher getBindingPatternSearchPlanGenerator() {
+	private PatternMatcher getBindingPatternSearchPlanGenerator() {
 		return bindingPatternMatcher;
 	}
 
-	protected PatternMatcher getBlackPatternSearchPlanGenerator() {
+	private PatternMatcher getBlackPatternSearchPlanGenerator() {
 		return blackPatternMatcher;
 	}
 
-	protected PatternMatcher getRedPatternSearchPlanGenerator() {
+	private PatternMatcher getRedPatternSearchPlanGenerator() {
 		return redPatternMatcher;
 	}
 
-	protected PatternMatcher getGreenPatternSearchPlanGenerator() {
+	private PatternMatcher getGreenPatternSearchPlanGenerator() {
 		return greenPatternMatcher;
 	}
 
-	protected PatternMatcher getExpressionPatternSearchPlanGenerator() {
+	private PatternMatcher getExpressionPatternSearchPlanGenerator() {
 		return expressionPatternMatcher;
 	}
 
-	protected void setBindingAndBlackPatternMatcher(final PatternMatcher bindingAndBlackPatternMatcher) {
+	private void setBindingAndBlackPatternMatcher(final PatternMatcher bindingAndBlackPatternMatcher) {
 		this.bindingAndBlackPatternMatcher = bindingAndBlackPatternMatcher;
 	}
 
-	protected void setBindingPatternMatcher(final PatternMatcher bindingPatternMatcher) {
+	private void setBindingPatternMatcher(final PatternMatcher bindingPatternMatcher) {
 		this.bindingPatternMatcher = bindingPatternMatcher;
 	}
 
-	protected void setBlackPatternMatcher(final PatternMatcher blackPatternMatcher) {
+	private void setBlackPatternMatcher(final PatternMatcher blackPatternMatcher) {
 		this.blackPatternMatcher = blackPatternMatcher;
 	}
 
-	protected void setRedPatternMatcher(final PatternMatcher redPatternMatcher) {
+	private void setRedPatternMatcher(final PatternMatcher redPatternMatcher) {
 		this.redPatternMatcher = redPatternMatcher;
 	}
 
-	protected void setGreenPatternMatcher(final PatternMatcher greenPatternMatcher) {
+	private void setGreenPatternMatcher(final PatternMatcher greenPatternMatcher) {
 		this.greenPatternMatcher = greenPatternMatcher;
 	}
 
-	protected void setExpressionPatternMatcher(final PatternMatcher expressionPatternMatcher) {
+	private void setExpressionPatternMatcher(final PatternMatcher expressionPatternMatcher) {
 		this.expressionPatternMatcher = expressionPatternMatcher;
 	}
 
-	protected PatternMatcher configureBindingAndBlackPatternMatcher() throws IOException {
-		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = configureBindingAndBlackPatternMatcherCompiler();
-		return createAndRegisterRegularPatternMatcherGenerator(bindingAndBlackPatternMatcherCompiler,
-				BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR);
+	private PatternMatcher configureBindingAndBlackPatternMatcher() throws IOException {
+		final PatternMatcherCompiler compiler = configureBindingAndBlackPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(compiler, BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR);
 	}
 
-	protected PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
+	private PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
 
-		// TODO@rkluge: Create factory for TieGtCompilerPatternMatcherModule
-		// Configuring binding & black pattern matcher
-		final TieGtCompilerPatternMatcherModule bindingAndBlackCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
-		bindingAndBlackCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
-		bindingAndBlackCompilerPatternMatcherModule
-				.setAlgorithm(createAlgorithm(DemoclesPatternType.BINDING_AND_BLACK_PATTERN));
+		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
+				DemoclesPatternType.BINDING_AND_BLACK_PATTERN, asList(basicOperationBuilder));
 
 		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = new BindingAndBlackPatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, bindingAndBlackCompilerPatternMatcherModule);
+				bindingAndBlackPatternBuilder, matcherModule);
 		return bindingAndBlackPatternMatcherCompiler;
 	}
 
-	protected PatternMatcher configureBindingPatternMatcher() throws IOException {
-		final PatternMatcherCompiler bindingPatternMatcherCompiler = configureBindingPatternMatcherCompiler();
-		return createAndRegisterRegularPatternMatcherGenerator(bindingPatternMatcherCompiler,
-				BINDING_PATTERN_MATCHER_GENERATOR);
+	public TieGtCompilerPatternMatcherModule createPatternMatcherModule(final DemoclesPatternType patternType,
+			final List<OperationBuilder<CompilableAdornedOperation, List<CompilableAdornedOperation>, SpecificationExtendedVariableRuntime>> operationBuilders) {
+		final TieGtCompilerPatternMatcherModule matcherModule = new TieGtCompilerPatternMatcherModule();
+		matcherModule.setAlgorithm(createAlgorithm(patternType));
+		operationBuilders.forEach(builder -> matcherModule.addOperationBuilder(builder));
+		return matcherModule;
 	}
 
-	protected PatternMatcherCompiler configureBindingPatternMatcherCompiler() {
-		final TieGtCompilerPatternMatcherModule bindingCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
-		bindingCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
-		bindingCompilerPatternMatcherModule.addOperationBuilder(bindingAssignmentOperationBuilder);
-		bindingCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.BINDING_PATTERN));
-
-		final PatternMatcherCompiler bindingPatternMatcherCompiler = new PatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, bindingCompilerPatternMatcherModule);
-		return bindingPatternMatcherCompiler;
+	private PatternMatcher configureBindingPatternMatcher() throws IOException {
+		final PatternMatcherCompiler compiler = configureBindingPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(compiler, BINDING_PATTERN_MATCHER_GENERATOR);
 	}
 
-	protected PatternMatcher configureBlackPatternMatcher() throws IOException {
-		final PatternMatcherCompiler blackPatternMatcherCompiler = configureBlackPatternMatcherCompiler();
-		return createAndRegisterRegularPatternMatcherGenerator(blackPatternMatcherCompiler,
-				BLACK_PATTERN_MATCHER_GENERATOR);
+	private PatternMatcherCompiler configureBindingPatternMatcherCompiler() {
+		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
+				DemoclesPatternType.BINDING_PATTERN, asList(basicOperationBuilder, bindingAssignmentOperationBuilder));
+
+		final PatternMatcherCompiler compiler = new PatternMatcherCompiler(bindingAndBlackPatternBuilder,
+				matcherModule);
+		return compiler;
 	}
 
-	protected PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
-		final TieGtCompilerPatternMatcherModule blackCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
-		blackCompilerPatternMatcherModule.addOperationBuilder(emfBlackOperationBuilder);
-		blackCompilerPatternMatcherModule.addOperationBuilder(relationalOperationBuilder);
-		blackCompilerPatternMatcherModule.addOperationBuilder(new AttributeConstraintOperationBuilder());
-		blackCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.BLACK_PATTERN));
-
-		final PatternMatcherCompiler blackPatternMatcherCompiler = new PatternMatcherCompiler(
-				bindingAndBlackPatternBuilder, blackCompilerPatternMatcherModule);
-		return blackPatternMatcherCompiler;
+	private PatternMatcher configureBlackPatternMatcher() throws IOException {
+		final PatternMatcherCompiler compiler = configureBlackPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(compiler, BLACK_PATTERN_MATCHER_GENERATOR);
 	}
 
-	protected PatternMatcher configureRedPatternMatcher() throws IOException {
-		final PatternMatcherCompiler redPatternMatcherCompiler = configureRedPatternMatcherCompiler();
-		return createAndRegisterRegularPatternMatcherGenerator(redPatternMatcherCompiler,
-				RED_PATTERN_MATCHER_GENERATOR);
+	private PatternMatcherCompiler configureBlackPatternMatcherCompiler() {
+		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
+				DemoclesPatternType.BLACK_PATTERN, asList(emfBlackOperationBuilder, relationalOperationBuilder,
+						new AttributeConstraintOperationBuilder()));
+
+		final PatternMatcherCompiler compiler = new PatternMatcherCompiler(bindingAndBlackPatternBuilder,
+				matcherModule);
+		return compiler;
 	}
 
-	protected PatternMatcherCompiler configureRedPatternMatcherCompiler() {
-		// Configuring red pattern matcher
-		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> redPatternBuilder = new EMFPatternBuilder<>(
-				new DefaultPatternFactory());
-		redPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
-		redPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
-
-		final TieGtCompilerPatternMatcherModule redCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
-		redCompilerPatternMatcherModule.addOperationBuilder(emfRedOperationBuilder);
-		redCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.RED_PATTERN));
-
-		final PatternMatcherCompiler redPatternMatcherCompiler = new PatternMatcherCompiler(redPatternBuilder,
-				redCompilerPatternMatcherModule);
-		return redPatternMatcherCompiler;
+	private PatternMatcher configureRedPatternMatcher() throws IOException {
+		final PatternMatcherCompiler compiler = configureRedPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(compiler, RED_PATTERN_MATCHER_GENERATOR);
 	}
 
-	protected PatternMatcher configureGreenPatternMatcher() throws IOException {
-		final PatternMatcherCompiler greenPatternMatcherCompiler = configureGreenPatternMatcherCompiler();
-		return createAndRegisterRegularPatternMatcherGenerator(greenPatternMatcherCompiler,
-				GREEN_PATTERN_MATCHER_GENERATOR);
+	private PatternMatcherCompiler configureRedPatternMatcherCompiler() {
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder = createEmfPatternBuilder();
+
+		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
+				DemoclesPatternType.RED_PATTERN, asList(emfRedOperationBuilder));
+
+		final PatternMatcherCompiler compiler = new PatternMatcherCompiler(patternBuilder, matcherModule);
+		return compiler;
 	}
 
-	protected PatternMatcherCompiler configureGreenPatternMatcherCompiler() {
-		// Configuring green pattern matcher
-		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> greenPatternBuilder = new EMFPatternBuilder<>(
-				new DefaultPatternFactory());
-		greenPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
-		greenPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
-		greenPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
-
-		final TieGtCompilerPatternMatcherModule greenCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
-		greenCompilerPatternMatcherModule.addOperationBuilder(assignmentOperationBuilder);
-		greenCompilerPatternMatcherModule.addOperationBuilder(emfGreenOperationBuilder);
-		greenCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.GREEN_PATTERN));
-
-		final PatternMatcherCompiler greenPatternMatcherCompiler = new PatternMatcherCompiler(greenPatternBuilder,
-				greenCompilerPatternMatcherModule);
-		return greenPatternMatcherCompiler;
+	private PatternMatcher configureGreenPatternMatcher() throws IOException {
+		final PatternMatcherCompiler compiler = configureGreenPatternMatcherCompiler();
+		return createAndRegisterRegularPatternMatcherGenerator(compiler, GREEN_PATTERN_MATCHER_GENERATOR);
 	}
 
-	protected PatternMatcher configureExpressionPatternMatcher() throws IOException {
-		final PatternMatcherCompiler expressionPatternMatcherCompiler = configureExpressionPatternMatcherCompiler();
-		final ExpressionPatternMatcherGenerator expressionPatternMatcherGenerator = new ExpressionPatternMatcherGenerator(
-				expressionPatternMatcherCompiler, EXPRESSION_PATTERN_MATCHER_GENERATOR, getPreferencesStorage());
-		return expressionPatternMatcherGenerator;
+	private PatternMatcherCompiler configureGreenPatternMatcherCompiler() {
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder = createEmfPatternBuilderWithRelationalConstraintSupport();
+
+		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
+				DemoclesPatternType.GREEN_PATTERN, asList(assignmentOperationBuilder, emfGreenOperationBuilder));
+
+		final PatternMatcherCompiler compiler = new PatternMatcherCompiler(patternBuilder, matcherModule);
+		return compiler;
 	}
 
-	protected PatternMatcherCompiler configureExpressionPatternMatcherCompiler() {
-		// Configuring expression pattern matcher
-		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> expressionPatternBuilder = new EMFPatternBuilder<>(
-				new DefaultPatternFactory());
-		expressionPatternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
-		expressionPatternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
-		expressionPatternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
-
-		final TieGtCompilerPatternMatcherModule expressionCompilerPatternMatcherModule = new TieGtCompilerPatternMatcherModule();
-		expressionCompilerPatternMatcherModule.addOperationBuilder(assignmentOperationBuilder);
-		expressionCompilerPatternMatcherModule.addOperationBuilder(basicOperationBuilder);
-		expressionCompilerPatternMatcherModule.setAlgorithm(createAlgorithm(DemoclesPatternType.EXPRESSION_PATTERN));
-
-		final PatternMatcherCompiler expressionPatternMatcherCompiler = new PatternMatcherCompiler(
-				expressionPatternBuilder, expressionCompilerPatternMatcherModule);
-		return expressionPatternMatcherCompiler;
+	private PatternMatcher configureExpressionPatternMatcher() throws IOException {
+		final PatternMatcherCompiler compiler = configureExpressionPatternMatcherCompiler();
+		final ExpressionPatternMatcherGenerator generator = new ExpressionPatternMatcherGenerator(compiler,
+				EXPRESSION_PATTERN_MATCHER_GENERATOR, getPreferencesStorage());
+		return generator;
 	}
 
-	@Override
-	public TemplateConfigurationProvider createTemplateConfiguration(final GenModel genModel) {
-		return new TieGtTemplateConfiguration(genModel, attributeConstraintLibraries);
+	private PatternMatcherCompiler configureExpressionPatternMatcherCompiler() {
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder = createEmfPatternBuilderWithRelationalConstraintSupport();
+
+		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
+				DemoclesPatternType.EXPRESSION_PATTERN, asList(assignmentOperationBuilder, basicOperationBuilder));
+
+		final PatternMatcherCompiler compiler = new PatternMatcherCompiler(patternBuilder, matcherModule);
+		return compiler;
 	}
 
 	/**
 	 * Creates a {@link RegularPatternMatcherGenerator} from the given
 	 * {@link PatternMatcherCompiler} and registers it a the {@link Resource}
 	 *
-	 * @param patternMatcherCompiler
+	 * @param compiler
 	 * @param generatorName
 	 * @param resource
 	 * @return
 	 */
-	protected PatternMatcher createAndRegisterRegularPatternMatcherGenerator(
-			final PatternMatcherCompiler patternMatcherCompiler, final String generatorName) {
-		final RegularPatternMatcherGenerator bindingAndBlackPatternMatcherGenerator = new RegularPatternMatcherGenerator(
-				patternMatcherCompiler, generatorName, getPreferencesStorage());
-		return bindingAndBlackPatternMatcherGenerator;
+	private PatternMatcher createAndRegisterRegularPatternMatcherGenerator(final PatternMatcherCompiler compiler,
+			final String generatorName) {
+		final RegularPatternMatcherGenerator generator = new RegularPatternMatcherGenerator(compiler, generatorName,
+				getPreferencesStorage());
+		return generator;
+	}
+
+	private EMFPatternBuilder<DefaultPattern, DefaultPatternBody> createEmfPatternBuilder() {
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder = new EMFPatternBuilder<>(
+				new DefaultPatternFactory());
+		patternBuilder.addConstraintTypeSwitch(internalEMFTypeModule.getConstraintTypeSwitch());
+		patternBuilder.addVariableTypeSwitch(internalEMFTypeModule.getVariableTypeSwitch());
+		return patternBuilder;
+	}
+
+	private EMFPatternBuilder<DefaultPattern, DefaultPatternBody> createEmfPatternBuilderWithRelationalConstraintSupport() {
+		final EMFPatternBuilder<DefaultPattern, DefaultPatternBody> patternBuilder = createEmfPatternBuilder();
+		patternBuilder.addConstraintTypeSwitch(internalRelationalTypeModule.getConstraintTypeSwitch());
+		return patternBuilder;
+	}
+
+	private Switch<ConstraintType> createPatternInvocationTypeSwitch() {
+		final PatternInvocationConstraintModule<DefaultPattern, DefaultPatternBody> bindingAndBlackPatternInvocationTypeModule = new PatternInvocationConstraintModule<>(
+				bindingAndBlackPatternBuilder);
+		final PatternInvocationTypeModule<DefaultPattern, DefaultPatternBody> internalPatternInvocationTypeModule = new PatternInvocationTypeModule<>(
+				bindingAndBlackPatternInvocationTypeModule);
+		return internalPatternInvocationTypeModule.getConstraintTypeSwitch();
 	}
 }

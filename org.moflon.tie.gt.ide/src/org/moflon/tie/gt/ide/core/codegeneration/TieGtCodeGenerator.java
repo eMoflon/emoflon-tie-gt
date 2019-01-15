@@ -20,8 +20,8 @@ import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
-import org.moflon.compiler.sdm.democles.config.TieGtCodeGenerationConfiguration;
 import org.moflon.compiler.sdm.democles.config.DemoclesGeneratorAdapterFactory;
+import org.moflon.compiler.sdm.democles.config.TieGtCodeGenerationConfiguration;
 import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
 import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
@@ -69,9 +69,9 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 					.run(this.getResourceSet());
 
 			final IProject project = getEcoreFile().getProject();
-			final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(getResourceSet(),
-					getPreferencesStorage(), attributeConstraintLibraries);
-			inititializeResourceSet(getResourceSet());
+			final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(
+					getResourceSet(), getPreferencesStorage(), attributeConstraintLibraries);
+			inititializeResourceSet();
 			subMon.worked(5);
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
@@ -162,7 +162,8 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		}
 	}
 
-	private void inititializeResourceSet(final ResourceSet resourceSet) {
+	private void inititializeResourceSet() {
+		final ResourceSet resourceSet = getResourceSet();
 		final EList<AdapterFactory> adapterFactories = resourceSet.getAdapterFactories();
 		final Map<String, Object> extensionToFactoryMap = resourceSet.getResourceFactoryRegistry()
 				.getExtensionToFactoryMap();

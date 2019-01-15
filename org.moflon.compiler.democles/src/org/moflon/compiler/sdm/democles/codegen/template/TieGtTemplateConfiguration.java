@@ -43,77 +43,26 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 	public static final String CONTROL_FLOW_GENERATOR = "ControlFlowGenerator";
 
-	protected final HashMap<String, STGroup> templates = new HashMap<String, STGroup>();
+	private final HashMap<String, STGroup> templates = new HashMap<String, STGroup>();
 
-	protected final HashMap<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<String, OperationSequenceCompiler>();
+	private final HashMap<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<String, OperationSequenceCompiler>();
 
 	public TieGtTemplateConfiguration(final GenModel genModel,
 			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
 		final EcoreToGenModelConverter ecoreToGenModelConverter = new EcoreToGenModelConverter(genModel);
-		final EcoreModelAdaptor ecoreModelAdaptor = new EcoreModelAdaptor(ecoreToGenModelConverter);
+		final EcoreModelAdaptor ecoreModelAdaptor = new TiGtEcoreModelAdaptor(ecoreToGenModelConverter);
 
 		final STGroup controlFlowTemplateGroup = createControlFlowTemplates();
 		controlFlowTemplateGroup.registerModelAdaptor(EClassifier.class, ecoreModelAdaptor);
 		controlFlowTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
 		templates.put(CONTROL_FLOW_GENERATOR, controlFlowTemplateGroup);
 
-		final STGroup bindingAndBlackTemplateGroup = createBindingAndBlackTemplates();
-		bindingAndBlackTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
-		bindingAndBlackTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
-		bindingAndBlackTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
-		bindingAndBlackTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
-				bindingAndBlackTemplateGroup);
-
-		final STGroup bindingTemplateGroup = createBindingTemplates();
-		bindingTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
-		bindingTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
-		bindingTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
-		bindingTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR, bindingTemplateGroup);
-
-		final STGroup blackTemplateGroup = createBlackTemplates();
-		blackTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
-		blackTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
-		blackTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
-		blackTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR, blackTemplateGroup);
-
-		final STGroup redTemplateGroup = createRedTemplates();
-		redTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
-		redTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
-		redTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
-		redTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR, redTemplateGroup);
-
-		final STGroup greenTemplateGroup = createGreenTemplates();
-		greenTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
-		greenTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
-		greenTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
-		greenTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR, greenTemplateGroup);
-
-		final STGroup expressionTemplateGroup = createExpressionTemplates();
-		expressionTemplateGroup.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
-		expressionTemplateGroup.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
-		expressionTemplateGroup.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
-		expressionTemplateGroup.registerRenderer(EClassifier.class, ecoreModelAdaptor);
-		templates.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR, expressionTemplateGroup);
-
-		addAttributeConstraintTemplatesToBlackTemplates(attributeConstraintLibs);
-
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
-				createBindingAndBlackOperationSequenceCompiler());
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR,
-				createBindingOperationSequenceCompiler());
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
-				createBlackOperationSequenceCompiler());
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR,
-				createRedOperationSequenceCompiler());
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR,
-				createGreenOperationSequenceCompiler());
-		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR,
-				createExpressionOperationSequenceCompiler());
+		createBindingAndBlackTemplates(ecoreModelAdaptor);
+		createBindingTemplates(ecoreModelAdaptor);
+		createBlackTemplates(ecoreModelAdaptor, attributeConstraintLibs);
+		createRedTemplates(ecoreModelAdaptor);
+		createGreenTemplates(ecoreModelAdaptor);
+		createExpressionTemplates(ecoreModelAdaptor);
 
 	}
 
@@ -127,189 +76,291 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		return operationSequenceCompilers.get(id);
 	}
 
-	public static final STGroup createControlFlowTemplates() {
+	private static final STGroup createControlFlowTemplates() {
 		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
+		registerErrorLogger(group);
 		group.loadGroupFile("/" + CONTROL_FLOW_GENERATOR + "/",
 				getCompilerURI() + "templates/stringtemplate/ControlFlow.stg");
 
-		final ControlFlowModelAdaptor adaptor = new ControlFlowModelAdaptor();
-		group.registerModelAdaptor(PatternInvocation.class, adaptor);
-		group.registerModelAdaptor(VariableReference.class, adaptor);
-		group.registerModelAdaptor(CFNode.class, adaptor);
-		group.registerModelAdaptor(CFVariable.class, adaptor);
-		final ImportHandler importRenderer = new ImportHandler();
-		group.registerModelAdaptor(ImportManager.class, importRenderer);
-		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
+		registerControlFlowModelAdaptor(group);
+		registerImportModelAdaptor(group);
 		return group;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static final OperationSequenceCompiler createBindingAndBlackOperationSequenceCompiler() {
-		return new OperationSequenceCompiler(new BindingAndBlackTemplateProvider());
-	}
-
-	public static final STGroup createBindingAndBlackTemplates() {
-		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
-		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
-		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
-		group.loadGroupFile("/priority/", getCompilerURI() + "templates/stringtemplate/PrioritizedPatternCall.stg");
-		final ImportHandler importRenderer = new ImportHandler();
-		group.registerModelAdaptor(ImportManager.class, importRenderer);
-		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
-
-		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
-		group.registerModelAdaptor(GeneratorOperation.class, parameterRenderer);
-		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
-		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
-		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
-		group.registerRenderer(String.class, new StringRenderer());
-
-		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
-		return group;
+	private static void registerEcoreModelAdaptor(final EcoreModelAdaptor ecoreModelAdaptor, final STGroup group) {
+		group.registerModelAdaptor(EModelElement.class, ecoreModelAdaptor);
+		group.registerModelAdaptor(EMFVariable.class, ecoreModelAdaptor);
+		group.registerRenderer(EMFVariable.class, ecoreModelAdaptor);
+		group.registerRenderer(EClassifier.class, ecoreModelAdaptor);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final OperationSequenceCompiler createBindingOperationSequenceCompiler() {
-		return new OperationSequenceCompiler(new AssignmentTemplateProvider(), new EMFTemplateProvider());
-	}
-
-	public static final STGroup createBindingTemplates() {
-		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
-		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
-		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
-		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
-		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
-		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
-		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
-		final ImportHandler importRenderer = new ImportHandler();
-		group.registerModelAdaptor(ImportManager.class, importRenderer);
-		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
-
-		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
-		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
-		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
-		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
-		group.registerRenderer(String.class, new StringRenderer());
-
-		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
-		return group;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static OperationSequenceCompiler createBlackOperationSequenceCompiler() {
+	private static OperationSequenceCompiler createBlackOperationSequenceCompiler() {
 		return new OperationSequenceCompiler(new PatternInvocationConstraintTemplateProvider(),
 				new RelationalConstraintTemplateProvider(), new EMFTemplateProvider(),
 				new AttributeConstraintsTemplateProvider());
 	}
 
-	public static final STGroup createBlackTemplates() {
-		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
-		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
-		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
-		group.loadGroupFile("/core/", getDemoclesCoreURI() + "templates/stringtemplate/RelationalOperation.stg");
-		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
-		group.loadGroupFile("/pattern/", getDemoclesCoreURI() + "templates/stringtemplate/PatternCallOperation.stg");
-		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
-		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
-		final ImportHandler importRenderer = new ImportHandler();
-		group.registerModelAdaptor(ImportManager.class, importRenderer);
-		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
-
-		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
-		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
-		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
-		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
-		group.registerRenderer(String.class, new StringRenderer());
-
-		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
-		return group;
-	}
-
 	@SuppressWarnings("unchecked")
-	public static final OperationSequenceCompiler createRedOperationSequenceCompiler() {
+	private static final OperationSequenceCompiler createRedOperationSequenceCompiler() {
 		return new OperationSequenceCompiler(new EMFRedTemplateProvider());
 	}
 
-	public static final STGroup createRedTemplates() {
-		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
-		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
-		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
-		group.loadGroupFile("/emf-delete/", getCompilerURI() + "templates/stringtemplate/EMFDeleteOperation.stg");
-		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
-		final ImportHandler importRenderer = new ImportHandler();
-		group.registerModelAdaptor(ImportManager.class, importRenderer);
-		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
-
-		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
-		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
-		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
-		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
-		group.registerRenderer(String.class, new StringRenderer());
-
-		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
-		return group;
-	}
-
 	@SuppressWarnings("unchecked")
-	public static final OperationSequenceCompiler createGreenOperationSequenceCompiler() {
+	private static final OperationSequenceCompiler createGreenOperationSequenceCompiler() {
 		return new OperationSequenceCompiler(new AttributeAssignmentTemplateProvider(), new EMFGreenTemplateProvider());
 	}
 
-	public static final STGroup createGreenTemplates() {
-		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
-		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
-		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
-		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
-		group.loadGroupFile("/emf-create/", getCompilerURI() + "templates/stringtemplate/EMFCreateOperation.stg");
-		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
-		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
-		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
-		final ImportHandler importRenderer = new ImportHandler();
-		group.registerModelAdaptor(ImportManager.class, importRenderer);
-		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
-
-		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
-		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
-		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
-		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
-		group.registerRenderer(String.class, new StringRenderer());
-
-		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
-		return group;
-	}
-
 	@SuppressWarnings("unchecked")
-	public static final OperationSequenceCompiler createExpressionOperationSequenceCompiler() {
+	private static final OperationSequenceCompiler createBindingOperationSequenceCompiler() {
 		return new OperationSequenceCompiler(new AssignmentTemplateProvider(), new EMFTemplateProvider());
 	}
 
-	public static final STGroup createExpressionTemplates() {
+	@SuppressWarnings("unchecked")
+	private static final OperationSequenceCompiler createBindingAndBlackOperationSequenceCompiler() {
+		return new OperationSequenceCompiler(new BindingAndBlackTemplateProvider());
+	}
+
+	@SuppressWarnings("unchecked")
+	private static final OperationSequenceCompiler createExpressionOperationSequenceCompiler() {
+		return new OperationSequenceCompiler(new AssignmentTemplateProvider(), new EMFTemplateProvider());
+	}
+
+	private final STGroup createBindingAndBlackTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
 		final STGroup group = new STGroup();
-		group.setListener(new LoggingSTErrorListener(logger));
-		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
-		group.loadGroupFile("/expression/", getCompilerURI() + "templates/stringtemplate/ExpressionPatternMatcher.stg");
-		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
-		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
-		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
-		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
+		registerErrorLogger(group);
+		registerDemoclesCommonTemplates(group);
+		registerRegularTemplates(group);
+		registerPrioritizedPatternCallTemplates(group);
+
+		registerImportModelAdaptor(group);
+		registerAdornmentModelAdaptor(group);
+		registerStringModelAdaptor(group);
+
+		registerParameterModelAdaptor(group);
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+		templates.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR, group);
+
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
+				createBindingAndBlackOperationSequenceCompiler());
+
+		return group;
+	}
+
+	private static void registerPrioritizedPatternCallTemplates(final STGroup group) {
+		group.loadGroupFile("/priority/", getCompilerURI() + "templates/stringtemplate/PrioritizedPatternCall.stg");
+	}
+
+	private final STGroup createBindingTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
+		final STGroup group = new STGroup();
+		registerErrorLogger(group);
+		registerDemoclesCommonTemplates(group);
+		registerRegularTemplates(group);
+		registerConstantTemplates(group);
+
+		registerNumberTemplates(group);
+		registerEmfOperationTemplates(group);
+		registerAssignmentTemplates(group);
+
+		registerImportModelAdaptor(group);
+		registerParameterModelAdaptor(group);
+		registerAdornmentModelAdaptor(group);
+		registerStringModelAdaptor(group);
+
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+
+		templates.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR, group);
+
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR,
+				createBindingOperationSequenceCompiler());
+
+		return group;
+	}
+
+	private final STGroup createBlackTemplates(final EcoreModelAdaptor ecoreModelAdaptor,
+			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
+		final STGroup group = new STGroup();
+		registerErrorLogger(group);
+		registerDemoclesCommonTemplates(group);
+		registerRegularTemplates(group);
+		registerConstantTemplates(group);
+
+		registerNumberTemplates(group);
+
+		registerEmfOperationTemplates(group);
+		registerPatternCallTemplates(group);
+		registerRelationOperationTemplates(group);
+		registerImportModelAdaptor(group);
+
+		registerParameterModelAdaptor(group);
+		registerAdornmentModelAdaptor(group);
+		registerStringModelAdaptor(group);
+
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+
+		templates.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR, group);
+		addAttributeConstraintTemplates(group, attributeConstraintLibs);
+
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
+				createBlackOperationSequenceCompiler());
+		return group;
+	}
+
+	private static void registerRelationOperationTemplates(final STGroup group) {
+		group.loadGroupFile("/core/", getDemoclesCoreURI() + "templates/stringtemplate/RelationalOperation.stg");
+	}
+
+	private static void registerPatternCallTemplates(final STGroup group) {
+		group.loadGroupFile("/pattern/", getDemoclesCoreURI() + "templates/stringtemplate/PatternCallOperation.stg");
+	}
+
+	private final STGroup createRedTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
+		final STGroup group = new STGroup();
+		registerErrorLogger(group);
+		registerDemoclesCommonTemplates(group);
+		registerRegularTemplates(group);
+		registerConstantTemplates(group);
+
+		registerEmfDeletionTemplates(group);
+
+		registerImportModelAdaptor(group);
+		registerStringModelAdaptor(group);
+		registerParameterModelAdaptor(group);
+		registerAdornmentModelAdaptor(group);
+
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+		templates.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR, group);
+
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR,
+				createRedOperationSequenceCompiler());
+		return group;
+	}
+
+	private static void registerEmfDeletionTemplates(final STGroup group) {
+		group.loadGroupFile("/emf-delete/", getCompilerURI() + "templates/stringtemplate/EMFDeleteOperation.stg");
+	}
+
+	private final STGroup createGreenTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
+		final STGroup group = new STGroup();
+		registerErrorLogger(group);
+		registerDemoclesCommonTemplates(group);
+		registerRegularTemplates(group);
+		registerNumberTemplates(group);
+		registerConstantTemplates(group);
+
+		registerAssignmentTemplates(group);
+		registerEmfCreationTemplates(group);
+		registerEmfOperationTemplates(group);
+
+		registerImportModelAdaptor(group);
+		registerStringModelAdaptor(group);
+		registerParameterModelAdaptor(group);
+		registerAdornmentModelAdaptor(group);
+
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+		templates.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR, group);
+
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR,
+				createGreenOperationSequenceCompiler());
+		return group;
+	}
+
+	private static void registerGenModelAdaptor(final STGroup group) {
+		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
+	}
+
+	private final STGroup createExpressionTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
+		final STGroup group = new STGroup();
+		registerErrorLogger(group);
+		registerDemoclesCommonTemplates(group);
+		registerConstantTemplates(group);
+		registerAssignmentTemplates(group);
+		registerEmfOperationTemplates(group);
+		registerNumberTemplates(group);
+		registerExpressionTemplates(group);
+
+		registerImportModelAdaptor(group);
+		registerParameterModelAdaptor(group);
+		registerAdornmentModelAdaptor(group);
+		registerStringModelAdaptor(group);
+
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+		templates.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR, group);
+
+		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR,
+				createExpressionOperationSequenceCompiler());
+		return group;
+	}
+
+	private static void registerAdornmentModelAdaptor(final STGroup group) {
+		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
+	}
+
+	private static void registerStringModelAdaptor(final STGroup group) {
+		group.registerRenderer(String.class, new StringRenderer());
+	}
+
+	private static void registerControlFlowModelAdaptor(final STGroup group) {
+		final ControlFlowModelAdaptor adaptor = new ControlFlowModelAdaptor();
+		group.registerModelAdaptor(PatternInvocation.class, adaptor);
+		group.registerModelAdaptor(VariableReference.class, adaptor);
+		group.registerModelAdaptor(CFNode.class, adaptor);
+		group.registerModelAdaptor(CFVariable.class, adaptor);
+	}
+
+	private static void registerParameterModelAdaptor(final STGroup group) {
+		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
+		group.registerModelAdaptor(GeneratorOperation.class, parameterRenderer);
+		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
+		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
+	}
+
+	private static void registerImportModelAdaptor(final STGroup group) {
 		final ImportHandler importRenderer = new ImportHandler();
 		group.registerModelAdaptor(ImportManager.class, importRenderer);
 		group.registerModelAdaptor(FullyQualifiedName.class, importRenderer);
+	}
 
-		final PatternMatcherModelAdaptor parameterRenderer = new PatternMatcherModelAdaptor();
-		group.registerModelAdaptor(ConstraintVariable.class, parameterRenderer);
-		group.registerModelAdaptor(VariableRuntime.class, parameterRenderer);
-		group.registerModelAdaptor(Integer.class, new AdornmentHandler());
-		group.registerRenderer(String.class, new StringRenderer());
+	private static void registerNumberTemplates(final STGroup group) {
+		group.loadGroupFile("/democles/", getCompilerURI() + "templates/stringtemplate/Number.stg");
+	}
 
-		group.registerModelAdaptor(GenBase.class, new GenModelAdaptor());
-		return group;
+	private static void registerErrorLogger(final STGroup group) {
+		group.setListener(new LoggingSTErrorListener(logger));
+	}
+
+	private static void registerConstantTemplates(final STGroup group) {
+		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
+	}
+
+	private static void registerEmfOperationTemplates(final STGroup group) {
+		group.loadGroupFile("/emf/", getCompilerURI() + "templates/stringtemplate/EMFOperation.stg");
+	}
+
+	private static void registerEmfCreationTemplates(final STGroup group) {
+		group.loadGroupFile("/emf-create/", getCompilerURI() + "templates/stringtemplate/EMFCreateOperation.stg");
+	}
+
+	private static void registerDemoclesCommonTemplates(final STGroup group) {
+		group.loadGroupFile("/democles/", getDemoclesCoreURI() + "templates/stringtemplate/DemoclesCommon.stg");
+	}
+
+	private static void registerRegularTemplates(final STGroup group) {
+		group.loadGroupFile("/regular/", getCompilerURI() + "templates/stringtemplate/RegularPatternMatcher.stg");
+	}
+
+	private static void registerAssignmentTemplates(final STGroup group) {
+		group.loadGroupFile("/assignment/", getCompilerURI() + "templates/stringtemplate/Assignment.stg");
+	}
+
+	private static void registerExpressionTemplates(final STGroup group) {
+		group.loadGroupFile("/expression/", getCompilerURI() + "templates/stringtemplate/ExpressionPatternMatcher.stg");
 	}
 
 	private static String getCompilerURI() {
@@ -328,13 +379,15 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	/**
 	 * Adds the templates for user-defined constraints to the template group for
 	 * black patterns (i.e., patterns that represent preserved variables).
+	 * 
+	 * @param group                   the template group at which the libraries
+	 *                                shall be registered
 	 *
 	 * @param attributeConstraintLibs the library containing user-defined attribute
 	 *                                constraints and operations
 	 */
-	private void addAttributeConstraintTemplatesToBlackTemplates(
+	private void addAttributeConstraintTemplates(final STGroup group,
 			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
-		final STGroup group = getTemplateGroup(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR);
 		for (final AttributeConstraintLibrary library : attributeConstraintLibs) {
 
 			for (final OperationSpecificationGroup operationSpecificationGroup : library.getOperationSpecifications()) {

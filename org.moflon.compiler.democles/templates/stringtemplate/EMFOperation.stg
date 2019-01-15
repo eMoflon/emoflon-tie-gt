@@ -1,45 +1,76 @@
 BackwardExtendToMany(engine, importManager, body, chain) ::= <<
-for (<importManager.(chain.value.operation.type.linkedElement.genModelElement.genClass.typeName)> <first(chain.value.operation.parameters):/democles/ParameterName(importManager, false, false)> : <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager, true, false)>.<chain.value.operation.type.linkedElement.genModelElement.reverse.getAccessor>()) {
+for (<ReturnTypeName(importManager, chain)> <first(chain.value.operation.parameters):ParamPre(importManager)> : <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager, true, false)>.<chain.value.operation.type.linkedElement.genModelElement.reverse.getAccessor>()) {
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 }
 >>
 
 BackwardExtendToOne(engine, importManager, body, chain) ::= <<
-<importManager.(chain.value.operation.type.linkedElement.genModelElement.genClass.typeName)> <first(chain.value.operation.parameters):/democles/ParameterName(importManager, false, true)> = <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.reverse.getAccessor>();
+<ReturnTypeName(importManager, chain)> <first(chain.value.operation.parameters):ParamPre(importManager)> = <first(rest(chain.value.operation.parameters)):Param(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.reverse.getAccessor>();
 <if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 >>
 
 CheckToMany(engine, importManager, body, chain) ::= <<
-if (<first(chain.value.operation.parameters):/democles/ParameterName(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>().contains(<first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager)>)) {
+if (<first(chain.value.operation.parameters):Param(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>().contains(<first(rest(chain.value.operation.parameters)):Param(importManager)>)) {
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 }
 >>
 
 CheckToOne(engine, importManager, body, chain) ::= <<
-if (<first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager)>.equals(<first(chain.value.operation.parameters):/democles/ParameterName(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>())) {
+if (<first(rest(chain.value.operation.parameters)):Param(importManager)>.equals(<first(chain.value.operation.parameters):Param(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>())) {
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 }
 >>
 
 ForwardExtendToMany(engine, importManager, body, chain) ::= <<
-for (<importManager.(chain.value.operation.type.linkedElement.genModelElement.returnType)> <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager, false, true)> : <first(chain.value.operation.parameters):/democles/ParameterName(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>()) {
+for (<ReturnType(importManager, chain)> <first(rest(chain.value.operation.parameters)):ParamPre(importManager)> : <first(chain.value.operation.parameters):Param(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>()) {
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 }
 >>
 
 ForwardExtendToOne(engine, importManager, body, chain) ::= <<
-<importManager.(chain.value.operation.type.linkedElement.genModelElement.returnType)> <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager, false, true)> = <first(chain.value.operation.parameters):/democles/ParameterName(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>();
+<ReturnType(importManager, chain)> <first(rest(chain.value.operation.parameters)):ParamSelect(importManager)> = <first(chain.value.operation.parameters):Param(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.getAccessor>();
 <if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 >>
 
 TypeCheck(engine, importManager, body, chain) ::= <<
-if (<first(chain.value.operation.parameters):/democles/ParameterName(importManager, true, true)> instanceof <importManager.(chain.value.operation.type.linkedElement)>) {
-	<importManager.(chain.value.operation.type.linkedElement)> <first(chain.value.operation.parameters):/democles/ParameterName(importManager, false, false)> = (<importManager.(chain.value.operation.type.linkedElement)>) <first(chain.value.operation.parameters):/democles/ParameterName(importManager, true, true)>;
+if (<first(chain.value.operation.parameters):ParamBoxPre(importManager)> instanceof <importManager.(chain.value.operation.type.linkedElement)>) {
+	<importManager.(chain.value.operation.type.linkedElement)> <\\>
+	<first(chain.value.operation.parameters):ParamNoBoxNoPre(importManager)> = <\\>
+	(<importManager.(chain.value.operation.type.linkedElement)>) <first(chain.value.operation.parameters):ParamBoxPre(importManager)>;
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 }
 >>
 
 InvokeOperation(engine, importManager, body, chain) ::= <<
-<if (chain.value.operation.type.linkedElement.eType)><importManager.(chain.value.operation.type.linkedElement.eType)> <first(chain.value.operation.parameters):/democles/ParameterName(importManager, false, false)> = <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager, false, false)>.<chain.value.operation.type.linkedElement.genModelElement.name>(<rest(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager); separator=", ">);<else><first(chain.value.operation.parameters):/democles/ParameterName(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.name>(<rest(chain.value.operation.parameters):/democles/ParameterName(importManager); separator=", ">);<endif>
+<if (chain.value.operation.type.linkedElement.eType)><importManager.(chain.value.operation.type.linkedElement.eType)> <first(chain.value.operation.parameters):/democles/ParameterName(importManager, false, false)> = <first(rest(chain.value.operation.parameters)):/democles/ParameterName(importManager, false, false)>.<chain.value.operation.type.linkedElement.genModelElement.name>(<rest(rest(chain.value.operation.parameters)):Param(importManager); separator=", ">);<else><first(chain.value.operation.parameters):Param(importManager)>.<chain.value.operation.type.linkedElement.genModelElement.name>(<rest(chain.value.operation.parameters):Param(importManager); separator=", ">);<endif>
 <if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
+>>
+
+// Helper templates
+ReturnType(importManager, chain) ::= <<
+<importManager.(chain.value.operation.type.linkedElement.genModelElement.returnType)>
+>>
+
+ReturnTypeName(importManager, chain) ::= <<
+<importManager.(chain.value.operation.type.linkedElement.genModelElement.genClass.typeName)>
+>>
+
+Param(parameter, importManager) ::= <<
+</democles/ParameterName(parameter, importManager)>
+>>
+
+ParamSelect(parameter, importManager) ::= <<
+<if (parameter.specification.type.linkedElement.isEDataType)><ParamNoBoxNoPre(parameter, importManager)><else><ParamPre(parameter, importManager)><endif>
+>>
+
+ParamPre(parameter, importManager) ::= <<
+</democles/ParameterName(parameter, importManager, false, true)>
+>>
+
+ParamBoxPre(parameter, importManager) ::= <<
+</democles/ParameterName(parameter, importManager, true, true)>
+>>
+
+ParamNoBoxNoPre(parameter, importManager) ::= <<
+</democles/ParameterName(parameter, importManager, false, false)>
 >>

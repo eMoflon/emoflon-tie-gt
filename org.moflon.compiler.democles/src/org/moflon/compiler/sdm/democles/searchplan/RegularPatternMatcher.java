@@ -25,24 +25,38 @@ public class RegularPatternMatcher extends SearchPlanAdapter {
 		final Adornment adornment = getAdornment();
 		final Chain<GeneratorOperation> searchPlan = getSearchPlan();
 		final CompilerPatternBody body = getBody();
-		Chain<TemplateController> templateChain = null;
-		if (searchPlan != null) {
-			templateChain = new Chain<TemplateController>(
-					new TemplateController(isMultiMatch() ? "/regular/AllMatches" : "/regular/SingleMatch"));
-			templateChain = operationSequenceCompiler.buildOperationChain(searchPlan, templateChain);
-		}
+		final Chain<TemplateController> templateChain = createTemplateChain(operationSequenceCompiler, searchPlan);
 
 		final List<GeneratorOperation> internalSymbolicParameters = body.getHeader().getInternalSymbolicParameters();
-		final List<GeneratorOperation> boundInternalSymbolicParameters = new LinkedList<GeneratorOperation>();
+		final List<GeneratorOperation> boundInternalSymbolicParameters = new LinkedList<>();
 		for (int i = 0; i < adornment.size(); i++) {
 			if (adornment.get(i) == Adornment.BOUND) {
 				boundInternalSymbolicParameters.add(internalSymbolicParameters.get(i));
 			}
 		}
 
-		return new TemplateInvocation(isMultiMatch() ? "/regular/MatchAllMethod" : "/regular/MatchSingleMethod",
-				new String[] { "engine", "importManager", "body", "adornment", "boundSymbolicParameters", "chain" },
+		return new TemplateInvocation(getInvocationName(),
+				new String[] { "engine", "importManager", "body", "adornment", "boundSymbolicParameters", "chain",
+						"alwaysSuccessful" },
 				new Object[] { operationSequenceCompiler, importManager, body, adornment,
-						boundInternalSymbolicParameters, templateChain });
+						boundInternalSymbolicParameters, templateChain, isAlwaysSuccessful() });
+	}
+
+	public Chain<TemplateController> createTemplateChain(final OperationSequenceCompiler operationSequenceCompiler,
+			final Chain<GeneratorOperation> searchPlan) {
+		if (searchPlan != null) {
+			final Chain<TemplateController> head = new Chain<>(new TemplateController(getTemplateName()));
+			return operationSequenceCompiler.buildOperationChain(searchPlan, head);
+		} else {
+			return null;
+		}
+	}
+
+	public String getTemplateName() {
+		return isMultiMatch() ? "/regular/AllMatches" : "/regular/SingleMatch";
+	}
+
+	public String getInvocationName() {
+		return isMultiMatch() ? "/regular/MatchAllMethod" : "/regular/MatchSingleMethod";
 	}
 }

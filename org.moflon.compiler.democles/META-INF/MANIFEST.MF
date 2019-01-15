@@ -21,7 +21,8 @@ Require-Bundle:
  org.moflon.emf.build,
  org.moflon.sdm.constraints.democles,
  org.gervarro.democles.plan,
- org.moflon.sdm.constraints.operationspecification
+ org.moflon.sdm.constraints.operationspecification,
+ org.eclipse.emf.ecore
 Bundle-ActivationPolicy: lazy
 Export-Package: org.moflon.compiler.sdm.democles.codegen,
  org.moflon.compiler.sdm.democles.codegen.template,

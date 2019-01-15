@@ -80,17 +80,17 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 		} else {
 			final AdapterResource cfResource = (AdapterResource) EcoreUtil.getExistingAdapter(eOperation,
 					DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
-			if (cfResource != null && !cfResource.getContents().isEmpty()
-					&& cfResource.getContents().get(0) instanceof Scope) {
+			if (containsScope(cfResource)) {
 				final Scope scope = (Scope) cfResource.getContents().get(0);
 
 				final TemplateConfigurationProvider templateProvider = getAdapterFactory()
 						.getTemplateConfigurationProvider();
 
-				final STGroup group = templateProvider
-						.getTemplateGroup(TieGtTemplateConfiguration.CONTROL_FLOW_GENERATOR);
-				final ST template = group.getInstanceOf("/" + TieGtTemplateConfiguration.CONTROL_FLOW_GENERATOR + "/"
-						+ scope.getClass().getSimpleName());
+				final String templateGroupName = TieGtTemplateConfiguration.CONTROL_FLOW_GENERATOR;
+				final STGroup group = templateProvider.getTemplateGroup(templateGroupName);
+				final String templateName = String.format("/%s/%s", templateGroupName,
+						scope.getClass().getSimpleName());
+				final ST template = group.getInstanceOf(templateName);
 				template.add("scope", scope);
 				template.add("importManager", democlesImportManager);
 				generatedMethodBody = template.render();
@@ -102,6 +102,11 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 		}
 
 		return generatedMethodBody;
+	}
+
+	public boolean containsScope(final AdapterResource cfResource) {
+		return cfResource != null && !cfResource.getContents().isEmpty()
+				&& cfResource.getContents().get(0) instanceof Scope;
 	}
 
 	/**
@@ -149,6 +154,7 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 			st.add(entry.getKey(), entry.getValue());
 		}
 		code.append(st.render());
+
 		code.append("\n\n");
 		return code.toString();
 	}

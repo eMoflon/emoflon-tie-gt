@@ -6,8 +6,6 @@ import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationPr
 import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 
 public interface CodeGenerationConfiguration {
-	void initializePatternMatchers();
-
 	/**
 	 * Returns the configured operation-to-template mapping
 	 * 
