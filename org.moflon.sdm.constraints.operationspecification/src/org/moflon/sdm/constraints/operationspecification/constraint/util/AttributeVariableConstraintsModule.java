@@ -1,6 +1,7 @@
 package org.moflon.sdm.constraints.operationspecification.constraint.util;
 
 import org.eclipse.emf.ecore.util.Switch;
+import org.gervarro.democles.constraint.emf.EMFConstraintModule;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.VariableType;
 import org.gervarro.democles.specification.emf.TypeModule;
@@ -8,7 +9,7 @@ import org.moflon.sdm.constraints.democles.AttributeVariableConstraint;
 import org.moflon.sdm.constraints.democles.util.DemoclesSwitch;
 import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
 
-public class AttributeVariableConstraintsModule extends TypeModule {
+public class AttributeVariableConstraintsModule extends TypeModule<EMFConstraintModule> {
 
 	public AttributeVariableConstraintsModule(final AttributeVariableConstraintsTypeModule typeModule) {
 		super(typeModule);
