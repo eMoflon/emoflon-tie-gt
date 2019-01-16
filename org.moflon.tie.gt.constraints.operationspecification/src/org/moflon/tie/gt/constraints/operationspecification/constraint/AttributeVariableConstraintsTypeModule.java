@@ -1,32 +1,32 @@
 package org.moflon.tie.gt.constraints.operationspecification.constraint;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gervarro.democles.constraint.emf.EMFConstraintModule;
 import org.gervarro.democles.specification.ConstraintType;
 import org.moflon.tie.gt.constraints.democles.AttributeVariableConstraint;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 import org.moflon.tie.gt.constraints.operationspecification.ConstraintSpecification;
 
 public class AttributeVariableConstraintsTypeModule extends EMFConstraintModule {
 
 	public static AttributeVariableConstraintsTypeModule INSTANCE;
 
-	private final List<AttributeConstraintLibrary> libraries;
+	private final AttributeConstraintsLibraryRegistry libraries;
 
-	public AttributeVariableConstraintsTypeModule(final Collection<AttributeConstraintLibrary> libraries,
-			final ResourceSet resourceSet) {
+	public AttributeVariableConstraintsTypeModule(
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries, final ResourceSet resourceSet) {
 		super(resourceSet);
-		this.libraries = new ArrayList<>(libraries);
+		this.libraries = attributeConstraintLibraries;
 		INSTANCE = this;
 	}
 
 	public final ConstraintType getConstraintType(final AttributeVariableConstraint constraint) {
 		ConstraintSpecification constraintSpecification = null;
-		for (final AttributeConstraintLibrary attributeConstraintLibrary : getAttributeConstraintsLibraries()) {
+		for (final URI uri : getAttributeConstraintsLibraries().getUris()) {
+			final AttributeConstraintLibrary attributeConstraintLibrary = getAttributeConstraintsLibraries()
+					.getLibrary(uri);
 			constraintSpecification = attributeConstraintLibrary.lookupConstraintType(constraint);
 			if (constraintSpecification != null) {
 				break;
@@ -35,8 +35,12 @@ public class AttributeVariableConstraintsTypeModule extends EMFConstraintModule 
 		return constraintSpecification;
 	}
 
-	public Collection<AttributeConstraintLibrary> getAttributeConstraintsLibraries() {
+	public AttributeConstraintsLibraryRegistry getAttributeConstraintsLibraries() {
 		return libraries;
+	}
+
+	public void setPriorityUri(final URI priorityUri) {
+
 	}
 
 }

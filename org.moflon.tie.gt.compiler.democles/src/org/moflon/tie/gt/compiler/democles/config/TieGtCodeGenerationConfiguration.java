@@ -3,8 +3,6 @@ package org.moflon.tie.gt.compiler.democles.config;
 import static java.util.Arrays.asList;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -67,7 +65,7 @@ import org.moflon.tie.gt.compiler.democles.searchplan.RegularPatternMatcherGener
 import org.moflon.tie.gt.compiler.democles.searchplan.TieGtCompilerPatternMatcherModule;
 import org.moflon.tie.gt.compiler.democles.searchplan.TieGtCompilerSearchPlanAlgorithm;
 import org.moflon.tie.gt.compiler.democles.searchplan.TieGtSearchPlanAlgorithm;
-import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 import org.moflon.tie.gt.constraints.operationspecification.constraint.AttributeVariableConstraintsTypeModule;
 import org.moflon.tie.gt.constraints.operationspecification.constraint.util.AttributeVariableConstraintsModule;
 
@@ -116,13 +114,13 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	/**
 	 * Maps operations to code fragments
 	 */
-	private final List<AttributeConstraintLibrary> attributeConstraintLibraries;
+	private final AttributeConstraintsLibraryRegistry attributeConstraintLibraries;
 
 	public TieGtCodeGenerationConfiguration(final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage,
-			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
 		this.preferencesStorage = preferencesStorage;
-		this.attributeConstraintLibraries = new ArrayList<>(attributeConstraintLibraries);
+		this.attributeConstraintLibraries = attributeConstraintLibraries;
 
 		emfTypeModule = new EMFConstraintModule(resourceSet);
 		internalEMFTypeModule = new EMFTypeModule(emfTypeModule);
@@ -183,7 +181,7 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	}
 
 	private Switch<ConstraintType> createAttributeConstraintsTypeSwitch(final ResourceSet resourceSet,
-			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries) {
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
 		final AttributeVariableConstraintsTypeModule attributeVariableConstraintsTypeModule = new AttributeVariableConstraintsTypeModule(
 				attributeConstraintLibraries, resourceSet);
 		final AttributeVariableConstraintsModule attributeVariableConstraintsModule = new AttributeVariableConstraintsModule(

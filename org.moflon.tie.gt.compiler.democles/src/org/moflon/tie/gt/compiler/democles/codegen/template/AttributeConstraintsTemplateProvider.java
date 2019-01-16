@@ -36,8 +36,8 @@ public class AttributeConstraintsTemplateProvider implements CodeGeneratorProvid
 		final String operationIdentifier = constraintType.getOperationSpecificationGroup().getOperationIdentifier();
 		final String adornmentString = operation.getPrecondition().toString();
 
-		final String fullyQualifiedTemplateName = "/" + prefix + "/" + operationIdentifier + "/" + operationIdentifier
-				+ adornmentString;
+		final String fullyQualifiedTemplateName = String.format("/%s/%s/%s%s", prefix, operationIdentifier,
+				operationIdentifier, adornmentString);
 		return fullyQualifiedTemplateName;
 	}
 

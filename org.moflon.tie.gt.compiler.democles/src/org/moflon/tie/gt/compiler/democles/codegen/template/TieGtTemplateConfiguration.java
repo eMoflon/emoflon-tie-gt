@@ -1,11 +1,11 @@
 package org.moflon.tie.gt.compiler.democles.codegen.template;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.codegen.ecore.genmodel.GenBase;
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EModelElement;
 import org.gervarro.democles.codegen.GeneratorOperation;
@@ -28,6 +28,7 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.tie.gt.compiler.democles.config.TieGtCodeGenerationConfiguration;
 import org.moflon.tie.gt.compiler.democles.searchplan.AssignmentTemplateProvider;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsOperationActivator;
 import org.moflon.tie.gt.constraints.operationspecification.OperationSpecificationGroup;
 import org.moflon.tie.gt.controlflow.democles.CFNode;
@@ -48,7 +49,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	private final HashMap<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<String, OperationSequenceCompiler>();
 
 	public TieGtTemplateConfiguration(final GenModel genModel,
-			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
 		final EcoreToGenModelConverter ecoreToGenModelConverter = new EcoreToGenModelConverter(genModel);
 		final EcoreModelAdaptor ecoreModelAdaptor = new TiGtEcoreModelAdaptor(ecoreToGenModelConverter);
 
@@ -59,7 +60,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 		createBindingAndBlackTemplates(ecoreModelAdaptor);
 		createBindingTemplates(ecoreModelAdaptor);
-		createBlackTemplates(ecoreModelAdaptor, attributeConstraintLibs);
+		createBlackTemplates(ecoreModelAdaptor, attributeConstraintLibraries);
 		createRedTemplates(ecoreModelAdaptor);
 		createGreenTemplates(ecoreModelAdaptor);
 		createExpressionTemplates(ecoreModelAdaptor);
@@ -180,7 +181,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	}
 
 	private final STGroup createBlackTemplates(final EcoreModelAdaptor ecoreModelAdaptor,
-			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
 		final STGroup group = new STGroup();
 		registerErrorLogger(group);
 		registerDemoclesCommonTemplates(group);
@@ -202,7 +203,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 
 		templates.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR, group);
-		addAttributeConstraintTemplates(group, attributeConstraintLibs);
+		addAttributeConstraintTemplates(group, attributeConstraintLibraries);
 
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR,
 				createBlackOperationSequenceCompiler());
@@ -380,16 +381,16 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	 * Adds the templates for user-defined constraints to the template group for
 	 * black patterns (i.e., patterns that represent preserved variables).
 	 * 
-	 * @param group                   the template group at which the libraries
-	 *                                shall be registered
+	 * @param group                        the template group at which the libraries
+	 *                                     shall be registered
 	 *
-	 * @param attributeConstraintLibs the library containing user-defined attribute
-	 *                                constraints and operations
+	 * @param attributeConstraintLibraries the library containing user-defined
+	 *                                     attribute constraints and operations
 	 */
 	private void addAttributeConstraintTemplates(final STGroup group,
-			final List<AttributeConstraintLibrary> attributeConstraintLibs) {
-		for (final AttributeConstraintLibrary library : attributeConstraintLibs) {
-
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
+		for (final URI uri : attributeConstraintLibraries.getUris()) {
+			final AttributeConstraintLibrary library = attributeConstraintLibraries.getLibrary(uri);
 			for (final OperationSpecificationGroup operationSpecificationGroup : library.getOperationSpecifications()) {
 
 				if (!operationSpecificationGroup.isTemplateGroupGenerated()) {

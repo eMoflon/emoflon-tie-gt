@@ -2,7 +2,6 @@ package org.moflon.tie.gt.ide.core.patterns;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,6 +9,7 @@ import java.util.stream.Collectors;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationConditionType;
@@ -60,6 +61,7 @@ import org.gervarro.democles.specification.emf.constraint.relational.RelationalC
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.constraints.democles.AttributeVariableConstraint;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 import org.moflon.tie.gt.constraints.operationspecification.ConstraintSpecification;
 import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
 import org.moflon.tie.gt.constraints.operationspecification.constraint.AttributeVariableConstraintType;
@@ -94,9 +96,7 @@ public class PatternBuilderVisitor {
 
 	public PatternLookup visit(final EditorPattern pattern) {
 
-		// TODO@rkluge: If pattern is contained in EditorGtFile, then select this file
-		// as main attribute library provider
-//		AttributeVariableConstraintType.getModule().setMainConstraintLibrary
+		configureAttributeConstraintsLibrary(pattern);
 
 		if (hasErrors())
 			return null;
@@ -108,6 +108,12 @@ public class PatternBuilderVisitor {
 		pattern.getConditions().forEach(condition -> visit(condition, pattern));
 
 		return patterns;
+	}
+
+	private void configureAttributeConstraintsLibrary(final EditorPattern pattern) {
+		final Resource resource = pattern.eResource();
+		final URI priorityUri = resource != null ? resource.getURI() : null;
+		AttributeVariableConstraintType.getModule().setPriorityUri(priorityUri);
 	}
 
 	Pattern createExpressionPatternForObjectVariables(final CFVariable returnVariable) {
@@ -331,7 +337,7 @@ public class PatternBuilderVisitor {
 							attributeVariableConstraint.getParameters().add(constraintParameter);
 						}
 
-						body.getConstraints().add(attributeVariableConstraint);
+						Patterns.registerConstraint(attributeVariableConstraint, body);
 					} else {
 						TransformationExceptions.recordTransformationErrorMessage(getStatus(),
 								"No constraint specification with symbol %s matches the type signature %s of predicate %s",
@@ -361,7 +367,8 @@ public class PatternBuilderVisitor {
 	 * @return the list of {@link ConstraintSpecification} objects
 	 */
 	private List<ConstraintSpecification> getConstraintSpecificationsWithSymbol(final String predicateSymbol) {
-		return getAttributeConstraintsLibraries().stream()
+		final AttributeConstraintsLibraryRegistry libraryRegistry = getAttributeConstraintsLibraries();
+		return libraryRegistry.getUris().stream().map(uri -> libraryRegistry.getLibrary(uri))
 				.flatMap(library -> library.getConstraintSpecifications().stream())
 				.filter(constraintSpecification -> predicateSymbol.equals(constraintSpecification.getSymbol()))
 				.collect(Collectors.toList());
@@ -370,7 +377,7 @@ public class PatternBuilderVisitor {
 	/**
 	 * @return the list of used {@link AttributeConstraintLibrary} objects
 	 */
-	private Collection<AttributeConstraintLibrary> getAttributeConstraintsLibraries() {
+	private AttributeConstraintsLibraryRegistry getAttributeConstraintsLibraries() {
 		return AttributeVariableConstraintType.getModule().getAttributeConstraintsLibraries();
 	}
 

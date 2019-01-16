@@ -32,7 +32,12 @@ public class AttributeConstraintOperationBuilder implements TieGtOperationBuilde
 			final ConstraintSpecification constraintType) {
 		final List<CompilableAdornedOperation> result = new LinkedList<>();
 		final OperationSpecificationGroup operationSpecificationGroup = constraintType.getOperationSpecificationGroup();
-		for (final OperationSpecification operationSpecification : operationSpecificationGroup.getOperationSpecifications()) {
+
+		if (operationSpecificationGroup.getOperationSpecifications().isEmpty())
+			return null;
+
+		for (final OperationSpecification operationSpecification : operationSpecificationGroup
+				.getOperationSpecifications()) {
 			result.add(getOperation(constraint, parameters, constraintType, operationSpecification));
 		}
 

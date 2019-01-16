@@ -1,6 +1,5 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 
@@ -32,7 +31,7 @@ import org.moflon.tie.gt.compiler.democles.config.TieGtCodeGenerationConfigurati
 import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
-import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
@@ -64,9 +63,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			if (monitor.isCanceled())
 				return Status.OK_STATUS;
 
-			final AttributeConstraintsLibraryLoader attributeConstraintsLibraryLoader = new AttributeConstraintsLibraryLoader();
-			final Collection<AttributeConstraintLibrary> attributeConstraintLibraries = attributeConstraintsLibraryLoader
-					.run(this.getResourceSet());
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries();
 
 			final IProject project = getEcoreFile().getProject();
 			final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(
@@ -143,6 +140,13 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 							+ "'. (Stacktrace is logged with level debug)",
 					e);
 		}
+	}
+
+	private AttributeConstraintsLibraryRegistry loadAttributeConstraintLibraries() {
+		final AttributeConstraintsLibraryLoader attributeConstraintsLibraryLoader = new AttributeConstraintsLibraryLoader();
+		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = attributeConstraintsLibraryLoader
+				.run(this.getResourceSet());
+		return attributeConstraintLibraries;
 	}
 
 	/**
