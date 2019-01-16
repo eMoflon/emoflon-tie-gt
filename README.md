@@ -7,28 +7,31 @@
 
 eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 
-## Prerequisites
-- Eclipse 2018-09 or 2018-12
-- Xtext Complete SDK
-   * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
-- eMoflon::Core
-   * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
-- Democles 0.5.0
-   * Update site: http://gervarro.org/democles/integration-0.5.0/
-   * Install
-      * Pattern Matcher Specification
-      * Pattern Matcher Compiler
-   
-## Setup of eMoflon::TIE-GT Developer Workspace
+## Gettings started (user setup)
+
+1. Prerequisites
+   * Install Eclipse with Modeling Components (2018-09 or above)
+
+## Developer setup
+1. Prerequisites
+   - Eclipse 2018-09 or 2018-12 with Modeling Components
+   - Xtext Complete SDK
+      * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
+   - eMoflon::Core
+      * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
+   - Democles 0.5.0
+      * Update site: http://gervarro.org/democles/integration-0.5.0/
+      * Install
+         * Pattern Matcher Specification
+         * Pattern Matcher Compiler
 1. Install the following team project set (via *Import &rarr; Team Project Set*) https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf
 1. Run MWE2 workflows (Search for files ending with *.mwe2* via *Ctrl+Shift+R*).
    * Proceed even if Eclipse warns you about "Errors in the Workspace"
 1. The subsequent build should complete without errors.
-
-## Run the test suite 
-1. Start Runtime Eclipse
-1. Check out all projects from *https://github.com/eMoflon/emoflon-tie-gt-examples*
-1. Run JUnit test suite *EMoflonTieGtTestSuite*
-   * Runner class *org.moflon.tie.gt.testsuite.EMoflonTieGtTestSuite*
+1. Run the test suite 
+   1. Start Runtime Eclipse
+   1. Check out all projects from *https://github.com/eMoflon/emoflon-tie-gt-examples*
+   1. Run JUnit test suite *EMoflonTieGtTestSuite*
+      * Runner class *org.moflon.tie.gt.testsuite.EMoflonTieGtTestSuite*
    
    
