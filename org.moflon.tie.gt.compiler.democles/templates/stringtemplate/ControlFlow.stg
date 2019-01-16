@@ -14,7 +14,7 @@ Node(node, importManager) ::= <<
 IfStatementImplRegularPatternInvocationImpl(node, importManager) ::= <<
 // 
 <if (node.mainAction.prev)><node.mainAction.prev:PreviousActions(importManager)><endif>
-<GenericDataFrame()> result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
+<GenericDataFrame(importManager)> result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
 if (result<node.mainAction.id> != null) {
 	<node.mainAction.freeParameters:{ varRef | <WriteVariable(varRef, i0, importManager)>}; separator="\n">
 	<if (node.mainAction.next)><node.mainAction.next:NextActions(importManager)><endif>
@@ -28,7 +28,7 @@ if (result<node.mainAction.id> != null) {
 CFNodeImplRegularPatternInvocationImpl(node, importManager) ::= <<
 <\n>
 <if (node.mainAction.prev)><node.mainAction.prev:PreviousActions(importManager)><endif>
-<GenericDataFrame()> result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
+<GenericDataFrame(importManager)> result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
 if (result<node.mainAction.id> == null) {
 	throw new RuntimeException("Pattern matching failed."<VariablesByFailedPatternMatching(node.mainAction)>);
 }
@@ -39,7 +39,7 @@ if (result<node.mainAction.id> == null) {
 
 TailControlledLoopImplRegularPatternInvocationImpl(node, importManager) ::= <<
 // 
-<GenericDataFrame()> result<node.mainAction.id>;
+<GenericDataFrame(importManager)> result<node.mainAction.id>;
 do {
 	<first(node.scopes):ScopeImpl(importManager)>
 	
@@ -68,7 +68,7 @@ if (result<node.mainAction.id> != null) {
 HeadControlledLoopImplRegularPatternInvocationImpl(node, importManager) ::= <<
 // 
 <if (node.mainAction.prev)><node.mainAction.prev:PreviousActions(importManager)><endif>
-<GenericDataFrame()> result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
+<GenericDataFrame(importManager)> result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
 <if (node.loopAlongTrue)>
 while (result<node.mainAction.id> != null) {
 	<node.mainAction.freeParameters:{ varRef | <WriteVariable(varRef, i0, importManager)>}; separator="\n">
@@ -95,7 +95,7 @@ result<node.mainAction.id> = <node.mainAction:InvokePattern(importManager)>;
 ForEachImplRegularPatternInvocationImpl(node, importManager) ::= <<
 // ForEach 
 <if (node.mainAction.prev)><node.mainAction.prev:PreviousActions(importManager)><endif>
-for (<GenericDataFrame()> result<node.mainAction.id> : <node.mainAction:InvokePattern(importManager)>) {
+for (<GenericDataFrame(importManager)> result<node.mainAction.id> : <node.mainAction:InvokePattern(importManager)>) {
 	<node.mainAction.freeParameters:{ varRef | <WriteVariable(varRef, i0, importManager)>}; separator="\n">
 	<if (node.mainAction.next)><node.mainAction.next:NextActions(importManager)><endif>
 	<first(node.scopes):ScopeImpl(importManager)>
@@ -204,7 +204,7 @@ PerformAction(action, importManager) ::= <<
 >>
 
 BindingPatternInvocationImplInForEachImpl(action, importManager) ::= <<
-<if (action.referencedFreeParameters)><GenericDataFrame()> result<action.id> = <endif><InvokePattern(action, importManager)>;
+<if (action.referencedFreeParameters)><GenericDataFrame(importManager)> result<action.id> = <endif><InvokePattern(action, importManager)>;
 if (result<action.id> == null) {
 	throw new RuntimeException("Binding failed."<VariablesByFailedPatternMatching(action)>);
 }
@@ -272,7 +272,7 @@ NodeDeletionImplInForEachImpl(action, importManager) ::= <<
 >>
 
 DefaultPerformAction(action, importManager) ::= <<
-<if (action.referencedFreeParameters)><GenericDataFrame()> result<action.id> = <endif><InvokePattern(action, importManager)>;
+<if (action.referencedFreeParameters)><GenericDataFrame(importManager)> result<action.id> = <endif><InvokePattern(action, importManager)>;
 <action.freeParameters:{ varRef | <WriteVariable(varRef, i0, importManager)>}; separator="\n">
 >>
 
@@ -303,7 +303,7 @@ SingleResultPatternInvocationImpl(invocation, importManager) ::= <<
 >>
 
 WriteVariable(varRef, index, importManager) ::= <<
-<if(varRef.from.onlyDefined)>//nothing <endif><if(varRef.constructed)><importManager.(varRef.from.type)> <endif><varRef.from.name> = (<importManager.(varRef.from.type)>) result<varRef.invocation.id>.getValue(<varRef.index>);
+<if(varRef.from.onlyDefined)>//nothing <endif><if(varRef.constructed)><importManager.(varRef.from.type)> <endif><varRef.from.name> = (<importManager.(varRef.from.type)>) result<varRef.invocation.id>[<varRef.index>];
 >>
 
 BoundOrFree(varRef) ::= <<
@@ -318,6 +318,14 @@ VariableName(varRef) ::= <<
 <varRef.from.name>
 >>
 
-GenericDataFrame() ::= <<
-<importManager.("org.gervarro.democles.common.GenericDataFrame")>
+/*
+ * This implementation of data frames avoid dependencies to Democles
+ * Alternative (change consistently everywhere!):
+ *   <importManager.("org.gervarro.democles.common.GenericDataFrame")>
+ * Additional necessary changes:
+ *   * change access to data frame contents from [...] to getValue(...)
+ *   * change creation of data frames from new <GenericDataFrame(importManager)>{...} to new <GenericDataFrame(importManager)>(new Object[]{...}) 
+ */
+GenericDataFrame(importManager) ::= <<
+<importManager.("java.lang.Object")>[]
 >>

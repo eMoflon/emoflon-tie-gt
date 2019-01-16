@@ -1,5 +1,5 @@
 PatternCall(engine, importManager, body, chain) ::= <<
-<GenericDataFrame()> result_<chain.value.operation.origin.type.invokedPattern.name> = <chain.value.operation.origin.type.invokedPattern.name><chain.value.operation.precondition>(<chain.value.operation.boundParameters:/democles/ParameterName(importManager); separator=", ">);
+<GenericDataFrame(importManager)> result_<chain.value.operation.origin.type.invokedPattern.name> = <chain.value.operation.origin.type.invokedPattern.name><chain.value.operation.precondition>(<chain.value.operation.boundParameters:/democles/ParameterName(importManager); separator=", ">);
 if (result_<chain.value.operation.origin.type.invokedPattern.name> != null) {
 	<chain.value.operation:WriteFreeVariables(importManager)>
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
@@ -11,6 +11,6 @@ WriteFreeVariables(operation, importManager) ::= <<
 <endif> }>
 >>
 
-GenericDataFrame() ::= <<
-<importManager.("org.gervarro.democles.common.GenericDataFrame")>
+GenericDataFrame(importManager) ::= <<
+<importManager.("java.lang.Object")>[]
 >>

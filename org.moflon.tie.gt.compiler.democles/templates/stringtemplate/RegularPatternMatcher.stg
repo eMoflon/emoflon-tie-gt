@@ -7,15 +7,15 @@ VariableTypeAndName(variable, importManager) ::= <<
 >>
 
 AllMatches(engine, importManager, body, chain) ::= <<
-result.add(new <GenericDataFrame()>(<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">));
+result.add(new <GenericDataFrame(importManager)>{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">});
 >> 
 
 SingleMatch(engine, importManager, body, chain) ::= <<
-return new <GenericDataFrame()>(new <Object()>[]{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">});
+return new <GenericDataFrame(importManager)>{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">};
 >>
 
 MatchSingleMethod(engine, importManager, body, adornment, boundSymbolicParameters, chain, alwaysSuccessful) ::= <<
-public final <GenericDataFrame()> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
+public final <GenericDataFrame(importManager)> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
   <if (chain)><(chain.value.template)(engine, importManager, body, chain)>
   <if (!alwaysSuccessful)>return null;<endif>
   <else><SingleMatch(engine, importManager, body, chain)>
@@ -24,25 +24,21 @@ public final <GenericDataFrame()> <body.header.name; format="lowercase"><adornme
 >>
 
 MatchAllMethod(engine, importManager, body, adornment, boundSymbolicParameters, chain, alwaysSuccessful) ::= <<
-public final <Iterable()>\<<GenericDataFrame()>\> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
-  <LinkedList()>\<<GenericDataFrame()>\> result = new <LinkedList()>\<<GenericDataFrame()>\>();
+public final <Iterable(importManager)>\<<GenericDataFrame(importManager)>\> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
+  <LinkedList(importManager)>\<<GenericDataFrame(importManager)>\> result = new <LinkedList(importManager)>\<>();
   <(chain.value.template)(engine, importManager, body, chain)>
   return result;
 }
 >>
 
-Object() ::= <<
-<importManager.("java.lang.Object")>
->>
-
-Iterable() ::= <<
+Iterable(importManager) ::= <<
 <importManager.("java.lang.Iterable")>
 >>
 
-GenericDataFrame() ::= <<
-<importManager.("org.gervarro.democles.common.GenericDataFrame")>
+GenericDataFrame(importManager) ::= <<
+<importManager.("java.lang.Object")>[]
 >>
 
-LinkedList() ::= <<
+LinkedList(importManager) ::= <<
 <importManager.("java.util.LinkedList")>
 >>
