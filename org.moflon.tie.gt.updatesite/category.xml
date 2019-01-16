@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/org.moflon.tie.gt.feature_1.3.3.qualifier.jar" id="org.moflon.tie.gt.feature" version="1.3.3.qualifier">
+   <feature url="features/org.moflon.tie.gt.feature_1.0.0.qualifier.jar" id="org.moflon.tie.gt.feature" version="1.0.0.qualifier">
       <category name="org.moflon.tie-gt.category"/>
    </feature>
    <category-def name="org.moflon.tie-gt.category" label="eMoflon::TIE-GT">
@@ -8,9 +8,10 @@
          eMoflon::TIE-GT components
       </description>
    </category-def>
+   <repository-reference location="http://hallvard.github.io/plantuml/" enabled="true" />
    <repository-reference location="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/" enabled="true" />
    <repository-reference location="http://gervarro.org/eclipse-utils/" enabled="true" />
    <repository-reference location="http://gervarro.org/external" enabled="true" />
-   <repository-reference location="http://gervarro.org/democles/integration-0.4.0/" enabled="true" />
    <repository-reference location="http://gervarro.org/democles/integration-0.5.0/" enabled="true" />
+   <repository-reference location="https://emoflon.org/emoflon-ibex-democles-updatesite/stable/updatesite/" enabled="true" />
 </site>
