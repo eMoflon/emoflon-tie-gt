@@ -2,7 +2,6 @@ package org.moflon.tie.gt.ide.core.runtime.builders;
 
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -13,7 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -23,20 +21,20 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.gervarro.eclipse.workspace.util.RelevantElementCollector;
-import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
-import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.core.build.AbstractVisitorBuilder;
 import org.moflon.core.build.CleanVisitor;
 import org.moflon.core.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.core.plugins.manifest.PluginXmlUpdater;
 import org.moflon.core.preferences.EMoflonPreferencesActivator;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
+import org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter;
 import org.moflon.core.utilities.ClasspathUtil;
-import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
+import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGtCodeGenerator;
 import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
@@ -48,8 +46,6 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" });
 
 	private static String BUILDER_ID = TieGtBuilder.class.getName();
-
-	private static final Logger logger = Logger.getLogger(TieGtBuilder.class);
 
 	/**
 	 * Initializes the visitor condition
@@ -224,14 +220,8 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 	 * @param file   the file contains problems
 	 */
 	private void handleErrorsInEclipse(final IStatus status, final IFile file) {
-		final String reporterClass = "org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter";
-		final ErrorReporter eclipseErrorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(file,
-				reporterClass);
-		if (eclipseErrorReporter != null) {
-			eclipseErrorReporter.report(status);
-		} else {
-			logger.error(String.format("Could not load error reporter '%s' to report status", reporterClass));
-		}
+		final MultiStatusAwareErrorReporter eclipseErrorReporter = new MultiStatusAwareErrorReporter(file);
+		eclipseErrorReporter.report(status);
 	}
 
 }

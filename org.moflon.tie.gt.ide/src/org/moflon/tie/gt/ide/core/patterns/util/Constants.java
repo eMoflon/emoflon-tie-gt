@@ -14,8 +14,8 @@ import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.sdm.constraints.democles.DemoclesFactory;
-import org.moflon.sdm.constraints.democles.TypedConstant;
+import org.moflon.tie.gt.constraints.democles.DemoclesFactory;
+import org.moflon.tie.gt.constraints.democles.TypedConstant;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
 
 public final class Constants {

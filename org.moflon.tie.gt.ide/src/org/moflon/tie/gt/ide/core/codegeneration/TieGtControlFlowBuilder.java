@@ -15,10 +15,10 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 

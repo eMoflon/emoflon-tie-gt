@@ -20,7 +20,7 @@ Require-Bundle:
  org.gervarro.eclipse.task;bundle-version="1.0.1",
  org.gervarro.eclipse.workspace.autosetup;bundle-version="1.0.0",
  org.gervarro.eclipse.workspace.util;bundle-version="2.0.0",
- org.moflon.sdm.democles.patternmatcher;bundle-version="0.5.0",
+ org.moflon.tie.gt.democles.bridge;bundle-version="0.5.0",
  org.moflon.core.build;bundle-version="1.0.0",
  org.moflon.core.preferences;bundle-version="1.1.0",
  org.moflon.core.propertycontainer;bundle-version="2.1.0",
@@ -32,17 +32,16 @@ Require-Bundle:
  org.moflon.emf.injection.ide;bundle-version="1.0.0",
  org.moflon.emf.injection.ui;bundle-version="1.1.0",
  org.moflon.core.plugins;bundle-version="3.1.0",
- org.moflon.sdm.compiler.eclipse,
  org.emoflon.ibex.common,
  org.emoflon.ibex.gt.editor,
  org.moflon.tie.gt.mosl.controlflow.language,
  org.moflon.tie.gt.mosl.controlflow.language.ui,
- org.moflon.sdm.runtime.democles;bundle-version="2.0.0",
- org.moflon.sdm.compiler.democles;bundle-version="2.1.0",
- org.moflon.sdm.compiler.democles.validation.result;bundle-version="2.0.0",
- org.moflon.sdm.constraints.operationspecification,
- org.moflon.sdm.constraints.democles;bundle-version="2.0.0"
-Export-Package: org.moflon.tie.gt.ide.core.runtime.builders,
+ org.moflon.tie.gt.controlflow.democles;bundle-version="2.0.0",
+ org.moflon.tie.gt.compiler.democles;bundle-version="2.1.0",
+ org.moflon.tie.gt.constraints.operationspecification,
+ org.moflon.tie.gt.constraints.democles;bundle-version="2.0.0"
+Export-Package: 
+ org.moflon.tie.gt.ide.core.runtime.builders,
  org.moflon.tie.gt.ide.core.runtime.natures,
  org.moflon.tie.gt.ide.preferences
 Bundle-Activator: org.moflon.tie.gt.ide.TieGtIdeActivator

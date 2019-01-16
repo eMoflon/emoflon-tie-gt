@@ -10,8 +10,8 @@ import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.sdm.constraints.democles.AttributeValueConstraint;
-import org.moflon.sdm.constraints.democles.DemoclesFactory;
+import org.moflon.tie.gt.constraints.democles.AttributeValueConstraint;
+import org.moflon.tie.gt.constraints.democles.DemoclesFactory;
 
 public final class AttributeValueConstraints {
 	private AttributeValueConstraints() {

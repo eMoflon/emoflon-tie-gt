@@ -16,8 +16,7 @@ Require-Bundle: org.eclipse.ui,
  org.moflon.core.plugins,
  org.moflon.emf.codegen,
  org.moflon.emf.ui;bundle-version="1.1.0",
- org.moflon.core.preferences,
- org.moflon.sdm.compiler.eclipse
+ org.moflon.core.preferences
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Automatic-Module-Name: org.moflon.tie_gt.ui
 Bundle-ActivationPolicy: lazy

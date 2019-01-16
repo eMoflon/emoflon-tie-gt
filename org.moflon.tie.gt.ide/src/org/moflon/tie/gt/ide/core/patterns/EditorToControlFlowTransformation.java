@@ -33,29 +33,26 @@ import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
-import org.moflon.codegen.PatternMatcher;
-import org.moflon.codegen.eclipse.ValidationStatus;
-import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
-import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.sdm.compiler.democles.validation.result.ErrorMessage;
-import org.moflon.sdm.compiler.democles.validation.result.ValidationReport;
-import org.moflon.sdm.runtime.democles.Action;
-import org.moflon.sdm.runtime.democles.CFNode;
-import org.moflon.sdm.runtime.democles.CFVariable;
-import org.moflon.sdm.runtime.democles.DemoclesFactory;
-import org.moflon.sdm.runtime.democles.ForEach;
-import org.moflon.sdm.runtime.democles.HeadControlledLoop;
-import org.moflon.sdm.runtime.democles.IfStatement;
-import org.moflon.sdm.runtime.democles.Loop;
-import org.moflon.sdm.runtime.democles.NodeDeletion;
-import org.moflon.sdm.runtime.democles.PatternInvocation;
-import org.moflon.sdm.runtime.democles.Scope;
-import org.moflon.sdm.runtime.democles.SingleResultPatternInvocation;
-import org.moflon.sdm.runtime.democles.TailControlledLoop;
-import org.moflon.sdm.runtime.democles.VariableReference;
+import org.moflon.tie.gt.compiler.democles.eclipse.AdapterResource;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcher;
+import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
+import org.moflon.tie.gt.controlflow.democles.Action;
+import org.moflon.tie.gt.controlflow.democles.CFNode;
+import org.moflon.tie.gt.controlflow.democles.CFVariable;
+import org.moflon.tie.gt.controlflow.democles.DemoclesFactory;
+import org.moflon.tie.gt.controlflow.democles.ForEach;
+import org.moflon.tie.gt.controlflow.democles.HeadControlledLoop;
+import org.moflon.tie.gt.controlflow.democles.IfStatement;
+import org.moflon.tie.gt.controlflow.democles.Loop;
+import org.moflon.tie.gt.controlflow.democles.NodeDeletion;
+import org.moflon.tie.gt.controlflow.democles.PatternInvocation;
+import org.moflon.tie.gt.controlflow.democles.Scope;
+import org.moflon.tie.gt.controlflow.democles.SingleResultPatternInvocation;
+import org.moflon.tie.gt.controlflow.democles.TailControlledLoop;
+import org.moflon.tie.gt.controlflow.democles.VariableReference;
 import org.moflon.tie.gt.ide.core.patterns.util.AdapterResources;
 import org.moflon.tie.gt.ide.core.patterns.util.ControlFlowUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationActions;
@@ -211,7 +208,7 @@ public class EditorToControlFlowTransformation {
 
 	private void visitStatement(final ReturnStatement returnStmt, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
-		final org.moflon.sdm.runtime.democles.ReturnStatement returnStmtDemocles = ControlFlowUtil
+		final org.moflon.tie.gt.controlflow.democles.ReturnStatement returnStmtDemocles = ControlFlowUtil
 				.createReturnStatement(cfNodeIdCounter++, scope, recentControlFlowNode);
 
 		final ReturnObject returnObject = returnStmt.getObj();
@@ -228,7 +225,8 @@ public class EditorToControlFlowTransformation {
 			final EClassifier returnType;
 			if (returnObject instanceof LiteralExpression) {
 				final LiteralExpression val = (LiteralExpression) returnObject;
-				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage, ecorePackage);
+				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage,
+						ecorePackage);
 				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
@@ -306,7 +304,8 @@ public class EditorToControlFlowTransformation {
 				}
 			} else if (returnObject instanceof EnumExpression) {
 				final EnumExpression enumExpression = (EnumExpression) returnObject;
-				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage, ecorePackage);
+				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage,
+						ecorePackage);
 				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
@@ -758,10 +757,8 @@ public class EditorToControlFlowTransformation {
 
 		final boolean isMultipleMatch = false;
 
-		final ValidationReport report = patternMatcher.generateSearchPlan(invokedPattern, adornment, isMultipleMatch);
-		for (final ErrorMessage message : report.getErrorMessages()) {
-			this.transformationStatus.add(ValidationStatus.createValidationStatus(message));
-		}
+		final IStatus status = patternMatcher.generateSearchPlan(invokedPattern, adornment, isMultipleMatch);
+		this.transformationStatus.add(status);
 	}
 
 	private Adornment calculateAdornmentForApplicationCondition(final EList<ConstraintParameter> constraintParams,
@@ -825,10 +822,8 @@ public class EditorToControlFlowTransformation {
 		}
 
 		final boolean isMultipleMatch = invocation.getCfNode() instanceof ForEach;
-		final ValidationReport report = patternMatcher.generateSearchPlan(pattern, adornment, isMultipleMatch);
-		for (final ErrorMessage message : report.getErrorMessages()) {
-			transformationStatus.add(ValidationStatus.createValidationStatus(message));
-		}
+		final IStatus status = patternMatcher.generateSearchPlan(pattern, adornment, isMultipleMatch);
+		transformationStatus.add(status);
 	}
 
 	private EClass resolveEClass(final EClassDef editorEClass) {
@@ -969,7 +964,8 @@ public class EditorToControlFlowTransformation {
 				searchedScope = scope.getContents().get(0).getScope();
 			}
 
-			final List<String> names = Arrays.asList(CodeConventions.GENERATED_VARIABLE_NAME_PREFIX + symbolicParameter.getName(),
+			final List<String> names = Arrays.asList(
+					CodeConventions.GENERATED_VARIABLE_NAME_PREFIX + symbolicParameter.getName(),
 					symbolicParameter.getName());
 			final Optional<CFVariable> candidate = ControlFlowUtil.findControlFlowVariableByNames(searchedScope, names);
 			return candidate.orElse(null);

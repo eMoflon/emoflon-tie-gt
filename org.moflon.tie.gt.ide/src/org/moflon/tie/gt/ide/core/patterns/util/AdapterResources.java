@@ -4,11 +4,11 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.compiler.sdm.democles.eclipse.AdapterResource;
-import org.moflon.compiler.sdm.democles.eclipse.DemoclesValidationUtils;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.sdm.runtime.democles.Scope;
+import org.moflon.tie.gt.compiler.democles.eclipse.AdapterResource;
+import org.moflon.tie.gt.compiler.democles.eclipse.DemoclesValidationUtils;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.controlflow.democles.Scope;
 
 public final class AdapterResources {
 	private AdapterResources() {

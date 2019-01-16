@@ -57,13 +57,13 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
-import org.moflon.sdm.constraints.democles.AttributeVariableConstraint;
-import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
-import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
-import org.moflon.sdm.constraints.operationspecification.ParameterType;
-import org.moflon.sdm.constraints.operationspecification.constraint.AttributeVariableConstraintType;
-import org.moflon.sdm.runtime.democles.CFVariable;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.constraints.democles.AttributeVariableConstraint;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.ConstraintSpecification;
+import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
+import org.moflon.tie.gt.constraints.operationspecification.constraint.AttributeVariableConstraintType;
+import org.moflon.tie.gt.controlflow.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.AttributeValueConstraints;
 import org.moflon.tie.gt.ide.core.patterns.util.Attributes;
 import org.moflon.tie.gt.ide.core.patterns.util.Constants;
@@ -293,7 +293,7 @@ public class PatternBuilderVisitor {
 						final Pattern blackPattern = this.patterns.getBlackPattern();
 						final PatternBody body = Patterns.getBody(blackPattern);
 
-						final org.moflon.sdm.constraints.democles.DemoclesFactory constraintsFactory = org.moflon.sdm.constraints.democles.DemoclesFactory.eINSTANCE;
+						final org.moflon.tie.gt.constraints.democles.DemoclesFactory constraintsFactory = org.moflon.tie.gt.constraints.democles.DemoclesFactory.eINSTANCE;
 						final AttributeVariableConstraint attributeVariableConstraint = constraintsFactory
 								.createAttributeVariableConstraint();
 						attributeVariableConstraint.setPredicateSymbol(predicateSymbol);

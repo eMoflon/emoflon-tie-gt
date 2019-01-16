@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
-import org.moflon.sdm.runtime.democles.CFVariable;
+import org.moflon.tie.gt.controlflow.democles.CFVariable;
 
 public class TypeLookup {
 

@@ -19,12 +19,6 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.moflon.compiler.sdm.democles.codegen.template.TemplateConfigurationProvider;
-import org.moflon.compiler.sdm.democles.config.DemoclesGeneratorAdapterFactory;
-import org.moflon.compiler.sdm.democles.config.TieGtCodeGenerationConfiguration;
-import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
-import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -32,7 +26,13 @@ import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
 import org.moflon.emf.codegen.CodeGenerator;
 import org.moflon.emf.injection.ide.InjectionManager;
-import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.compiler.democles.codegen.template.TemplateConfigurationProvider;
+import org.moflon.tie.gt.compiler.democles.config.DemoclesGeneratorAdapterFactory;
+import org.moflon.tie.gt.compiler.democles.config.TieGtCodeGenerationConfiguration;
+import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
+import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
 
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 

@@ -16,14 +16,14 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionSpecification;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionTargetPlatform;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
-import org.moflon.compiler.sdm.democles.pattern.Adornments;
-import org.moflon.sdm.constraints.operationspecification.AttributeConstraintLibrary;
-import org.moflon.sdm.constraints.operationspecification.ConstraintSpecification;
-import org.moflon.sdm.constraints.operationspecification.OperationSpecification;
-import org.moflon.sdm.constraints.operationspecification.OperationSpecificationGroup;
-import org.moflon.sdm.constraints.operationspecification.OperationspecificationFactory;
-import org.moflon.sdm.constraints.operationspecification.ParamIdentifier;
-import org.moflon.sdm.constraints.operationspecification.ParameterType;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
+import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
+import org.moflon.tie.gt.constraints.operationspecification.ConstraintSpecification;
+import org.moflon.tie.gt.constraints.operationspecification.OperationSpecification;
+import org.moflon.tie.gt.constraints.operationspecification.OperationSpecificationGroup;
+import org.moflon.tie.gt.constraints.operationspecification.OperationspecificationFactory;
+import org.moflon.tie.gt.constraints.operationspecification.ParamIdentifier;
+import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
 
 public class AttributeConstraintsLibraryLoader {
 
