@@ -24,11 +24,6 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 		if (adornment.get(0) == Adornment.FREE && adornment.get(1) == Adornment.BOUND) {
 			final ConstraintType type = (ConstraintType) operation.getType();
 			if (type == CoreConstraintModule.EQUAL) {
-				// TODO@rkluge: No more postcondition
-//				if (operation.getPostcondition().get(0) == Adornment.NOT_TYPECHECKED) {
-//					return new Chain<TemplateController>(
-//							new TemplateController("/assignment/AssignWithTypeCheck", operation), tail);
-//				} else 
 				if (operation.isAlwaysSuccessful()) {
 					if (forceCasting(operation)) {
 						return new Chain<TemplateController>(

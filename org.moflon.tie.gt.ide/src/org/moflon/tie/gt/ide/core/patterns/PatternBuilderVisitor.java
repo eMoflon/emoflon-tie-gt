@@ -665,8 +665,7 @@ public class PatternBuilderVisitor {
 	private EMFVariable createVariable(final EditorParameterExpression editorParamExpression,
 			final DemoclesPatternType type) {
 		final EditorParameter parameter = editorParamExpression.getParameter();
-		// TODO@rkluge: Add to symbolic parameters?
-		final EMFVariable newReference = variables.get(parameter, type);
+		final EMFVariable newReference = variables.getSymbolicParameter(parameter, type);
 		return newReference;
 	}
 

@@ -15,7 +15,7 @@ public final class GenModelToDemoclesImportManager implements ImportManager {
 
 	@Override
 	public final List<String> getImportList() {
-		return new ArrayList<String>(genModel.getImportManager().getImports());
+		return new ArrayList<>(genModel.getImportManager().getImports());
 	}
 
 	@Override

@@ -14,6 +14,9 @@ public class TiGtEcoreModelAdaptor extends EcoreModelAdaptor {
 		super(converter);
 	}
 
+	/**
+	 * Provides the 'isEDataType' property for {@link EClassifier} objects
+	 */
 	public synchronized Object getProperty(final Interpreter interpreter, final ST template, final Object object,
 			final Object property, final String propertyName) throws STNoSuchPropertyException {
 		if (object instanceof EClassifier) {

@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.eclipse.emf.ecore.EDataType;
-import org.eclipse.emf.ecore.EEnum;
-import org.emoflon.ibex.gt.editor.gT.EditorRelation;
 import org.emoflon.ibex.gt.editor.gT.StringConstant;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
@@ -18,9 +16,6 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpres
  */
 public class LiteralExpressions {
 	private final static List<String> stringTypes = Arrays.asList("EChar", "ECharacterObject", "EString");
-	private final static List<String> incomparableType = Arrays.asList("EBoolean", "EBooleanObject");
-	public final static List<EditorRelation> equalityChecks = Arrays.asList(EditorRelation.EQUAL,
-			EditorRelation.UNEQUAL);
 
 	/**
 	 * Parses the literal value to the expected type.
@@ -59,31 +54,5 @@ public class LiteralExpressions {
 		} catch (final Exception e) {
 			return Optional.empty();
 		}
-	}
-
-	/**
-	 * Checks whether the data type is comparable.
-	 * 
-	 * @param datatype the data type to check
-	 * @return true if the implementation of the data type implements Comparable
-	 */
-	public static boolean isComparable(final EDataType datatype) {
-		if (incomparableType.contains(datatype.getName())) {
-			return false;
-		}
-		if (datatype instanceof EEnum) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Checks whether the relation is an equality check.
-	 * 
-	 * @param relation the relation to check
-	 * @return true if the relation is Equal or Unequal
-	 */
-	public static boolean isEqualityCheck(final EditorRelation relation) {
-		return equalityChecks.contains(relation);
 	}
 }
