@@ -81,25 +81,28 @@ public class TieGtControlFlowBuilder {
 
 		final IStatus transformationStatus = processControlFlowFiles(subMon);
 
-		return transformationStatus.isOK() ? Status.OK_STATUS : transformationStatus;
+		return StatusUtil.returnIfNotOK(transformationStatus);
 	}
 
 	private IStatus processControlFlowFiles(final IProgressMonitor monitor) {
+		final MultiStatus controlFlowFilesStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+				"Problems during transformation of control flow specification", null);
 		try {
 			final List<Resource> mcfResources = McfResourceLoadingVisitor.collectControlFlowResources(getResourceSet());
 
 			for (final Resource schemaResource : mcfResources) {
 				final IStatus status = processControlFlowResources(controlFlowTransformation, schemaResource);
-				if (status.matches(IStatus.ERROR)) {
+				if (status.matches(IStatus.ERROR))
 					return status;
-				}
+				if (!status.isOK())
+					controlFlowFilesStatus.add(status);
 			}
 			EcoreUtil.resolveAll(this.resourceSet);
 		} catch (final IOException e) {
 			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
 					"Problems while loading control flow specification", e);
 		}
-		return Status.OK_STATUS;
+		return StatusUtil.returnIfNotOK(controlFlowFilesStatus);
 	}
 
 	private IStatus processControlFlowResources(final EditorToControlFlowTransformation helper,
@@ -124,4 +127,5 @@ public class TieGtControlFlowBuilder {
 	private ResourceSet getResourceSet() {
 		return this.resourceSet;
 	}
+
 }

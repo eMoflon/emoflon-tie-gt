@@ -104,13 +104,42 @@ public class PatternBuilderVisitor {
 		if (hasErrors())
 			return null;
 
-		pattern.getNodes().forEach(n -> visit(n, pattern));
+		visitEditorNodes(pattern);
 
-		pattern.getComplexAttributeConstraints().forEach(cac -> visit(cac, pattern));
+		visitComplexAttributeConstraints(pattern);
 
-		pattern.getConditions().forEach(condition -> visit(condition, pattern));
+		visitConditions(pattern);
 
 		return patterns;
+	}
+
+	private void visitEditorNodes(final EditorPattern pattern) {
+		pattern.getNodes().forEach(editorNode -> visit(editorNode, pattern));
+	}
+
+	private void visitComplexAttributeConstraints(final EditorPattern pattern) {
+		pattern.getComplexAttributeConstraints()
+				.forEach(complexAttributeConstraint -> visit(complexAttributeConstraint, pattern));
+	}
+
+	private void visitConditions(final EditorPattern pattern) {
+		switch (pattern.getConditions().size()) {
+		case 0:
+			// Do nothing
+			break;
+		case 1: {
+			final EditorCondition condition = pattern.getConditions().get(0);
+			visit(condition, pattern);
+			break;
+		}
+		default: {
+			final EditorCondition condition = pattern.getConditions().get(0);
+			visit(condition, pattern);
+			TransformationExceptions.recordTransformationWarnMessage(transformationStatus,
+					"Ignoring all but the first condition of pattern %s", pattern.getName());
+			break;
+		}
+		}
 	}
 
 	private void configureAttributeConstraintsLibrary(final EditorPattern pattern) {
@@ -307,8 +336,7 @@ public class PatternBuilderVisitor {
 						for (final EditorPatternAttributeConstraintArgument predicateArgument : predicate.getArgs()) {
 							final ConstraintVariable variable = getConstraintVariableForPredicateArgument(body,
 									predicateArgument);
-							final ConstraintParameter constraintParameter = ConstraintParameters
-									.create(variable);
+							final ConstraintParameter constraintParameter = ConstraintParameters.create(variable);
 							attributeVariableConstraint.getParameters().add(constraintParameter);
 						}
 

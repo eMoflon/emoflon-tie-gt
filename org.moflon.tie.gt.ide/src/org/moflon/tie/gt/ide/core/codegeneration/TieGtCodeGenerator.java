@@ -7,10 +7,10 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
@@ -49,104 +49,139 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	@Override
 	public IStatus processResource(final IProgressMonitor monitor) {
 		try {
+			final MultiStatus processStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+					"Problems during code generation", null);
 			final int totalWork = 5 + 10 + 10 + 15 + 35 + 30 + 5;
 			final SubMonitor subMon = SubMonitor.convert(monitor, "Code generation task for " + getProject().getName(),
 					totalWork);
 			LogUtils.info(logger, "Generating code for: %s", getProject().getName());
 
-			final long toc = System.nanoTime();
+			final long tic = System.nanoTime();
 
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 
-			final IStatus mcfLoadStatus = this.loadControlFlowFiles();
-
-			if (mcfLoadStatus.matches(IStatus.ERROR))
-				return mcfLoadStatus;
+			final IStatus controlFlowLoaderStatus = loadControlFlowFiles();
 			if (monitor.isCanceled())
 				return Status.CANCEL_STATUS;
+			if (StatusUtil.addAndCheckForErrors(controlFlowLoaderStatus, processStatus))
+				return processStatus;
 
-			final IStatus resourceErrorStatus = checkResourceErrorFlags();
-			if (resourceErrorStatus.matches(IStatus.ERROR))
-				return resourceErrorStatus;
+			final IStatus resourceErrorStatus = checkResourcesForErrors();
 			if (monitor.isCanceled())
 				return Status.CANCEL_STATUS;
+			if (StatusUtil.addAndCheckForErrors(resourceErrorStatus, processStatus))
+				return processStatus;
 
-			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries();
-
-			final IProject project = getEcoreFile().getProject();
-			final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(
-					getResourceSet(), getPreferencesStorage(), attributeConstraintLibraries);
-			inititializeResourceSet();
+			final TieGtCodeGenerationConfiguration codeGeneratorConfig = createCodeGeneratorConfiguration();
 			subMon.worked(5);
 			if (subMon.isCanceled()) {
 				return Status.CANCEL_STATUS;
 			}
 
-			// Build or load GenModel
-			final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(),
-					getAllResources(), getEcoreFile(), true, getMoflonProperties());
-			final IStatus genModelBuilderStatus = genModelBuilderJob.run(subMon.split(15));
-			if (subMon.isCanceled()) {
+			final IStatus genModelBuilderStatus = processGenModel(subMon);
+			if (subMon.isCanceled())
 				return Status.CANCEL_STATUS;
-			}
-			if (genModelBuilderStatus.matches(IStatus.ERROR)) {
-				return genModelBuilderStatus;
-			}
-			this.setGenModel(genModelBuilderJob.getGenModel());
+			if (StatusUtil.addAndCheckForErrors(genModelBuilderStatus, processStatus))
+				return processStatus;
 
-			final TieGtControlFlowBuilder controlFlowBuilder = new TieGtControlFlowBuilder(getPreferencesStorage());
-			this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
-			controlFlowBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
-			final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
-					codeGeneratorConfig.getSearchPlanGenerators(), subMon.split(10));
-
-			if (subMon.isCanceled()) {
+			final IStatus controlFlowBuilderStatus = processControlFlowSpecification(codeGeneratorConfig, subMon);
+			if (subMon.isCanceled())
 				return Status.CANCEL_STATUS;
-			}
+			if (StatusUtil.addAndCheckForErrors(controlFlowBuilderStatus, processStatus))
+				return processStatus;
 
-			if (controlFlowBuilderStatus.matches(IStatus.ERROR)) {
-				return controlFlowBuilderStatus;
-			}
-
-			// Load injections
-			final InjectionManager injectionManager = createInjectionManager(project);
-			this.setInjectorManager(injectionManager);
-			final IStatus injectionStatus = createInjections(project);
-			if (subMon.isCanceled()) {
+			final IStatus injectionStatus = loadInjections();
+			if (subMon.isCanceled())
 				return Status.CANCEL_STATUS;
-			}
-			if (injectionStatus.matches(IStatus.ERROR)) {
-				return injectionStatus;
-			}
+			if (StatusUtil.addAndCheckForErrors(injectionStatus, processStatus))
+				return processStatus;
 
-			// Generate code
-			subMon.subTask("Generating code for project " + project.getName());
-			final TemplateConfigurationProvider templateConfig = codeGeneratorConfig
-					.createTemplateConfiguration(this.getGenModel());
-			final Descriptor codeGenerationEngine = new DemoclesGeneratorAdapterFactory(templateConfig,
-					this.getInjectorManager());
-			final CodeGenerator codeGenerator = new CodeGenerator(codeGenerationEngine);
-			final IStatus codeGenerationStatus = codeGenerator.generateCode(getGenModel(),
-					new BasicMonitor.EclipseSubProgress(subMon, 30));
-			if (subMon.isCanceled()) {
+			final IStatus codeGenerationStatus = generateCode(codeGeneratorConfig, subMon);
+			if (subMon.isCanceled())
 				return Status.CANCEL_STATUS;
-			}
-			if (codeGenerationStatus.matches(IStatus.ERROR)) {
-				return codeGenerationStatus;
-			}
+			if (StatusUtil.addAndCheckForErrors(codeGenerationStatus, processStatus))
+				return processStatus;
 			subMon.worked(5);
 
-			final long tic = System.nanoTime();
+			reportDuration(tic);
 
-			logger.info(String.format(Locale.US, "Code generation completed in %.3fs", (tic - toc) / 1e9));
-
-			return injectionStatus.isOK() ? Status.OK_STATUS : injectionStatus;
+			return StatusUtil.returnIfNotOK(processStatus);
 		} catch (final Exception e) {
 			logger.debug(WorkspaceHelper.printStacktraceToString(e));
-			final String message = e.getClass().getName() + " occurred during eMoflon code generation. Message: '"
-					+ e.getMessage() + "'. (Stacktrace is logged with level debug)";
+			final String message = String.format(
+					"%s occurred during eMoflon code generation. Message: '%s'. (Stacktrace is logged with level debug)",
+					e.getClass().getName(), e.getMessage());
 			return createErrorStatus(message, e);
+		}
+	}
+
+	private TieGtCodeGenerationConfiguration createCodeGeneratorConfiguration() {
+		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries();
+
+		final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(
+				getResourceSet(), getPreferencesStorage(), attributeConstraintLibraries);
+		inititializeResourceSet();
+		return codeGeneratorConfig;
+	}
+
+	private IStatus processGenModel(final SubMonitor subMon) {
+		final MonitoredGenModelBuilder genModelBuilderJob = new MonitoredGenModelBuilder(getResourceSet(),
+				getAllResources(), getEcoreFile(), true, getMoflonProperties());
+		final IStatus genModelBuilderStatus = genModelBuilderJob.run(subMon.split(15));
+		if (genModelBuilderJob.getGenModel() != null)
+			this.setGenModel(genModelBuilderJob.getGenModel());
+		return genModelBuilderStatus;
+	}
+
+	private IStatus processControlFlowSpecification(final TieGtCodeGenerationConfiguration codeGeneratorConfig,
+			final SubMonitor monitor) {
+		final TieGtControlFlowBuilder controlFlowBuilder = new TieGtControlFlowBuilder(getPreferencesStorage());
+		this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
+		controlFlowBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
+		final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
+				codeGeneratorConfig.getSearchPlanGenerators(), monitor.split(10));
+		return controlFlowBuilderStatus;
+	}
+
+	private IStatus loadInjections() throws CoreException {
+		final InjectionManager injectionManager = createInjectionManager(getProject());
+		this.setInjectorManager(injectionManager);
+		final IStatus injectionStatus = createInjections(getProject());
+		return injectionStatus;
+	}
+
+	private IStatus generateCode(final TieGtCodeGenerationConfiguration codeGeneratorConfig, final SubMonitor monitor) {
+		monitor.subTask("Generating code for project " + getProject().getName());
+		final TemplateConfigurationProvider templateConfig = codeGeneratorConfig
+				.createTemplateConfiguration(this.getGenModel());
+		final Descriptor codeGenerationEngine = new DemoclesGeneratorAdapterFactory(templateConfig,
+				this.getInjectorManager());
+		final CodeGenerator codeGenerator = new CodeGenerator(codeGenerationEngine);
+		final IStatus codeGenerationStatus = codeGenerator.generateCode(getGenModel(),
+				new BasicMonitor.EclipseSubProgress(monitor, 30));
+		return codeGenerationStatus;
+	}
+
+	private void reportDuration(final long tic) {
+		final long toc = System.nanoTime();
+		logger.info(String.format(Locale.US, "Code generation completed in %.3fs", (toc - tic) / 1e9));
+	}
+
+	/**
+	 * This routine identifies and loads all mcf files in the current project.
+	 *
+	 * For each mcf file, an appropriate resource is created in this generator's
+	 * resource set ({@link #getResourceSet()}
+	 */
+	private IStatus loadControlFlowFiles() {
+		try {
+			getProject().accept(new GtResourceLoadingVisitor(this.getResourceSet()));
+			getProject().accept(new McfResourceLoadingVisitor(this.getResourceSet()));
+
+			return Status.OK_STATUS;
+		} catch (final CoreException e) {
+			return createErrorStatus(e);
 		}
 	}
 
@@ -156,7 +191,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	 * 
 	 * @return the resulting status
 	 */
-	private IStatus checkResourceErrorFlags() {
+	private IStatus checkResourcesForErrors() {
 		final List<Resource> resourcesWithErrors = getResourceSet().getResources().stream()
 				.filter(r -> !r.getErrors().isEmpty()).collect(Collectors.toList());
 		if (!resourcesWithErrors.isEmpty()) {
@@ -182,23 +217,6 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = attributeConstraintsLibraryLoader
 				.run(this.getResourceSet());
 		return attributeConstraintLibraries;
-	}
-
-	/**
-	 * This routine identifies and loads all mcf files in the current project.
-	 *
-	 * For each mcf file, an appropriate resource is created in this generator's
-	 * resource set ({@link #getResourceSet()}
-	 */
-	private IStatus loadControlFlowFiles() {
-		try {
-			getProject().accept(new GtResourceLoadingVisitor(this.getResourceSet()));
-			getProject().accept(new McfResourceLoadingVisitor(this.getResourceSet()));
-
-			return Status.OK_STATUS;
-		} catch (final CoreException e) {
-			return createErrorStatus(e);
-		}
 	}
 
 	private void inititializeResourceSet() {
@@ -249,4 +267,5 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	private String getPluginId() {
 		return WorkspaceHelper.getPluginId(getClass());
 	}
+
 }
