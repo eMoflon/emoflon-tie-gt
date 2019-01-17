@@ -8,7 +8,7 @@ import org.moflon.tie.gt.mosl.ide.ui.wizards.WizardFileTemplate;
 public class NewControlFileInfoPage extends AbstractNewFileInfoPage {
 
 	public NewControlFileInfoPage(IStructuredSelection selection) {
-		super("New Controlflow file", selection, "mcf");
+		super("New eMoflon::TIE-GT Controlflow Specification File", selection, "mcf");
 	}
 
 	@Override

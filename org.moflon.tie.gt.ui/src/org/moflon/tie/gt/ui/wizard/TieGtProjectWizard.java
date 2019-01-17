@@ -22,14 +22,14 @@ import org.moflon.emf.codegen.MoflonGenModelBuilder;
 import org.moflon.emf.ui.wizard.DefaultContentGenerator;
 import org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature;
 
-public class NewTieGtProjectWizard extends AbstractMoflonWizard {
+public class TieGtProjectWizard extends AbstractMoflonWizard {
 
-	private static final Logger logger = Logger.getLogger(NewTieGtProjectWizard.class);
+	private static final Logger logger = Logger.getLogger(TieGtProjectWizard.class);
 
 	/**
 	 * This is the ID that is also used in plugin.xml
 	 */
-	public static final String NEW_REPOSITORY_PROJECT_WIZARD_ID = "org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard";
+	public static final String WIZARD_ID = "org.moflon.tie.gt.ui.wizard.TieGtProjectWizard";
 
 	protected AbstractMoflonProjectInfoPage projectInfo;
 
@@ -49,7 +49,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 
 			final String projectName = projectInfo.getProjectName();
 
-			final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+			final IProject project = WorkspaceHelper.getProjectByName(projectName);
 			final PluginProperties pluginProperties = new PluginProperties();
 			pluginProperties.put(PluginProperties.NAME_KEY, projectName);
 			pluginProperties.put(PluginProperties.PLUGIN_ID_KEY, projectName);
@@ -109,7 +109,7 @@ public class NewTieGtProjectWizard extends AbstractMoflonWizard {
 	/**
 	 * Adds the given project to the selected working set (if exists)
 	 *
-	 * @param project the project being creatd
+	 * @param project the project being created
 	 */
 	private void addToWorkingSet(final IProject project) {
 		final IWorkingSet[] recentWorkingSet = WorkingSetUtilities.getSelectedWorkingSet(getSelection(),

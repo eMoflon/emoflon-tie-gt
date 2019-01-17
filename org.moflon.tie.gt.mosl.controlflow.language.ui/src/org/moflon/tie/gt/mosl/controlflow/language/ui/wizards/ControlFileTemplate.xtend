@@ -6,52 +6,50 @@ import org.moflon.tie.gt.mosl.ide.ui.wizards.WizardFileTemplate
 
 class ControlFileTemplate extends WizardFileTemplate {
 
-	override setContent(IFile file) {
-		val project = file.project
-		val path = file.location.makeRelativeTo(project.location).removeFileExtension
-		val packageName = convertPathToPackageNotation(path)
-		val content = createTemplate(packageName)
-		save(file, content)
-	}
+  override setContent(IFile file) {
+    val project = file.project
+    val path = file.location.makeRelativeTo(project.location).removeFileExtension
+    val packageName = convertPathToPackageNotation(path)
+    val content = createTemplate(packageName)
+    save(file, content)
+  }
 
-	def convertPathToPackageNotation(IPath path){
-		val pathString = path.toString
-		pathString.replaceAll("/", "\\.")
-	}
+  def convertPathToPackageNotation(IPath path){
+    val pathString = path.toString
+    pathString.replaceAll("/", "\\.")
+  }
 
-	def String createImportText(){
+  def String createImportText(){
 
-		'''
-		«FOR epackage : epackageImports»
-			import "«epackage.nsURI»"
-		«ENDFOR»
-		'''
-	}
+    '''
+    Â«FOR epackage : epackageImportsÂ»
+      import "Â«epackage.nsURIÂ»"
+    Â«ENDFORÂ»
+    '''
+  }
 
-	def String createTemplate(String packageName){
-		'''
-		/*
-		* import section
-		*
-		* for imports from plugins use:
-		* import "platform:/plugin/something/ecoreFile.ecore"
-		*
-		*
-		* for imports in your current eclipse runtime use:
-		* import "platform:/resource/something/ecoreFile.ecore"
-		*/
-		«createImportText»
+  def String createTemplate(String packageName){
+    '''
+    /*
+    * import section
+    *
+    * For imports from plugins use:
+    * import "platform:/plugin/something/ecoreFile.ecore"
+    *
+    *
+    * For imports in your current eclipse runtime use:
+    * import "platform:/resource/something/ecoreFile.ecore"
+    */
+    Â«createImportTextÂ»
 
-		/*
-		* using session
-		*
-		* for every defined Patternfile you want to use:
-		* using "platform:/.../patternFile.gt"
-		*/
+    /*
+    * For every defined pattern file you want to use:
+    * using "platform:/.../patternFile.gt"
+    */
 
-		package «packageName»
+    package Â«packageNameÂ»
 
-		// EClass declaration
-		'''
-	}
+    // EClass declaration
+    '''
+  }
 }
