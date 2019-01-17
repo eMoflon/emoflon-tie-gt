@@ -4,12 +4,15 @@
 package org.moflon.tie.gt.mosl.controlflow.language.validation
 
 import org.eclipse.xtext.validation.Check
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CallStatement
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodCallStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledParameter
-import org.eclipse.emf.ecore.ETypedElement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowPackage
+import org.eclipse.emf.ecore.EClassifier
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.impl.MethodDecImpl
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
 
 /**
  * This class contains custom validation rules.
@@ -21,45 +24,35 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val TOO_MANY_ARGUMENTS = 'tooManyArguments'
 	public static val TOO_FEW_ARGUMENTS = 'tooFewArguments'
 	public static val CANNOT_RESOLVE_TYPE = 'cannotResolveType'
+	public static val DUPLICATE_VARIABLE_NAME = 'duplicateVariable'
+	public static val DUPLICATE_OPERATION_DECLARATION = 'duplicateOperation'
 
 @Check
-def checkParametersofMethodCall(CallStatement callStatement){
-	val operation = getOperartion(callStatement)
+def checkParametersofMethodCall(OperationCallStatement callStatement){
+	val operation = getOperation(callStatement)
 	if (operation === null)
 	 return
 	val eparameters = operation.EParameters
 	val trgTypes = eparameters.map[param | param.EType]
-	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)?.EType]
+	val srcTypes = callStatement?.parameters?.map[param | getTypeOfCalledParameter(param)]
 	if(trgTypes.size > srcTypes.size)
-		error("Too few Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, TOO_FEW_ARGUMENTS)
+		error("Too few Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, TOO_FEW_ARGUMENTS)
 	else if(trgTypes.size < srcTypes.size)
-		error("Too many Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, TOO_MANY_ARGUMENTS)
+		error("Too many Arguments for Operation: " + operation.name +"()", callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, TOO_MANY_ARGUMENTS)
 
 	for(var index = 0; index < trgTypes.size; index++){
 	  val srcType = srcTypes.get(index)
 		if(srcType !== null && !this.isInstanceOf(srcType, trgTypes.get(index)))
-			error(srcType.name + " cannot be resolved to a variable of " + trgTypes.get(index).name, callStatement, MoslControlFlowPackage.Literals.CALL_STATEMENT__PARAMETERS, CANNOT_RESOLVE_TYPE)
+			error(srcType.name + " cannot be resolved to a variable of " + trgTypes.get(index).name, callStatement, MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__PARAMETERS, CANNOT_RESOLVE_TYPE)
 	}
 }
 
-def getOperartion(CallStatement callStatement){
-	if(callStatement instanceof MethodCallStatement){
-		return callStatement.name
-	}
-	else if (callStatement instanceof OperationCallStatement)
+def getOperation(OperationCallStatement callStatement){
 		return callStatement.call
 }
 
-def ETypedElement getTypeOfCalledParameter(CalledParameter param){
-	val typedElement =
-	{
-		if(param.create === null)
-			 param.object
-		else
-			 param.create
-	}
-	if (typedElement instanceof ETypedElement)
-		typedElement
+def EClassifier getTypeOfCalledParameter(OperationCallStatementParameter param){
+	  return param.object.EType
 }
 
 @Check
@@ -67,6 +60,46 @@ def notSet(){
 
 }
 
+@Check
+def uniqueVariableNames(ObjectVariableStatement oVar){
+	val name=oVar.name
+	var methodCall = oVar.eContainer
+	while(!(methodCall instanceof MethodDecImpl)){
+		methodCall=methodCall.eContainer
+		if(methodCall instanceof PatternStatement||methodCall instanceof OperationCallStatement){
+			return
+		}
+	}
+	methodCall = methodCall as MethodDecImpl
+	val contents=methodCall.eAllContents
+	val result=contents.filter[obj|obj instanceof ObjectVariableStatement||obj instanceof MethodParameter].findFirst[candidate| 
+		if(candidate instanceof MethodParameter){
+			val methodParam=candidate as MethodParameter
+			if(methodParam.name.equals(name)){
+				return true
+			}
+		}
+		else{
+			val oVarCandidate= candidate as ObjectVariableStatement
+			if(oVarCandidate.name.equals(name)&&!(oVarCandidate===oVar)){
+				return true
+			}
+		}
+		return false
+	]
+	if(result !== null){
+		error("Multiple ObjectVariables with name "+name,oVar,MoslControlFlowPackage.Literals.OBJECT_VARIABLE_STATEMENT.getEStructuralFeature(MoslControlFlowPackage.OBJECT_VARIABLE_STATEMENT__NAME),DUPLICATE_VARIABLE_NAME)
+	}
+}
+@Check
+def uniqueMethodImplementations(MethodDecImpl methodImpl){
+	val methodName = methodImpl.name
+	val eClass = methodImpl.eContainer as EClassDef
+	if(!(eClass.operations.filter[method | !(method===methodImpl)&&method.name.equals(methodName)].empty)){
+		error("Multiple declarations of operation with name "+methodName,methodImpl,MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC__NAME),DUPLICATE_VARIABLE_NAME)
+	}
+	
+}
 //	public static val INVALID_NAME = 'invalidName'
 //
 //	@Check

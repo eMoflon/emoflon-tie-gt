@@ -1,15 +1,10 @@
 package org.moflon.tie.gt.ide.core.patterns;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EOperation;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
-import org.moflon.sdm.runtime.democles.CFNode;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.controlflow.democles.CFNode;
 
 /**
  * Configurable name generator for patterns
@@ -21,17 +16,17 @@ public class PatternNameGenerator {
 
 	private EditorPattern patternDefinition;
 
-	private int eOperationIndex;
-
 	private CFNode cfNode;
 
-	private PatternType patternType;
+	private DemoclesPatternType patternType;
+
+	private EOperation eOperation;
 
 	public String generateName() {
 		final String descriptiveName = getDescriptiveName();
 		final String suffix = this.patternType.getSuffix();
 		final int cfNodeId = cfNode.getId();
-		return String.format("pattern_%s_%d_%d_%s_%s", eContainingClass.getName(), eOperationIndex, cfNodeId,
+		return String.format("pattern_%s_%s_%d_%s_%s", eContainingClass.getName(), eOperation.getName(), cfNodeId,
 				descriptiveName, suffix);
 	}
 
@@ -40,7 +35,7 @@ public class PatternNameGenerator {
 		final String suffix = this.patternType.getSuffix();
 		final int cfNodeId = cfNode.getId();
 		final String applicationConditionSuffix = (positive ? "p" : "n") + "ac";
-		return String.format("pattern_%s_%d_%d_%s_%s_%s%d", eContainingClass.getName(), eOperationIndex, cfNodeId,
+		return String.format("pattern_%s_%s_%d_%s_%s_%s%d", eContainingClass.getName(), eOperation.getName(), cfNodeId,
 				descriptiveName, suffix, applicationConditionSuffix, index);
 	}
 
@@ -62,16 +57,7 @@ public class PatternNameGenerator {
 	 * Configures the {@link EOperation} being currently transformed
 	 */
 	public void setEOperation(final EOperation eOperation) {
-		final List<EOperation> operations = getOperationsSortedByName(eContainingClass);
-		int operationIndex = 0;
-
-		final Map<EOperation, Integer> eOperationIndexes = new HashMap<>();
-		for (final EOperation eOperationInClass : operations) {
-			eOperationIndexes.put(eOperationInClass, operationIndex);
-			++operationIndex;
-		}
-
-		this.eOperationIndex = eOperationIndexes.get(eOperation);
+		this.eOperation = eOperation;
 	}
 
 	/**
@@ -84,33 +70,16 @@ public class PatternNameGenerator {
 	/**
 	 * Configures the {@link CFNode} being currently transformed
 	 */
-	public void setCFNode(final CFNode cfNode) {
+	public void setControlFlowNode(final CFNode cfNode) {
 		this.cfNode = cfNode;
 	}
 
 	/**
-	 * Configures the {@link PatternType} being currently transformed
+	 * Configures the {@link DemoclesPatternType} being currently transformed
 	 *
 	 * @param patternType
 	 */
-	public void setPatternType(final PatternType patternType) {
+	public void setPatternType(final DemoclesPatternType patternType) {
 		this.patternType = patternType;
 	}
-
-	/**
-	 * Returns the {@link EOperation}s of the given {@link EClass} sorted in
-	 * ascending order by name
-	 */
-	private List<EOperation> getOperationsSortedByName(final EClass eClass) {
-		final List<EOperation> operations = new ArrayList<>(eClass.getEOperations());
-		operations.sort(new Comparator<EOperation>() {
-
-			@Override
-			public int compare(final EOperation o1, final EOperation o2) {
-				return o1.getName().compareTo(o2.getName());
-			}
-		});
-		return operations;
-	}
-
 }

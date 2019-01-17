@@ -4,7 +4,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.ETypedElement;
 import org.eclipse.xtext.nodemodel.INode;
 import org.eclipse.xtext.ui.editor.utils.TextStyle;
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledParameter;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
 import org.moflon.tie.gt.mosl.ide.ui.highlighting.AbstractHighlightProviderController;
@@ -43,8 +43,8 @@ public class MarkLocalStatementsHighlightingRule extends AbstractHighlightingRul
 
 			final ObjectVariableStatement objectVariableStatement = ObjectVariableStatement.class.cast(moslObject);
 			return objectVariableStatement.getName().equals(text);
-		} else if (moslObject instanceof CalledParameter) {
-			final CalledParameter calledParameter = CalledParameter.class.cast(moslObject);
+		} else if (moslObject instanceof CalledPatternParameter) {
+			final CalledPatternParameter calledParameter = CalledPatternParameter.class.cast(moslObject);
 			final boolean hasMatchingText = calledParameter.getObject() != null
 					&& calledParameter.getObject() instanceof ETypedElement
 					&& ETypedElement.class.cast(calledParameter.getObject()).getName().equals(text);

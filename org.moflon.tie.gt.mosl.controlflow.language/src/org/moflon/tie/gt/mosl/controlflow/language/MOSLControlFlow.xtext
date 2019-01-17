@@ -5,174 +5,157 @@ import "http://www.emoflon.org/ibex/gt/editor/GT" as ibexPattern
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 GraphTransformationControlFlowFile:
-	imports += Import*
-	includedPatterns += IncludePattern*
-	'package' name = QualifiedName
-	eClasses += EClassDef*
-;
+  imports+=Import*
+  includedPatterns+=IncludePattern*
+  'package' name=QualifiedName
+  eClasses+=EClassDef*;
 
-// EMF Connections
-EPackage returns ecore::EPackage: GraphTransformationControlFlowFile ;
+  // EMF Connections
+EPackage returns ecore::EPackage:
+  GraphTransformationControlFlowFile;
 
-ETypedElement returns ecore::ETypedElement:ObjectVariableStatement;
+ETypedElement returns ecore::ETypedElement:
+  ObjectVariableStatement;
 
-EOperation returns ecore::EOperation:MethodDec;
+EOperation returns ecore::EOperation:
+  MethodDec;
 
-EParameter returns ecore::EParameter:MethodParameter;
+EParameter returns ecore::EParameter:
+  MethodParameter;
 
 EnumExpression:
   'enum::' literal=[ecore::EEnumLiteral];
 
 EClassDef:
-	'class' name = [ecore::EClass | QualifiedName] '{'
-	operations += MethodDec*
-	'}'
-;
+  'class' name=[ecore::EClass|QualifiedName] '{'
+  operations+=MethodDec*
+  '}';
 
 MethodDec:
-	'operation' name = ID '(' (eParameters+=MethodParameter)? (',' eParameters+=MethodParameter)* ')' ':' 
-	(eType=[ecore::EClassifier | QualifiedName] | 'void') ('{'
-		startStatement = Statement?
-	'}')?
-;
+  'operation' name=ID '(' (eParameters+=MethodParameter)? (',' eParameters+=MethodParameter)* ')' ':'
+  (eType=[ecore::EClassifier|QualifiedName] | 'void') ('{'
+  startStatement=Statement?
+  '}')?;
 
-CalledPatternParameter: 
-  (parameter = CalledPatternParameterName) '=' object=[TypedElement | QualifiedName] | create= ObjectVariableStatement
-;
+CalledPatternParameter:
+  (parameter=CalledPatternParameterName) '=' object=[TypedElement|QualifiedName] ;
 
-CalledPatternParameterName: name=ID;
+CalledPatternParameterName:
+  name=ID;
 
 ObjectVariableStatement:
-  (op = Operator)? name = ID ':' eType = [ecore::EClass | QualifiedName] 
-  (':=' assignment=[ObjectVariableStatement | QualifiedName])?
-;
+  name=ID ':' eType=[ecore::EClass|QualifiedName]
+  (':=' assignment=[ObjectVariableStatement|QualifiedName])?;
 
-Statement: NextStatement | ReturnStatement;
+Statement:
+  NextStatement | ReturnStatement;
 
 NextStatement:
-  (PatternStatement | ConditionContainingStatement | ObjectVariableStatement| CallStatement ) (next = Statement)?
-;
+  (PatternStatement | ConditionContainingStatement | ObjectVariableStatement | OperationCallStatement)
+  (next=Statement)?;
 
 PatternStatement:
-'invoke' patternReference=PatternReference 
-  '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')'
-;
+  patternReference=PatternReference
+  '(' (parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)* ')';
 
 ConditionStatement:
-  'if' '(' cond=Condition ')''{'	thenStartStatement = Statement ?	'}'
-	('else' '{'	elseStartStatement = Statement ? '}')?
-;
-
-CallStatement: OperationCallStatement | MethodCallStatement;
-
-MethodCallStatement:
-  name = [MethodDec] '('(parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)?')'
-;
+  'if' '(' cond=Condition ')' '{' thenStartStatement=Statement? '}'
+  ('else' '{' elseStartStatement=Statement? '}')?;
 
 OperationCallStatement:
-	object=[TypedElement] '.' call = [ecore::EOperation] '(' (parameters+=CalledMethodParameter (',' parameters+=CalledMethodParameter)*)? ')'
-;
+  object=[ObjectVariableStatement|ID] '.' call=[ecore::EOperation] '(' (parameters+=OperationCallStatementParameter
+  (',' parameters+=OperationCallStatementParameter)*)? ')';
 
-CalledMethodParameter:
-  (object=[TypedElement | QualifiedName]) | create= ObjectVariableStatement
-;
+OperationCallStatementParameter:
+  (object=[ObjectVariableStatement|ID]) | literal=LiteralExpression;
 
 Condition:
-  patternReference=PatternReference '('(parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*')'
-;
+  patternReference=PatternReference '(' (parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)*
+  ')';
 
-PatternReference: pattern = [ibexPattern::EditorPattern];
+PatternReference:
+  pattern=[ibexPattern::EditorPattern];
 
-ConditionContainingStatement:ConditionStatement | LoopStatement;
+ConditionContainingStatement:
+  ConditionStatement | LoopStatement;
 
-LoopStatement:DoLoopStatement | WhileLoopStatement| ForLoopStatement;
+LoopStatement:
+  DoLoopStatement | WhileLoopStatement | ForLoopStatement;
 
-WhileLoopStatement: 
-'while''(' cond=Condition ')''{'
-		loopStartStatement = Statement?
-	'}'
-;
+WhileLoopStatement:
+  'while' '(' cond=Condition ')' '{'
+  loopStartStatement=Statement?
+  '}';
 
-DoLoopStatement: 
-'do' '{'
-	loopStartStatement = Statement?
-	'}' 'while' '(' cond=Condition ')'
-;
+DoLoopStatement:
+  'do' '{'
+  loopStartStatement=Statement?
+  '}' 'while' '(' cond=Condition ')';
 
-ForLoopStatement: 
-'for' '('
-	cond = Condition
-	')''{'
-		loopStartStatement = Statement ?
-	'}'
-;
+ForLoopStatement:
+  'for' '('
+  cond=Condition
+  ')' '{'
+  loopStartStatement=Statement?
+  '}';
 
-ReturnStatement:{ReturnStatement} 'return' (obj=ReturnObject)?;
+ReturnStatement:
+  {ReturnStatement} 'return' (obj=ReturnObject)?;
 
-ReturnObject: (ObjectVariableAttributeExpression | LiteralExpression | ObjectVariableExpression | EnumExpression );
+ReturnObject:
+  (ObjectVariableAttributeExpression | LiteralExpression | ObjectVariableExpression | EnumExpression);
 
-ObjectVariableExpression: obj=[ObjectVariableStatement|ID];
+ObjectVariableExpression:
+  obj=[ObjectVariableStatement|ID];
 
 ObjectVariableAttributeExpression:
-  variable = [ObjectVariableStatement|ID] '.' attribute = [ecore::EAttribute]
-;
+  variable=[ObjectVariableStatement|ID] '.' attribute=[ecore::EAttribute];
 
-MethodParameter: name = ID ':' eType=[ecore::EClassifier | QualifiedName];
+MethodParameter:
+  name=ID ':' eType=[ecore::EClassifier|QualifiedName];
 
-MethodTypeName returns ecore::EString: 'void' | QualifiedName;
-
-Operator:
-	value = OPERATOR_VALUE
-;
-
+MethodTypeName returns ecore::EString:
+  'void' | QualifiedName;
 
 /* ---------------- */
 /*    Auxiliaries   */
 /* ---------------- */
-
-IncludePattern: 'using' importURI=STRING;
+IncludePattern:
+  'using' importURI=STRING;
 
 Import:
-	'import' name = STRING
-;
+  'import' name=STRING;
 
 Using:
-	'using' importedNamespace = QualifiedNameWithWildcard
-;
-
-terminal OPERATOR_VALUE: '++'| '!' | '--';
+  'using' importedNamespace=QualifiedNameWithWildcard;
 
 terminal INTEGER returns ecore::EInt:
-	'-'?INT
-;
+  '-'? INT;
 
 terminal DOUBLE returns ecore::EDouble:
-  '-'?INT'.'INT
-;
+  '-'? INT '.' INT;
 
-terminal NULL :
-	'null';
-
+terminal NULL:
+  'null';
 
 LiteralValue:
-	(INTEGER | DOUBLE | BOOL | NULL)
-;
+  (INTEGER | DOUBLE | BOOL | NULL);
 
 terminal BOOL returns ecore::EBoolean:
-	'true' | 'false'
-;
+  'true' | 'false';
 
 QualifiedNameWithWildcard:
-	QualifiedName '.*'
-;
+  QualifiedName '.*';
 
 QualifiedName returns ecore::EString:
-	ID ('.' ID)*
-;
+  ID ('.' ID)*;
 
-//additional connections
-TypedElement:(ObjectVariableStatement | MethodParameter);
+  //additional connections
+TypedElement:
+  (ObjectVariableStatement | MethodParameter);
 
-CalledParameter:CalledPatternParameter | CalledMethodParameter;
+CalledParameter:
+  CalledPatternParameter | OperationCallStatementParameter;
 
-LiteralExpression: val= LiteralValue | {StringConstant} val=STRING;
+LiteralExpression:
+  val=LiteralValue | {StringConstant} val=STRING;

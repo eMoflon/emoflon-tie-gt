@@ -8,8 +8,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.moflon.core.build.MoflonProjectCreator;
 import org.moflon.core.build.nature.MoflonProjectConfigurator;
 import org.moflon.core.plugins.PluginProperties;
-import org.moflon.tie.gt.ide.core.runtime.builders.TieGTBuilder;
-import org.moflon.tie.gt.ide.core.runtime.natures.TieGTNature;
+import org.moflon.tie.gt.ide.core.runtime.builders.TieGtBuilder;
+import org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature;
 
 public class TieGTProjectCreator extends MoflonProjectCreator {
 	private static final List<String> GITIGNORE_LINES = Arrays.asList(//
@@ -36,11 +36,11 @@ public class TieGTProjectCreator extends MoflonProjectCreator {
 
 	@Override
 	protected String getNatureId() throws CoreException {
-		return TieGTNature.getId();
+		return TieGtNature.getId();
 	}
 
 	@Override
 	protected String getBuilderId() throws CoreException {
-		return TieGTBuilder.getId();
+		return TieGtBuilder.getId();
 	}
 }

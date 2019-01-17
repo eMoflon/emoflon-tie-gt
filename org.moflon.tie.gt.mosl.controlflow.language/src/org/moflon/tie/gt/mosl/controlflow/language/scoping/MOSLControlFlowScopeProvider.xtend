@@ -42,6 +42,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternRefere
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement
 import org.moflon.tie.gt.mosl.controlflow.language.utils.MOSLGTControlFlowUtil
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement
 
 /**
  * This class contains custom scoping description.
@@ -71,12 +72,35 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
         return getScopeForEnumLiterals(context as EnumExpression)
       } else if (isObjectVariableAttributeExpression(context, reference)) {
         return getScopeForbjectVariableAttributeExpression(context as ObjectVariableAttributeExpression)
+      } else if (isOperationCallStatement(context, reference)) {
+        return getScopeForOperationCallStatement(context as OperationCallStatement, reference)
       }
     } catch (CannotFindScopeException e) {
       log.error(String.format("Cannot find Scope for context %s and reference %s", context, reference), e)
     }
 
     super.getScope(context, reference);
+  }
+
+  def isOperationCallStatement(EObject object, EReference reference) {
+    return object instanceof OperationCallStatement &&
+      reference == MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__CALL;
+  }
+
+  def getScopeForOperationCallStatement(OperationCallStatement statement, EReference reference) {
+    val objectVariable = statement.object
+    if (objectVariable instanceof ObjectVariableStatement) {
+      val type = objectVariable.EType
+      if (type instanceof EClass) {
+       return Scopes.scopeFor(type.EOperations) 
+      }
+    }
+    return Scopes.scopeFor([])
+  }
+
+  def isObjectVariableAttributeExpression(EObject object, EReference reference) {
+    return object instanceof ObjectVariableAttributeExpression &&
+      reference == MoslControlFlowPackage.Literals.OBJECT_VARIABLE_ATTRIBUTE_EXPRESSION__ATTRIBUTE;
   }
 
   def getScopeForbjectVariableAttributeExpression(ObjectVariableAttributeExpression expression) {
@@ -88,17 +112,14 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
     }
   }
 
-  def isObjectVariableAttributeExpression(EObject object, EReference reference) {
-    return object instanceof ObjectVariableAttributeExpression &&
-      reference == MoslControlFlowPackage.Literals.OBJECT_VARIABLE_ATTRIBUTE_EXPRESSION__ATTRIBUTE;
-  }
-
   def boolean searchForPatternParameter(EObject context, EReference reference) {
-    return context instanceof PatternStatement && reference == MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PARAMETERS;
+    return context instanceof PatternStatement &&
+      reference == MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PARAMETERS;
   }
 
   def boolean searchForTypedElement(EObject context, EReference reference) {
-    return context instanceof CalledPatternParameter && reference == MoslControlFlowPackage.Literals.CALLED_PATTERN_PARAMETER__PARAMETER;
+    return context instanceof CalledPatternParameter &&
+      reference == MoslControlFlowPackage.Literals.CALLED_PATTERN_PARAMETER__PARAMETER;
   }
 
   def IScope getScopeByTypedElement(EObject context, EReference reference) {

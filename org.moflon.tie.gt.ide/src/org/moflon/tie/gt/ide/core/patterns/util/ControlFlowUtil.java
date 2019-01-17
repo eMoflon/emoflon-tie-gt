@@ -10,19 +10,19 @@ import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.sdm.runtime.democles.Action;
-import org.moflon.sdm.runtime.democles.CFNode;
-import org.moflon.sdm.runtime.democles.CFVariable;
-import org.moflon.sdm.runtime.democles.CompoundNode;
-import org.moflon.sdm.runtime.democles.DemoclesFactory;
-import org.moflon.sdm.runtime.democles.ForEach;
-import org.moflon.sdm.runtime.democles.HeadControlledLoop;
-import org.moflon.sdm.runtime.democles.IfStatement;
-import org.moflon.sdm.runtime.democles.PatternInvocation;
-import org.moflon.sdm.runtime.democles.Scope;
-import org.moflon.sdm.runtime.democles.TailControlledLoop;
-import org.moflon.sdm.runtime.democles.VariableReference;
-import org.moflon.tie.gt.ide.core.patterns.PatternType;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.controlflow.democles.Action;
+import org.moflon.tie.gt.controlflow.democles.CFNode;
+import org.moflon.tie.gt.controlflow.democles.CFVariable;
+import org.moflon.tie.gt.controlflow.democles.CompoundNode;
+import org.moflon.tie.gt.controlflow.democles.DemoclesFactory;
+import org.moflon.tie.gt.controlflow.democles.ForEach;
+import org.moflon.tie.gt.controlflow.democles.HeadControlledLoop;
+import org.moflon.tie.gt.controlflow.democles.IfStatement;
+import org.moflon.tie.gt.controlflow.democles.PatternInvocation;
+import org.moflon.tie.gt.controlflow.democles.Scope;
+import org.moflon.tie.gt.controlflow.democles.TailControlledLoop;
+import org.moflon.tie.gt.controlflow.democles.VariableReference;
 
 public final class ControlFlowUtil {
 	private static final Action NO_CONSTRUCTOR = null;
@@ -116,7 +116,7 @@ public final class ControlFlowUtil {
 		return variable;
 	}
 
-	public static Adornment calculateAdornment(final PatternInvocation invocation, final PatternType patternType) {
+	public static Adornment calculateAdornment(final PatternInvocation invocation, final DemoclesPatternType patternType) {
 		int adornmentIndex = 0;
 		final Pattern pattern = invocation.getPattern();
 		final EList<Variable> symbolicParameters = pattern.getSymbolicParameters();
@@ -138,9 +138,9 @@ public final class ControlFlowUtil {
 		return adornment;
 	}
 
-	public static org.moflon.sdm.runtime.democles.ReturnStatement createReturnStatement(final int id, final Scope scope,
+	public static org.moflon.tie.gt.controlflow.democles.ReturnStatement createReturnStatement(final int id, final Scope scope,
 			final CFNode previousNode) {
-		final org.moflon.sdm.runtime.democles.ReturnStatement returnStmtDemocles = DemoclesFactory.eINSTANCE
+		final org.moflon.tie.gt.controlflow.democles.ReturnStatement returnStmtDemocles = DemoclesFactory.eINSTANCE
 				.createReturnStatement();
 		returnStmtDemocles.setId(id);
 		returnStmtDemocles.setPrev(previousNode);

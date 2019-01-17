@@ -64,13 +64,13 @@ public abstract class AbstractTokenMapper extends DefaultAntlrTokenToAttributeId
 		mappedTokens.clear();
 	}
 
-	protected static Map<String, String> mappedTokens = new HashMap<>();
+	private static Map<String, String> mappedTokens = new HashMap<>();
 
 	private static final String[] delemiters = { ":", "{", "}", "(", ")" };
 
 	@Override
-	protected String calculateId(String tokenName, int tokenType) {
-		String trimmedTokenName = tokenName.replaceAll("'", "");
+	protected String calculateId(final String tokenName, final int tokenType) {
+		final String trimmedTokenName = tokenName.replaceAll("'", "");
 		String id = super.calculateId(tokenName, tokenType);
 
 		if (Arrays.contains(delemiters, trimmedTokenName)) {
@@ -81,8 +81,8 @@ public abstract class AbstractTokenMapper extends DefaultAntlrTokenToAttributeId
 		return id;
 	}
 
-	public static String getIDFromToken(String token) {
-		String trimmedTokenName = token.replaceAll("'", "");
+	public static String getIDFromToken(final String token) {
+		final String trimmedTokenName = token.replaceAll("'", "");
 		return mappedTokens.get(trimmedTokenName);
 	}
 }

@@ -89,126 +89,42 @@ See here for more details on EPL: http://www.eclipse.org/org/documents/epl-v10.p
          unpack="false"/>
 
    <plugin
-         id="org.moflon.sdm.compiler.democles"
+         id="org.moflon.tie.gt.compiler.democles"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.moflon.sdm.compiler.democles.pattern"
+         id="org.moflon.tie.gt.constraints.democles"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.moflon.sdm.compiler.democles.validation.controlflow"
+         id="org.moflon.tie.gt.constraints.operationspecification"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.moflon.sdm.compiler.democles.validation.result"
+         id="org.moflon.tie.gt.democles.bridge"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.moflon.sdm.compiler.democles.validation.scope"
+         id="org.moflon.tie.gt.reachability"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
 
    <plugin
-         id="org.moflon.sdm.compiler.eclipse"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.constraints.codegenerator"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.constraints.constraintstodemocles"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.constraints.democles"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.constraints.operationspecification"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.constraints.scopevalidation"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.democles.literalexpressionsolver"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.democles.patternmatcher"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.democles.reachability.javabdd"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.sdm.runtime.democles"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.core.moca.processing"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.core.moca.tree"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="org.moflon.core.dfs"
+         id="org.moflon.tie.gt.controlflow.democles"
          download-size="0"
          install-size="0"
          version="0.0.0"
