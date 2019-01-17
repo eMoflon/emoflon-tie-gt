@@ -8,6 +8,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
@@ -33,7 +34,7 @@ class VariableLookupTable {
 	}
 
 	public EMFVariable getSymbolicParameter(final EObject object, final DemoclesPatternType patternType) {
-		final EClassifier type = typeLookup.determineTypeOfEditorElement(object);
+		final EClassifier type = typeLookup.determineType(object);
 
 		return getSymbolicParameter(object, type, patternType);
 	}
@@ -45,7 +46,7 @@ class VariableLookupTable {
 
 			variable.setEClassifier(typeLookup.getEClassifier(type));
 			final Pattern pattern = patternLookup.getPattern(patternType);
-			Patterns.registerSymbolicParameter(variable, pattern);
+			Patterns.addSymbolicParameter(variable, pattern);
 			return variable;
 		} else {
 			return get(object, patternType);
@@ -64,7 +65,7 @@ class VariableLookupTable {
 	public EMFVariable getLocalVariable(final EObject child, final Object parent,
 			final DemoclesPatternType patternType) {
 
-		final EClassifier type = typeLookup.determineTypeOfEditorElement(child);
+		final EClassifier type = typeLookup.determineType(child);
 
 		return getLocalVariable(child, parent, type, patternType);
 	}
@@ -76,7 +77,7 @@ class VariableLookupTable {
 
 			newAttribute.setEClassifier(typeLookup.getEClassifier(type));
 			final Pattern pattern = patternLookup.getPattern(patternType);
-			Patterns.registerLocalVariable(newAttribute, pattern);
+			Patterns.addLocalVariable(newAttribute, pattern);
 			return newAttribute;
 		} else {
 			return get(child, parent, patternType);
@@ -86,8 +87,7 @@ class VariableLookupTable {
 	public EMFVariable getReturnVariable(final EObject returnObject, final Pattern pattern) {
 		final EMFVariable returnEmfVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
 		returnEmfVariable.setName(CodeConventions.RESULT_VARIABLE_NAME);
-		returnEmfVariable
-				.setEClassifier(typeLookup.getEClassifier(typeLookup.determineTypeOfEditorElement(returnObject)));
+		returnEmfVariable.setEClassifier(typeLookup.getEClassifier(typeLookup.determineType(returnObject)));
 		pattern.getSymbolicParameters().add(0, returnEmfVariable);
 
 		return returnEmfVariable;
@@ -130,38 +130,42 @@ class VariableLookupTable {
 	}
 
 	private String calculateLookupKey(final Object childObject, final Object parentObject) {
-		final String childName;
 
-		if (childObject instanceof EditorNode) {
-			childName = ((EditorNode) childObject).getName();
-		} else if (childObject instanceof EditorParameter) {
-			childName = ((EditorParameter) childObject).getName();
-		} else if (childObject instanceof EAttribute) {
-			childName = ((EAttribute) childObject).getName();
-		} else if (childObject instanceof CFVariable) {
-			childName = ((CFVariable) childObject).getName();
-		} else if (childObject instanceof String) {
-			childName = (String) childObject;
-		} else {
-			throw new RuntimeException("Type " + childObject.getClass() + " is not supported for this operation");
-		}
+		final String childName = getName(childObject);
 
-		final String parentName;
-		if (parentObject == null) {
-			parentName = "";
-		} else if (parentObject instanceof EditorNode) {
-			parentName = EditorNode.class.cast(parentObject).getName();
-		} else if (parentObject instanceof String) {
-			parentName = String.class.cast(parentObject);
-		} else {
-			throw new RuntimeException("Unsupported type of parent object " + childObject.getClass());
-		}
+		final String parentName = getName(parentObject);
 
-		final String keyForLookup = combineParentAndChildName(childName, parentName);
+		final String keyForLookup = combineChildAndParentName(childName, parentName);
 		return keyForLookup;
 	}
 
-	public String combineParentAndChildName(final String childName, final String parentName) {
+	private String getName(final Object object) {
+		if (object == null) {
+			return "";
+		} else if (object instanceof EditorNode) {
+			final EditorNode editorNode = (EditorNode) object;
+			return editorNode.getName();
+		} else if (object instanceof EditorParameter) {
+			final EditorParameter parameter = (EditorParameter) object;
+			return parameter.getName();
+		} else if (object instanceof EAttribute) {
+			final EAttribute attribute = (EAttribute) object;
+			return attribute.getName();
+		} else if (object instanceof CFVariable) {
+			final CFVariable variable = (CFVariable) object;
+			return variable.getName();
+		} else if (object instanceof String) {
+			return (String) object;
+		} else if (object instanceof EditorPatternAttributeConstraintVariable) {
+			final EditorPatternAttributeConstraintVariable variable = (EditorPatternAttributeConstraintVariable) object;
+			return variable.getName();
+		} else {
+			throw new RuntimeException(
+					String.format("Name for object %s of type %s cannot be determined.", object, object.getClass()));
+		}
+	}
+
+	public String combineChildAndParentName(final String childName, final String parentName) {
 		if (parentName.isEmpty())
 			return childName;
 		else if (childName.isEmpty())

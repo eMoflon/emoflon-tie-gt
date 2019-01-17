@@ -67,7 +67,7 @@ public final class Constants {
 		final EEnumLiteral literal = editorEnumExpression.getLiteral();
 		final Constant enumLiteralConstant = SpecificationFactory.eINSTANCE.createConstant();
 		enumLiteralConstant.setValue(literal);
-		Patterns.registerConstant(body, enumLiteralConstant);
+		Patterns.addConstant(body, enumLiteralConstant);
 		return enumLiteralConstant;
 	}
 
@@ -81,7 +81,7 @@ public final class Constants {
 		} else {
 			constant.setValue(literalExpression.getValue());
 		}
-		Patterns.registerConstant(patternBody, constant);
+		Patterns.addConstant(patternBody, constant);
 		return constant;
 	}
 
@@ -99,7 +99,7 @@ public final class Constants {
 			constant.setValue(literalExpression.getValue());
 		}
 
-		Patterns.registerConstant(patternBody, constant);
+		Patterns.addConstant(patternBody, constant);
 
 		return constant;
 	}

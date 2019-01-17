@@ -1,7 +1,9 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
@@ -15,9 +17,11 @@ import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descripto
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.util.BasicMonitor;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
@@ -52,7 +56,6 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 			final long toc = System.nanoTime();
 
-			// Instantiate code generation engine
 			final Resource resource = getEcoreResource();
 			getResourceSet().getResources().add(resource);
 
@@ -61,7 +64,13 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			if (mcfLoadStatus.matches(IStatus.ERROR))
 				return mcfLoadStatus;
 			if (monitor.isCanceled())
-				return Status.OK_STATUS;
+				return Status.CANCEL_STATUS;
+
+			final IStatus resourceErrorStatus = checkResourceErrorFlags();
+			if (resourceErrorStatus.matches(IStatus.ERROR))
+				return resourceErrorStatus;
+			if (monitor.isCanceled())
+				return Status.CANCEL_STATUS;
 
 			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries();
 
@@ -135,13 +144,39 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			return injectionStatus.isOK() ? Status.OK_STATUS : injectionStatus;
 		} catch (final Exception e) {
 			logger.debug(WorkspaceHelper.printStacktraceToString(e));
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), IStatus.ERROR,
-					e.getClass().getName() + " occurred during eMoflon code generation. Message: '" + e.getMessage()
-							+ "'. (Stacktrace is logged with level debug)",
-					e);
+			final String message = e.getClass().getName() + " occurred during eMoflon code generation. Message: '"
+					+ e.getMessage() + "'. (Stacktrace is logged with level debug)";
+			return createErrorStatus(message, e);
 		}
 	}
 
+	/**
+	 * Checks whether any {@link Resource} in {@link #getResourceSet()} contains
+	 * errors and returns a corresponding {@link IStatus}
+	 * 
+	 * @return the resulting status
+	 */
+	private IStatus checkResourceErrorFlags() {
+		final List<Resource> resourcesWithErrors = getResourceSet().getResources().stream()
+				.filter(r -> !r.getErrors().isEmpty()).collect(Collectors.toList());
+		if (!resourcesWithErrors.isEmpty()) {
+			final List<URI> uriList = resourcesWithErrors.stream().map(resource -> resource.getURI())
+					.collect(Collectors.toList());
+			final String message = String.format(
+					"eMoflon::TIE-GT skipped project %s due to errors in the resources with the following URIs: %s",
+					getProject().getName(), uriList);
+			return createErrorStatus(message);
+		} else {
+			return Status.OK_STATUS;
+		}
+	}
+
+	/**
+	 * Loads all attribute constraint libraries from the {@link EditorGTFile}
+	 * objects in the resource set ({@link #getResourceSet()}
+	 * 
+	 * @return
+	 */
 	private AttributeConstraintsLibraryRegistry loadAttributeConstraintLibraries() {
 		final AttributeConstraintsLibraryLoader attributeConstraintsLibraryLoader = new AttributeConstraintsLibraryLoader();
 		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = attributeConstraintsLibraryLoader
@@ -162,44 +197,56 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 			return Status.OK_STATUS;
 		} catch (final CoreException e) {
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), e.getMessage(), e);
+			return createErrorStatus(e);
 		}
 	}
 
 	private void inititializeResourceSet() {
+		registerMethodBodyFactory();
+
+		registerPatternFactory(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
+		registerPatternFactory(DemoclesPatternType.BLACK_PATTERN);
+		registerPatternFactory(DemoclesPatternType.RED_PATTERN);
+		registerPatternFactory(DemoclesPatternType.GREEN_PATTERN);
+		registerPatternFactory(DemoclesPatternType.BINDING_PATTERN);
+		registerPatternFactory(DemoclesPatternType.EXPRESSION_PATTERN);
+	}
+
+	private void registerMethodBodyFactory() {
 		final ResourceSet resourceSet = getResourceSet();
 		final EList<AdapterFactory> adapterFactories = resourceSet.getAdapterFactories();
 		final Map<String, Object> extensionToFactoryMap = resourceSet.getResourceFactoryRegistry()
 				.getExtensionToFactoryMap();
-
-		createAndRegisterMethodBodyFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
-
-		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION);
-		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.BLACK_FILE_EXTENSION);
-		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.RED_FILE_EXTENSION);
-		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.GREEN_FILE_EXTENSION);
-		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.BINDING_FILE_EXTENSION);
-		createAndRegisterPatternFactory(adapterFactories, extensionToFactoryMap,
-				DemoclesPatternType.EXPRESSION_FILE_EXTENSION);
-	}
-
-	private static void createAndRegisterMethodBodyFactory(final EList<AdapterFactory> adapterFactories,
-			final Map<String, Object> extensionToFactoryMap, final String extension) {
+		final String extension = DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION;
 		final MethodBodyResourceFactory sdmFactory = new MethodBodyResourceFactory(extension);
 		adapterFactories.add(sdmFactory);
 		extensionToFactoryMap.put(extension, sdmFactory);
 	}
 
-	private static void createAndRegisterPatternFactory(final EList<AdapterFactory> adapterFactories,
-			final Map<String, Object> extensionToFactoryMap, final String extension) {
+	private void registerPatternFactory(final DemoclesPatternType patternType) {
+		final ResourceSet resourceSet = getResourceSet();
+		final EList<AdapterFactory> adapterFactories = resourceSet.getAdapterFactories();
+		final Map<String, Object> extensionToFactoryMap = resourceSet.getResourceFactoryRegistry()
+				.getExtensionToFactoryMap();
+		final String extension = patternType.getSuffix();
 		final PatternResourceFactory bindingAndBlackFactory = new PatternResourceFactory(extension);
 		adapterFactories.add(bindingAndBlackFactory);
 		extensionToFactoryMap.put(extension, bindingAndBlackFactory);
+	}
+
+	private Status createErrorStatus(final Throwable e) {
+		return createErrorStatus(e.getMessage(), e);
+	}
+
+	private Status createErrorStatus(final String message) {
+		return createErrorStatus(message, null);
+	}
+
+	private Status createErrorStatus(final String message, final Throwable e) {
+		return new Status(IStatus.ERROR, getPluginId(), IStatus.ERROR, message, e);
+	}
+
+	private String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
 	}
 }

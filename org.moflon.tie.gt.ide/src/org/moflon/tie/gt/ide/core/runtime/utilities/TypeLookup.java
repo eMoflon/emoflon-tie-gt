@@ -12,6 +12,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 
 public class TypeLookup {
@@ -97,22 +98,25 @@ public class TypeLookup {
 			return ecorePackage.getEClassifier(statementEType.getName());
 	}
 
-	public EClassifier determineTypeOfEditorElement(final EObject editorElement) {
-		if (editorElement instanceof EditorParameter) {
-			final EditorParameter editorParameter = (EditorParameter) editorElement;
+	public EClassifier determineType(final EObject object) {
+		if (object instanceof EditorParameter) {
+			final EditorParameter editorParameter = (EditorParameter) object;
 			return editorParameter.getType();
-		} else if (editorElement instanceof EditorNode) {
-			final EditorNode node = (EditorNode) editorElement;
+		} else if (object instanceof EditorNode) {
+			final EditorNode node = (EditorNode) object;
 			return node.getType();
-		} else if (editorElement instanceof CFVariable) {
-			final CFVariable variable = (CFVariable) editorElement;
+		} else if (object instanceof CFVariable) {
+			final CFVariable variable = (CFVariable) object;
 			return variable.getType();
-		} else if (editorElement instanceof EAttribute) {
-			final EAttribute attribute = (EAttribute) editorElement;
+		} else if (object instanceof EAttribute) {
+			final EAttribute attribute = (EAttribute) object;
 			return attribute.getEType();
+		} else if (object instanceof EditorPatternAttributeConstraintVariable) {
+			final EditorPatternAttributeConstraintVariable editorVariable = (EditorPatternAttributeConstraintVariable) object;
+			return editorVariable.getType();
 		}
 
-		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", editorElement));
+		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", object));
 	}
 
 }
