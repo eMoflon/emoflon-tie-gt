@@ -13,6 +13,13 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.impl.MethodDe
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile
+import org.eclipse.emf.ecore.EObject
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import
+import org.eclipse.emf.ecore.EDataType
+import org.eclipse.emf.ecore.EClass
+import org.moflon.tie.gt.mosl.controlflow.language.utils.ControlFlowEditorModelUtil
+import org.eclipse.emf.ecore.EPackage
 
 /**
  * This class contains custom validation rules.
@@ -21,11 +28,19 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
  */
 class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 
-	public static val TOO_MANY_ARGUMENTS = 'tooManyArguments'
-	public static val TOO_FEW_ARGUMENTS = 'tooFewArguments'
-	public static val CANNOT_RESOLVE_TYPE = 'cannotResolveType'
-	public static val DUPLICATE_VARIABLE_NAME = 'duplicateVariable'
-	public static val DUPLICATE_OPERATION_DECLARATION = 'duplicateOperation'
+	static val CODE_PREFIX = "org.moflon.tie.gt.mosl.controlflow.language."
+
+	public static val TOO_MANY_ARGUMENTS = CODE_PREFIX + 'tooManyArguments'
+	public static val TOO_FEW_ARGUMENTS = CODE_PREFIX + 'tooFewArguments'
+	public static val CANNOT_RESOLVE_TYPE = CODE_PREFIX + 'cannotResolveType'
+	public static val DUPLICATE_VARIABLE_NAME = CODE_PREFIX + 'duplicateVariable'
+	public static val DUPLICATE_OPERATION_DECLARATION = CODE_PREFIX + 'duplicateOperation'
+	public static val IMPORT_NO_ECORE = CODE_PREFIX + "import.noEcore"
+	public static val IMPORT_NO_ECORE_MESSAGE = "The file '%s' cannot be imported because it is no Ecore file."
+	public static val IMPORT_FILE_DOES_NOT_EXIST = CODE_PREFIX + "import.fileDoesNotExist"
+	public static val IMPORT_FILE_DOES_NOT_EXIST_MESSAGE = "The file '%s' does not exist."
+	public static val IMPORT_DUPLICATE = CODE_PREFIX + "import.duplicate"
+	public static val IMPORT_DUPLICATE_MESSAGE = "Import '%s' must not be declared %s."
 
 @Check
 def checkParametersofMethodCall(OperationCallStatement callStatement){
@@ -91,15 +106,113 @@ def uniqueVariableNames(ObjectVariableStatement oVar){
 		error("Multiple ObjectVariables with name "+name,oVar,MoslControlFlowPackage.Literals.OBJECT_VARIABLE_STATEMENT.getEStructuralFeature(MoslControlFlowPackage.OBJECT_VARIABLE_STATEMENT__NAME),DUPLICATE_VARIABLE_NAME)
 	}
 }
+
+@Check
+	def checkImport(Import importEcore) {
+		val ecoreModel = ControlFlowEditorModelUtil.loadEcoreModel(importEcore.name)
+		if (ecoreModel.present) {
+			// Imports must be of type ecore.
+			val classes = ControlFlowEditorModelUtil.getElements(ecoreModel.get, EClass).size
+			val datatypes = ControlFlowEditorModelUtil.getElements(ecoreModel.get, EDataType).size
+			if (classes + datatypes == 0) {
+				error(
+					String.format(IMPORT_NO_ECORE_MESSAGE, importEcore.name),
+					MoslControlFlowPackage.Literals.IMPORT__NAME,
+					org.emoflon.ibex.gt.editor.validation.GTValidator.IMPORT_NO_ECORE,
+					importEcore.name
+				)
+			}
+		} else {
+			// Import files must exist.
+			error(
+				String.format(IMPORT_FILE_DOES_NOT_EXIST_MESSAGE, importEcore.name),
+				MoslControlFlowPackage.Literals.IMPORT__NAME,
+				IMPORT_FILE_DOES_NOT_EXIST,
+				importEcore.name
+			)
+		}
+
+		// Imports must be unique.
+		val file = importEcore.eContainer as GraphTransformationControlFlowFile
+		val importDeclarationCount = file.imports.filter[name.equals(importEcore.name)].size
+		if (importDeclarationCount !== 1) {
+			warning(
+				String.format(IMPORT_DUPLICATE_MESSAGE, importEcore.name, getTimes(importDeclarationCount)),
+				MoslControlFlowPackage.Literals.IMPORT__NAME,
+				IMPORT_DUPLICATE,
+				importEcore.name
+			)
+		}
+	}
+
 @Check
 def uniqueMethodImplementations(MethodDecImpl methodImpl){
 	val methodName = methodImpl.name
 	val eClass = methodImpl.eContainer as EClassDef
-	if(!(eClass.operations.filter[method | !(method===methodImpl)&&method.name.equals(methodName)].empty)){
-		error("Multiple declarations of operation with name "+methodName,methodImpl,MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC__NAME),DUPLICATE_VARIABLE_NAME)
+	val opsWithSameName=eClass.operations.filter[method | !(method===methodImpl)&&method.name.equals(methodName)]
+	var match=false
+	if(!opsWithSameName.empty){
+		for (op : opsWithSameName) {
+			//TODO: Check Return Type
+			var typesEqual=false
+			if(methodImpl.EType !== null && op.EType !== null &&methodImpl.EType.name.equals(op.EType.name)){
+				typesEqual=true
+			}
+			if(typesEqual&&methodImpl.EParameters.size==op.EParameters.size){
+				val paramsMethod=methodImpl.EParameters
+				val paramsCandidate=op.EParameters
+				var parametersMatch=true
+					for(var i=0;i< paramsMethod.size;i++){
+						val paramMethod=paramsMethod.get(i)
+						val paramCandidate=paramsCandidate.get(i)
+						val paramCandidateType=paramCandidate.EType
+						val paramMethodType=paramMethod.EType
+						if(!(paramCandidateType !== null&& paramMethodType !== null &&paramMethod.name.equals(paramCandidate.getName())&&paramMethod.EType.name.equals(paramCandidate.EType.name))){
+							parametersMatch=false
+						}
+					}
+					if(parametersMatch){
+						match=true;
+					}
+			}
 	}
-	
+	if(match){
+		error("Multiple declarations of same operation with name "+methodName,methodImpl,MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC__NAME),DUPLICATE_VARIABLE_NAME)
+	}
+	else {
+		//TODO: lookup method in ecore, if not there: otherwise, error, not registered in ecore
+		return
+	}
+	}
 }
+
+def getEClassFromSpec(String eclassName,GraphTransformationControlFlowFile gtcf){
+	val resources=gtcf.imports.map[import|ControlFlowEditorModelUtil.loadEcoreModel(import.name)]
+	resources.filter[res|res.isPresent].map[res|
+		val resource=res.get
+		val ePack=resource.contents.get(0) as EPackage
+		return ePack.EClassifiers.filter[eClassifier|eClassifier.name.equals(eclassName)] 		
+	]
+}
+
+def getEcoreSpecs(EObject elem){
+	var gtcf = elem
+	while( gtcf !== null && !(gtcf instanceof GraphTransformationControlFlowFile)){
+		gtcf=gtcf.eContainer
+	}
+	if(gtcf!==null){
+		val file = gtcf as GraphTransformationControlFlowFile
+		val resources=file.imports.map[import|ControlFlowEditorModelUtil.loadEcoreModel(import.name)]
+		val epacks=EPackages
+	}
+}
+
+/**
+	 * Converts an integer into a "... times" String.
+	 */
+	def static String getTimes(int count) {
+		return if(count == 2) 'twice' else count + ' times'
+	}
 //	public static val INVALID_NAME = 'invalidName'
 //
 //	@Check
