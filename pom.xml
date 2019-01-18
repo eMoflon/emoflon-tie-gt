@@ -7,11 +7,28 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
+<!--   <module>org.moflon.tie.gt.branding</module>
+  <module>org.moflon.tie.gt.compiler.democles</module>
+  <module>org.moflon.tie.gt.constraints.democles</module>
+  <module>org.moflon.tie.gt.constraints.operationspecification</module>
+  <module>org.moflon.tie.gt.controlflow.democles</module>
+  <module>org.moflon.tie.gt.democles.bridge</module>
+  <module>org.moflon.tie.gt.feature</module>
+  <module>org.moflon.tie.gt.ide</module>
+  <module>org.moflon.tie.gt.mosl.controlflow.language</module>
+  <module>org.moflon.tie.gt.mosl.controlflow.language.ide</module>
+  <module>org.moflon.tie.gt.mosl.controlflow.language.ui</module>
+  <module>org.moflon.tie.gt.mosl.ui</module>
+  <module>org.moflon.tie.gt.reachability</module>
+  <module>org.moflon.tie.gt.target</module>
+  <module>org.moflon.tie.gt.ui</module>
+  <module>org.moflon.tie.gt.updatesite</module> -->
   </modules>
 
   <properties>
-    <tycho-version>1.0.0</tycho-version>
-		<xtextVersion>2.12.0</xtextVersion>
+    <tychoVersion>1.0.0</tychoVersion>
+	  <xtextVersion>2.15.0</xtextVersion>
+	  <emfVersion>2.12.0</emfVersion>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
@@ -54,19 +71,19 @@
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-maven-plugin</artifactId>
-				<version>${tycho-version}</version>
+				<version>${tychoVersion}</version>
 				<extensions>true</extensions>
 			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
-				<version>${tycho-version}</version>
+				<version>${tychoVersion}</version>
 				<configuration>
 					<target>
 						<artifact>
 							<groupId>org.moflon.tie.gt</groupId>
 							<artifactId>org.moflon.tie.gt.target</artifactId>
-							<version>${project.version}</version>
+							<version>1.0.0-SNAPSHOT</version>
 						</artifact>
 					</target>
 					<environments>
@@ -230,7 +247,7 @@
 					-->
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-compiler-plugin</artifactId>
-					<version>${tycho-version}</version>
+					<version>${tychoVersion}</version>
 					<configuration>
 						<compilerArgument>-err:-forbidden</compilerArgument>
 					</configuration>
@@ -238,4 +255,33 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+  <dependencyManagement>
+  	<dependencies>
+  		<dependency>
+  			<groupId>org.eclipse.emf</groupId>
+  			<artifactId>org.eclipse.emf.ecore</artifactId>
+  			<version>${emfVersion}</version>
+  		</dependency>
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+        <version>${emfVersion}</version>
+      </dependency>
+  		<dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.common</artifactId>
+        <version>${emfVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.codegen</artifactId>
+        <version>${emfVersion}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.emf</groupId>
+        <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
+        <version>${emfVersion}</version>
+      </dependency>
+  	</dependencies>
+  </dependencyManagement>
 </project>
