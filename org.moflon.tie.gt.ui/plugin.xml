@@ -3,18 +3,14 @@
 <plugin>
     <extension id="org.moflon.textualEditor.contentTypes" name="MoflonContentTypes" point="org.eclipse.core.contenttype.contentTypes">
         <!-- SDM-specific content types -->
-        <content-type id="org.moflon.contenttype.sdm" name="eMoflon SDM" file-extensions="sdm" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.cf" name="eMoflon CF" file-extensions="cf" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
-        <content-type id="org.moflon.contenttype.dfs" name="eMoflon DFS" file-extensions="dfs" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.binding" name="eMoflon Binding" file-extensions="binding" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.black" name="eMoflon Black" file-extensions="black" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.bindingAndBlack" name="eMoflon Binding and Black" file-extensions="bindingAndBlack" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.expression" name="eMoflon Expression" file-extensions="expression" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.red" name="eMoflon Red" file-extensions="red" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
         <content-type id="org.moflon.contenttype.green" name="eMoflon Green" file-extensions="gren" priority="high" base-type="org.eclipse.emf.ecore.xmi" />
-        <file-association content-type="org.moflon.contenttype.sdm" file-extensions="sdm"></file-association>
         <file-association content-type="org.moflon.contenttype.cf" file-extensions="cf"></file-association>
-        <file-association content-type="org.moflon.contenttype.dfs" file-extensions="dfs"></file-association>
         <file-association content-type="org.moflon.contenttype.binding" file-extensions="binding"></file-association>
         <file-association content-type="org.moflon.contenttype.black" file-extensions="black"></file-association>
         <file-association content-type="org.moflon.contenttype.bindingAndBlack" file-extensions="bindingAndBlack"></file-association>
@@ -30,15 +26,50 @@
         <wizard
             canFinishEarly="false"
             category="org.moflon.ide.ui.category"
-            class="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
+            class="org.moflon.tie.gt.ui.wizard.TieGtProjectWizard"
             finalPerspective="org.moflon.ide.ui.MoflonPerspective"
             hasPages="true"
-            id="org.moflon.tie.gt.ui.wizard.NewTieGtProjectWizard"
-            name="New eMoflon::TIE-GT Project Wizard"
+            id="org.moflon.tie.gt.ui.wizard.TieGtProjectWizard"
+            name="eMoflon::TIE-GT Project"
             preferredPerspectives="org.moflon.ide.ui.perspective"
-            project="true"></wizard>
+            project="true"
+            icon="resources/icon/tie-gt-project.png"
+            ></wizard>
     </extension>
-    <extension point="org.eclipse.ui.preferencePages">
-        <page id="org.moflon.tie.gt.ui.preferences.EMoflonPreferencesPage" class="org.moflon.tie.gt.ui.preferences.EMoflonPreferencesPage" name="eMoflon::TIE-GT"></page>
-    </extension>
+    <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.moflon.ide.ui.toolbar?after=org.emoflon.ibex.gt.editor.ui.commandNewGTFile">
+         <command
+               commandId="org.moflon.tie.gt.ui.command.newTieGtProject"
+               icon="resources/icon/tie-gt-project.png"
+               label="New eMoflon::TIE-GT Project"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <reference
+                     definitionId="org.moflon.core.ui.definitions.isMoflonPerspective">
+               </reference>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+       point="org.eclipse.ui.commands">
+    <command
+      id="org.moflon.tie.gt.ui.command.newTieGtProject"
+      name="New eMoflon::TIE-GT Project">
+    </command>
+  </extension>
+  <extension
+       point="org.eclipse.ui.handlers">
+    <handler
+      class="org.moflon.tie.gt.ui.handler.TieGtNewProjectHandler"
+      commandId="org.moflon.tie.gt.ui.command.newTieGtProject">
+    </handler>
+  </extension>
+  <extension point="org.eclipse.ui.preferencePages">
+    <page id="org.moflon.tie.gt.ui.preferences.EMoflonPreferencesPage" class="org.moflon.tie.gt.ui.preferences.EMoflonPreferencesPage" name="eMoflon::TIE-GT"></page>
+  </extension>
 </plugin>

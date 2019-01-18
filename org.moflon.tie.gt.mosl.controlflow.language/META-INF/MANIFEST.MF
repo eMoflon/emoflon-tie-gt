@@ -5,22 +5,20 @@ Bundle-Vendor: eMoflon Developers
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: org.moflon.tie.gt.mosl.controlflow.language;singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext,
- org.eclipse.xtext.xbase,
+Require-Bundle: org.eclipse.xtext;bundle-version="2.15.0",
  org.eclipse.equinox.common;bundle-version="3.5.0",
- org.eclipse.xtext.xbase.lib;bundle-version="2.12.0",
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
- org.eclipse.xtext.util,
+ org.eclipse.xtext.util;bundle-version="2.15.0",
  org.eclipse.xtend.lib;bundle-version="2.12.0",
- org.eclipse.emf.ecore,
- org.eclipse.emf.common,
- org.moflon.core.utilities,
- org.moflon.sdm.compiler.eclipse,
+ org.eclipse.emf.ecore;bundle-version="2.15.0",
+ org.eclipse.emf.common;bundle-version="2.15.0",
+ org.moflon.core.utilities;bundle-version="3.0.0",
  org.moflon.core.xtext;bundle-version="2.0.0",
  org.eclipse.xtend;bundle-version="2.2.0",
  org.eclipse.xtend.core;bundle-version="2.12.0",
- org.moflon.tie.gt.mosl.controlflow.language,
- org.emoflon.ibex.gt.editor
+ org.moflon.tie.gt.mosl.controlflow.language;bundle-version="1.0.0",
+ org.emoflon.ibex.gt.editor;bundle-version="1.1.0",
+ org.eclipse.xtext.xbase.lib;bundle-version="2.14.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.moflon.tie.gt.mosl.controlflow.language,
  org.moflon.tie.gt.mosl.controlflow.language.serializer,

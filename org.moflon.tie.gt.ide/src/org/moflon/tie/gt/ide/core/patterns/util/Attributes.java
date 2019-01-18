@@ -19,8 +19,8 @@ public final class Attributes {
 
 	public static Attribute create(final EAttribute modelElement, final ConstraintVariable objectVariable,
 			final ConstraintVariable attributeVariable) {
-		final ConstraintParameter fromParameter = Patterns.createConstraintParameter(objectVariable);
-		final ConstraintParameter toParameter = Patterns.createConstraintParameter(attributeVariable);
+		final ConstraintParameter fromParameter = ConstraintParameters.create(objectVariable);
+		final ConstraintParameter toParameter = ConstraintParameters.create(attributeVariable);
 
 		final Attribute attribute = EMFTypeFactory.eINSTANCE.createAttribute();
 		attribute.setEModelElement(modelElement);
@@ -48,7 +48,7 @@ public final class Attributes {
 
 		final Optional<Attribute> existingConstraint = findExisting(attributeConstraint, body);
 		if (!existingConstraint.isPresent()) {
-			Patterns.registerConstraint(attributeConstraint, body);
+			Patterns.addConstraint(attributeConstraint, body);
 			return attributeConstraint;
 		} else {
 			return existingConstraint.get();

@@ -15,12 +15,13 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.moflon.compiler.sdm.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import;
 
 public class TieGtControlFlowBuilder {
 
@@ -81,42 +82,46 @@ public class TieGtControlFlowBuilder {
 
 		final IStatus transformationStatus = processControlFlowFiles(subMon);
 
-		return transformationStatus.isOK() ? Status.OK_STATUS : transformationStatus;
+		return StatusUtil.returnIfNotOK(transformationStatus);
 	}
 
 	private IStatus processControlFlowFiles(final IProgressMonitor monitor) {
+		final MultiStatus controlFlowFilesStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+				"Problems during transformation of control flow specification", null);
 		try {
 			final List<Resource> mcfResources = McfResourceLoadingVisitor.collectControlFlowResources(getResourceSet());
 
 			for (final Resource schemaResource : mcfResources) {
 				final IStatus status = processControlFlowResources(controlFlowTransformation, schemaResource);
-				if (status.matches(IStatus.ERROR)) {
-					return status;
-				}
+				if (StatusUtil.addAndCheckForErrors(status, controlFlowFilesStatus))
+					return controlFlowFilesStatus;
 			}
 			EcoreUtil.resolveAll(this.resourceSet);
 		} catch (final IOException e) {
 			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
 					"Problems while loading control flow specification", e);
 		}
-		return Status.OK_STATUS;
+		return StatusUtil.returnIfNotOK(controlFlowFilesStatus);
 	}
 
 	private IStatus processControlFlowResources(final EditorToControlFlowTransformation helper,
 			final Resource schemaResource) throws IOException {
 		final GraphTransformationControlFlowFile controlFlowSpecificationRoot = GraphTransformationControlFlowFile.class
 				.cast(schemaResource.getContents().get(0));
-		if (controlFlowSpecificationRoot.getImports().size() > 0) {
-			// TODO@rkluge: This appears to be some hack
-			final String contextEcorePath = controlFlowSpecificationRoot.getImports().get(0).getName()
-					.replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
-			final Resource ecoreResource = this.resourceSet
-					.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
+		for (final Import mcfImport : controlFlowSpecificationRoot.getImports()) {
+			final String importPath = mcfImport.getName();
+			final URI uri = URI.createURI(importPath);
+			final Resource ecoreResource = this.resourceSet.getResource(uri, true);
 			ecoreResource.load(null);
 
-			final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
+			if (!ecoreResource.getContents().isEmpty()) {
+				final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
 
-			return helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet, this.ecorePackage);
+				return helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet,
+						this.ecorePackage);
+			} else {
+				return Status.OK_STATUS;
+			}
 		}
 		return Status.OK_STATUS;
 	}
@@ -124,4 +129,5 @@ public class TieGtControlFlowBuilder {
 	private ResourceSet getResourceSet() {
 		return this.resourceSet;
 	}
+
 }

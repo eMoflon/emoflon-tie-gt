@@ -3,8 +3,8 @@ package org.moflon.tie.gt.ide.core.patterns;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EOperation;
 import org.emoflon.ibex.gt.editor.gT.EditorPattern;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
-import org.moflon.sdm.runtime.democles.CFNode;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.controlflow.democles.CFNode;
 
 /**
  * Configurable name generator for patterns

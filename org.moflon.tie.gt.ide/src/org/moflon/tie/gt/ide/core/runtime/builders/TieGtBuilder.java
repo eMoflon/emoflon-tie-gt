@@ -2,7 +2,6 @@ package org.moflon.tie.gt.ide.core.runtime.builders;
 
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IBuildConfiguration;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -13,7 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -23,20 +21,20 @@ import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
 import org.gervarro.eclipse.workspace.util.AntPatternCondition;
 import org.gervarro.eclipse.workspace.util.RelevantElementCollector;
-import org.moflon.compiler.sdm.democles.eclipse.MethodBodyResourceFactory;
-import org.moflon.compiler.sdm.democles.eclipse.PatternResourceFactory;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
 import org.moflon.core.build.AbstractVisitorBuilder;
 import org.moflon.core.build.CleanVisitor;
 import org.moflon.core.plugins.manifest.ExportedPackagesInManifestUpdater;
 import org.moflon.core.plugins.manifest.PluginXmlUpdater;
 import org.moflon.core.preferences.EMoflonPreferencesActivator;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
+import org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter;
 import org.moflon.core.utilities.ClasspathUtil;
-import org.moflon.core.utilities.ErrorReporter;
 import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
+import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGtCodeGenerator;
 import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
@@ -48,8 +46,6 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			new String[] { "model/*.ecore", "src/*.gt", "src/**/*.gt", "src/*.mcf", "src/**/*.mcf" });
 
 	private static String BUILDER_ID = TieGtBuilder.class.getName();
-
-	private static final Logger logger = Logger.getLogger(TieGtBuilder.class);
 
 	/**
 	 * Initializes the visitor condition
@@ -102,40 +98,25 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			final IProgressMonitor monitor) {
 		final IFile ecoreFile = getProject()
 				.getFile(MoflonConventions.getDefaultPathToEcoreFileInProject(getProject().getName()));
-		final MultiStatus emfBuilderStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
-				"Problems during EMF code generation", null);
+		final MultiStatus emfBuilderStatus = new MultiStatus(getPlugin(), 0,
+				"Problems during eMoflon::TIE-GT code generation", null);
 		try {
 			final SubMonitor subMon = SubMonitor.convert(monitor,
 					"Generating code for project " + getProject().getName(), 13);
 
 			final IProject project = getProject();
 			createFoldersIfNecessary(project, subMon.split(1));
-			ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getGenFolder(getProject()));
-			ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getInjectionFolder(getProject()));
 
-			// Compute project dependencies
-			final IBuildConfiguration[] referencedBuildConfigs = project
-					.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
-			for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
-				addTriggerProject(referencedConfig.getProject());
-			}
+			computeProjectDependencies(project);
 
 			clean(new NullProgressMonitor());
 
-			// Build
 			final ResourceSet resourceSet = TieGtBuilder.initializeResourceSet();
-			final PatternResourceFactory blackFactory = new PatternResourceFactory(
-					DemoclesPatternType.BLACK_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(blackFactory);
-			final PatternResourceFactory redFactory = new PatternResourceFactory(
-					DemoclesPatternType.RED_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(redFactory);
-			final PatternResourceFactory greenFactory = new PatternResourceFactory(
-					DemoclesPatternType.GREEN_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(greenFactory);
-			final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
-					DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(cfFactory);
+
+			registerPatternResourceFactory(resourceSet, DemoclesPatternType.BLACK_FILE_EXTENSION);
+			registerPatternResourceFactory(resourceSet, DemoclesPatternType.RED_FILE_EXTENSION);
+			registerPatternResourceFactory(resourceSet, DemoclesPatternType.GREEN_FILE_EXTENSION);
+			registerMethodBodyResourceFactory(resourceSet);
 			eMoflonEMFUtil.installCrossReferencers(resourceSet);
 			subMon.worked(1);
 
@@ -151,8 +132,8 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 
 			final GenModel genModel = codeGenerationTask.getGenModel();
 			if (genModel == null) {
-				emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-						String.format("No GenModel found for '%s'", getProject())));
+				emfBuilderStatus.add(
+						createErrorStatus(String.format("No generator model in project %s", getProject().getName())));
 			} else {
 				ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
 
@@ -161,11 +142,37 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			ResourcesPlugin.getWorkspace().checkpoint(false);
 
 		} catch (final CoreException e) {
-			emfBuilderStatus.add(new Status(e.getStatus().getSeverity(), WorkspaceHelper.getPluginId(getClass()),
-					e.getMessage(), e));
+			emfBuilderStatus.add(new Status(e.getStatus().getSeverity(), getPlugin(), e.getMessage(), e));
 		} finally {
 			handleErrorsInEclipse(emfBuilderStatus, ecoreFile);
 		}
+	}
+
+	private Status createErrorStatus(final String message) {
+		return new Status(IStatus.ERROR, getPlugin(), message);
+	}
+
+	private String getPlugin() {
+		return WorkspaceHelper.getPluginId(getClass());
+	}
+
+	private void computeProjectDependencies(final IProject project) throws CoreException {
+		final IBuildConfiguration[] referencedBuildConfigs = project
+				.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
+		for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
+			addTriggerProject(referencedConfig.getProject());
+		}
+	}
+
+	private void registerMethodBodyResourceFactory(final ResourceSet resourceSet) {
+		final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
+				DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
+		resourceSet.getAdapterFactories().add(cfFactory);
+	}
+
+	private static void registerPatternResourceFactory(final ResourceSet resourceSet, final String extension) {
+		final PatternResourceFactory blackFactory = new PatternResourceFactory(extension);
+		resourceSet.getAdapterFactories().add(blackFactory);
 	}
 
 	@Override
@@ -196,6 +203,9 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
+
+		ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getGenFolder(project));
+		ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getInjectionFolder(project));
 	}
 
 	private void removeGeneratedModels(final IProject project) throws CoreException {
@@ -224,14 +234,8 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 	 * @param file   the file contains problems
 	 */
 	private void handleErrorsInEclipse(final IStatus status, final IFile file) {
-		final String reporterClass = "org.moflon.core.ui.errorhandling.MultiStatusAwareErrorReporter";
-		final ErrorReporter eclipseErrorReporter = (ErrorReporter) Platform.getAdapterManager().loadAdapter(file,
-				reporterClass);
-		if (eclipseErrorReporter != null) {
-			eclipseErrorReporter.report(status);
-		} else {
-			logger.error(String.format("Could not load error reporter '%s' to report status", reporterClass));
-		}
+		final MultiStatusAwareErrorReporter eclipseErrorReporter = new MultiStatusAwareErrorReporter(file);
+		eclipseErrorReporter.report(status);
 	}
 
 }

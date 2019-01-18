@@ -28,13 +28,13 @@ public abstract class AbstractNewFileWizard extends BasicNewFileResourceWizard {
 	@Override
 	public boolean performFinish() {
 		mainPage.getWizardFileTemplate().setEPackageImports(ecoreProjectPage.getSelectedPackages());
-		IFile file = mainPage.createNewFile();
+		final IFile file = mainPage.createNewFile();
 		UiUtilities.openDefaultEditorForFile(file);
 		return true;
 	}
 
 	@Override
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
+	public void init(final IWorkbench workbench, final IStructuredSelection selection) {
 		super.init(workbench, selection);
 		this.selection = selection;
 	}

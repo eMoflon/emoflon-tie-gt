@@ -5,9 +5,9 @@ Bundle-Vendor: eMoflon Developers
 Bundle-Version: 1.0.0.qualifier
 Bundle-SymbolicName: org.moflon.tie.gt.mosl.controlflow.language.ide;singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.moflon.tie.gt.mosl.controlflow.language,
- org.eclipse.xtext.ide,
- org.eclipse.xtext.xbase.ide,
+Require-Bundle: org.moflon.tie.gt.mosl.controlflow.language;bundle-version="1.0.0",
+ org.eclipse.xtext.ide;bundle-version="2.15.0",
+ org.eclipse.xtext.xbase.ide;bundle-version="2.15.0",
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: org.moflon.tie.gt.mosl.controlflow.language.ide.contentassist.antlr.internal,

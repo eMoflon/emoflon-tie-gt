@@ -3,9 +3,9 @@ package org.moflon.tie.gt.ide.preferences;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.moflon.codegen.preferences.TieGtCodeGenerationPreferences;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.tie.gt.compiler.democles.searchplan.CodeGenerationPreferences;
 
 public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer {
 	private static final String REACHABILITY_PREFIX = "org.moflon.tie.gt.ide.preferences.reachability";
@@ -27,11 +27,11 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 	}
 
 	public static void refreshEMoflonPreferencesStorage() {
-		TieGtCodeGenerationPreferences.setReachabilityEnabled(getPreferences().getBoolean(KEY_REACHABILITY_ENABLED,
-				TieGtCodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED));
-		TieGtCodeGenerationPreferences
+		CodeGenerationPreferences.setReachabilityEnabled(getPreferences().getBoolean(KEY_REACHABILITY_ENABLED,
+				CodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED));
+		CodeGenerationPreferences
 				.setReachabilityMaximumAdornmentSize(getPreferences().getInt(KEY_REACHABILITY_MAX_ADORNMENT_SIZE,
-						TieGtCodeGenerationPreferences.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY));
+						CodeGenerationPreferences.REACHABILITY_MAX_ADORNMENT_SIZE_INFINITY));
 	}
 
 	/**
@@ -39,8 +39,8 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 	 * singleton (as specified in {@link EMoflonPreferencesStorage}).
 	 */
 	public static void resetToDefaults() {
-		setReachabilityEnabled(TieGtCodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED);
-		setReachabilityMaxAdornmentSize(TieGtCodeGenerationPreferences.DEFAULT_REACHABILITY_MAX_ADORNMENT_SIZE);
+		setReachabilityEnabled(CodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED);
+		setReachabilityMaxAdornmentSize(CodeGenerationPreferences.DEFAULT_REACHABILITY_MAX_ADORNMENT_SIZE);
 	}
 
 	public static void setReachabilityEnabled(final boolean isEnabled) {
@@ -50,7 +50,7 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 
 	public static boolean getReachabilityEnabled() {
 		return getPreferences().getBoolean(KEY_REACHABILITY_ENABLED,
-				TieGtCodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED);
+				CodeGenerationPreferences.DEFAULT_REACHABILITIY_IS_ENABLED);
 	}
 
 	public static void setReachabilityMaxAdornmentSize(final int maxAdornmentSize) {
@@ -60,7 +60,7 @@ public class EMoflonPreferenceInitializer extends AbstractPreferenceInitializer 
 
 	public static int getReachabilityMaxAdornmentSize() {
 		return getPreferences().getInt(KEY_REACHABILITY_MAX_ADORNMENT_SIZE,
-				TieGtCodeGenerationPreferences.DEFAULT_REACHABILITY_MAX_ADORNMENT_SIZE);
+				CodeGenerationPreferences.DEFAULT_REACHABILITY_MAX_ADORNMENT_SIZE);
 	}
 
 	private static IEclipsePreferences getPreferences() {

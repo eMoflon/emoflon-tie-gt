@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JavaBDD Reachability Analyzer
+Bundle-SymbolicName: org.moflon.tie.gt.reachability;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Export-Package: org.moflon.tie.gt.reachability
+Require-Bundle: org.moflon.tie.gt.democles.bridge;bundle-version="[0.5.0,0.6.0]",
+ org.moflon.core.utilities;bundle-version="1.2.1"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: eMoflon Developers
+Bundle-ClassPath: .,
+ lib/javabdd-1.0b2.jar
+Automatic-Module-Name: org.moflon.tie.gt.reachability

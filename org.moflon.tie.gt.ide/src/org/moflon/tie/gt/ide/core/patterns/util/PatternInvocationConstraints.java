@@ -20,7 +20,7 @@ public final class PatternInvocationConstraints {
 				.createPatternInvocationConstraint();
 		constraint.setPositive(isPositive);
 		constraint.setInvokedPattern(pattern);
-		parameters.stream().map(Patterns::createConstraintParameter)
+		parameters.stream().map(ConstraintParameters::create)
 				.forEach(parameter -> constraint.getParameters().add(parameter));
 		return constraint;
 	}
@@ -28,7 +28,7 @@ public final class PatternInvocationConstraints {
 	public static PatternInvocationConstraint createAndRegister(final Pattern pattern, final boolean isPositive,
 			final List<? extends Variable> parameters, final PatternBody body) {
 		final PatternInvocationConstraint constraint = create(pattern, isPositive, parameters);
-		Patterns.registerConstraint(constraint, body);
+		Patterns.addConstraint(constraint, body);
 		return constraint;
 	}
 

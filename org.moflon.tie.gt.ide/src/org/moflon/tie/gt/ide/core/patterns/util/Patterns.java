@@ -12,17 +12,20 @@ import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.Constraint;
-import org.gervarro.democles.specification.emf.ConstraintParameter;
-import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
-import org.moflon.compiler.sdm.democles.pattern.DemoclesPatternType;
-import org.moflon.compiler.sdm.democles.pattern.PatternPrintingUtil;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
+import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.compiler.democles.pattern.PatternPrintingUtil;
 
+/**
+ * Utility methods related to {@link Pattern} and {@link PatternBody}
+ * 
+ * @author Roland Kluge - Initial implementation
+ *
+ */
 public final class Patterns {
 
 	private Patterns() {
@@ -66,30 +69,8 @@ public final class Patterns {
 		return mapOperatorToPatternTypes(operator, transformationStatus);
 	}
 
-	private static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorOperator operator,
-			final MultiStatus transformationStatus) {
-		switch (operator) {
-		case CONTEXT:
-			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN);
-		case DELETE:
-			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN, DemoclesPatternType.RED_PATTERN);
-		case CREATE:
-			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
-		default:
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
-					"Unsupported operator: " + operator);
-			return null;
-		}
-	}
-
 	public static boolean isOnlyBound(final Adornment adornment) {
 		return adornment.getBoundColumns().length == adornment.size();
-	}
-
-	public static ConstraintParameter createConstraintParameter(final ConstraintVariable variable) {
-		final ConstraintParameter constraintParameter = SpecificationFactory.eINSTANCE.createConstraintParameter();
-		constraintParameter.setReference(variable);
-		return constraintParameter;
 	}
 
 	public static DemoclesPatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
@@ -118,24 +99,40 @@ public final class Patterns {
 						pattern.getName(), PatternPrintingUtil.describeSymbolicParameters(pattern)));
 	}
 
-	public static boolean registerConstant(final PatternBody patternBody, final Constant constant) {
+	public static boolean addConstant(final PatternBody patternBody, final Constant constant) {
 		return patternBody.getConstants().add(constant);
 	}
 
-	public static boolean registerConstraint(final Constraint constraint, final PatternBody body) {
+	public static boolean addConstraint(final Constraint constraint, final PatternBody body) {
 		return body.getConstraints().add(constraint);
 	}
 
-	public static boolean registerSymbolicParameter(final Variable symbolicParameter, final Pattern pattern) {
+	public static boolean addSymbolicParameter(final Variable symbolicParameter, final Pattern pattern) {
 		return pattern.getSymbolicParameters().add(symbolicParameter);
 	}
 
-	public static boolean registerLocalVariable(final Variable newAttribute, final Pattern pattern) {
+	public static boolean removeSymbolicParameter(final Variable variable, final Pattern pattern) {
+		return pattern.getSymbolicParameters().remove(variable);
+	}
+
+	public static boolean addLocalVariable(final Variable newAttribute, final Pattern pattern) {
 		return getBody(pattern).getLocalVariables().add(newAttribute);
 	}
 
-	public static boolean removeSymbolicParameter(final Pattern blackPattern, final EMFVariable toBeRemoved) {
-		return blackPattern.getSymbolicParameters().remove(toBeRemoved);
+	private static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorOperator operator,
+			final MultiStatus transformationStatus) {
+		switch (operator) {
+		case CONTEXT:
+			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN);
+		case DELETE:
+			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN, DemoclesPatternType.RED_PATTERN);
+		case CREATE:
+			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
+		default:
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
+					"Unsupported operator: " + operator);
+			return null;
+		}
 	}
 
 }

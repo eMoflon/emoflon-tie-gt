@@ -10,8 +10,8 @@ import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Attribute;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.sdm.constraints.democles.AttributeValueConstraint;
-import org.moflon.sdm.constraints.democles.DemoclesFactory;
+import org.moflon.tie.gt.constraints.democles.AttributeValueConstraint;
+import org.moflon.tie.gt.constraints.democles.DemoclesFactory;
 
 public final class AttributeValueConstraints {
 	private AttributeValueConstraints() {
@@ -21,8 +21,8 @@ public final class AttributeValueConstraints {
 	@SuppressWarnings("unchecked")
 	public static AttributeValueConstraint create(final EAttribute modelElement,
 			final ConstraintVariable objectVariable, final ConstraintVariable attributeVariable) {
-		final ConstraintParameter fromParameter = Patterns.createConstraintParameter(objectVariable);
-		final ConstraintParameter toParameter = Patterns.createConstraintParameter(attributeVariable);
+		final ConstraintParameter fromParameter = ConstraintParameters.create(objectVariable);
+		final ConstraintParameter toParameter = ConstraintParameters.create(attributeVariable);
 
 		final AttributeValueConstraint attribute = DemoclesFactory.eINSTANCE.createAttributeValueConstraint();
 		attribute.setEModelElement(modelElement);
@@ -51,7 +51,7 @@ public final class AttributeValueConstraints {
 
 		final Optional<AttributeValueConstraint> existingConstraint = findExisting(attributeConstraint, body);
 		if (!existingConstraint.isPresent()) {
-			Patterns.registerConstraint(attributeConstraint, body);
+			Patterns.addConstraint(attributeConstraint, body);
 			return attributeConstraint;
 		} else {
 			return existingConstraint.get();
