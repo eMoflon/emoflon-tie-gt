@@ -33,15 +33,16 @@ public abstract class PatternMatcher {
 		if (exception != null) {
 			detailsFragment = String.format("%s occured with error message: %s.", exception.getClass(),
 					exception.getMessage());
+
+			final String stacktrace = ExceptionUtils.getStackTrace(exception);
+			LogUtils.debug(logger, "%s\nStack trace: %s", detailsFragment, stacktrace);
+
 		} else {
 			detailsFragment = "";
 		}
 		final String message = String.format(
 				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct. See also debug log. %s",
 				pattern.getName(), detailsFragment);
-
-		final String stacktrace = ExceptionUtils.getStackTrace(exception);
-		LogUtils.debug(logger, "%s\nStack trace: %s", detailsFragment, stacktrace);
 
 		return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(PatternMatcherGenerator.class), message);
 	}
