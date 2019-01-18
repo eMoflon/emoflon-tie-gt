@@ -7,7 +7,12 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 
-final class McfResourceLoadingVisitor extends FilteredResourceLoadingVisitor {
+/**
+ * Loader for .mcf files in the /src folder of the configured project
+ * 
+ * @author Roland Kluge - Initial implementation
+ */
+class McfResourceLoadingVisitor extends FilteredResourceLoadingVisitor {
 
 	McfResourceLoadingVisitor(final ResourceSet resourceSet, final IProject project) {
 		super(resourceSet, project);

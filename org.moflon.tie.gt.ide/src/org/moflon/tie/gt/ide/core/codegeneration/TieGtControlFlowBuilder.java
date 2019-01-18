@@ -21,6 +21,7 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import;
 
 public class TieGtControlFlowBuilder {
 
@@ -92,10 +93,8 @@ public class TieGtControlFlowBuilder {
 
 			for (final Resource schemaResource : mcfResources) {
 				final IStatus status = processControlFlowResources(controlFlowTransformation, schemaResource);
-				if (status.matches(IStatus.ERROR))
-					return status;
-				if (!status.isOK())
-					controlFlowFilesStatus.add(status);
+				if (StatusUtil.addAndCheckForErrors(status, controlFlowFilesStatus))
+					return controlFlowFilesStatus;
 			}
 			EcoreUtil.resolveAll(this.resourceSet);
 		} catch (final IOException e) {
@@ -109,17 +108,20 @@ public class TieGtControlFlowBuilder {
 			final Resource schemaResource) throws IOException {
 		final GraphTransformationControlFlowFile controlFlowSpecificationRoot = GraphTransformationControlFlowFile.class
 				.cast(schemaResource.getContents().get(0));
-		if (controlFlowSpecificationRoot.getImports().size() > 0) {
-			// TODO@rkluge: This appears to be some hack
-			final String contextEcorePath = controlFlowSpecificationRoot.getImports().get(0).getName()
-					.replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
-			final Resource ecoreResource = this.resourceSet
-					.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
+		for (final Import mcfImport : controlFlowSpecificationRoot.getImports()) {
+			final String importPath = mcfImport.getName();
+			final URI uri = URI.createURI(importPath);
+			final Resource ecoreResource = this.resourceSet.getResource(uri, true);
 			ecoreResource.load(null);
 
-			final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
+			if (!ecoreResource.getContents().isEmpty()) {
+				final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
 
-			return helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet, this.ecorePackage);
+				return helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet,
+						this.ecorePackage);
+			} else {
+				return Status.OK_STATUS;
+			}
 		}
 		return Status.OK_STATUS;
 	}
