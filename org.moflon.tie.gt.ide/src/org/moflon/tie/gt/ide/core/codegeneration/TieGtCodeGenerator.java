@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -151,7 +152,8 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		return injectionStatus;
 	}
 
-	private IStatus generateCode(final TieGtCodeGenerationConfiguration codeGeneratorConfig, final SubMonitor monitor) {
+	private IStatus generateCode(final TieGtCodeGenerationConfiguration codeGeneratorConfig, final SubMonitor monitor)
+			throws CoreException {
 		monitor.subTask("Generating code for project " + getProject().getName());
 		final TemplateConfigurationProvider templateConfig = codeGeneratorConfig
 				.createTemplateConfiguration(this.getGenModel());
@@ -160,6 +162,9 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		final CodeGenerator codeGenerator = new CodeGenerator(codeGenerationEngine);
 		final IStatus codeGenerationStatus = codeGenerator.generateCode(getGenModel(),
 				new BasicMonitor.EclipseSubProgress(monitor, 30));
+
+		getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);
+
 		return codeGenerationStatus;
 	}
 
