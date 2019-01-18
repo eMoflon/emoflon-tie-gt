@@ -176,8 +176,8 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	 */
 	private IStatus loadControlFlowFiles() {
 		try {
-			getProject().accept(new GtResourceLoadingVisitor(this.getResourceSet()));
-			getProject().accept(new McfResourceLoadingVisitor(this.getResourceSet()));
+			getProject().accept(new GtResourceLoadingVisitor(getResourceSet(), getProject()));
+			getProject().accept(new McfResourceLoadingVisitor(getResourceSet(), getProject()));
 
 			return Status.OK_STATUS;
 		} catch (final CoreException e) {
