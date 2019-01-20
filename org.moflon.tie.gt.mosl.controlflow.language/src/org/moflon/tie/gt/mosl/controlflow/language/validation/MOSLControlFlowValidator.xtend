@@ -20,6 +20,7 @@ import org.eclipse.emf.ecore.EDataType
 import org.eclipse.emf.ecore.EClass
 import org.moflon.tie.gt.mosl.controlflow.language.utils.ControlFlowEditorModelUtil
 import org.eclipse.emf.ecore.EPackage
+import javax.lang.model.SourceVersion
 
 /**
  * This class contains custom validation rules.
@@ -41,7 +42,8 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val IMPORT_FILE_DOES_NOT_EXIST_MESSAGE = "The file '%s' does not exist."
 	public static val IMPORT_DUPLICATE = CODE_PREFIX + "import.duplicate"
 	public static val IMPORT_DUPLICATE_MESSAGE = "Import '%s' must not be declared %s."
-
+	public static val INVALID_NAME=CODE_PREFIX+'invalidName'
+	
 	@Check
 	def checkParametersofMethodCall(OperationCallStatement callStatement) {
 		val operation = getOperation(callStatement)
@@ -273,6 +275,15 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	 */
 	def static String getTimes(int count) {
 		return if(count == 2) 'twice' else count + ' times'
+	}
+	
+	@Check
+	def isValidJavaIdentifier(ObjectVariableStatement oVarStmt){
+		if(!oVarStmt.name.equals("this")&&!SourceVersion.isName(oVarStmt.name)){
+			error("ObjectVariable name is not a valid Java name: " + oVarStmt.name, oVarStmt,
+					MoslControlFlowPackage.Literals.OBJECT_VARIABLE_STATEMENT.getEStructuralFeature(
+						MoslControlFlowPackage.OBJECT_VARIABLE_STATEMENT__NAME), INVALID_NAME)
+		}
 	}
 //	public static val INVALID_NAME = 'invalidName'
 //
