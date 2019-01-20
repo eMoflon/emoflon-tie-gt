@@ -121,8 +121,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 			if (classes + datatypes == 0) {
 				error(
 					String.format(IMPORT_NO_ECORE_MESSAGE, importEcore.name),
-					MoslControlFlowPackage.Literals.IMPORT__NAME,
-					org.emoflon.ibex.gt.editor.validation.GTValidator.IMPORT_NO_ECORE,
+					MoslControlFlowPackage.Literals.IMPORT__NAME,IMPORT_NO_ECORE,
 					importEcore.name
 				)
 			}
