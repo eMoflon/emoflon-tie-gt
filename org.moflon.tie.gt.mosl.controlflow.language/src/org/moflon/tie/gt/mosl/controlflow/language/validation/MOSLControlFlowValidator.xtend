@@ -21,6 +21,7 @@ import org.eclipse.emf.ecore.EClass
 import org.moflon.tie.gt.mosl.controlflow.language.utils.ControlFlowEditorModelUtil
 import org.eclipse.emf.ecore.EPackage
 import javax.lang.model.SourceVersion
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec
 
 /**
  * This class contains custom validation rules.
@@ -43,6 +44,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val IMPORT_DUPLICATE = CODE_PREFIX + "import.duplicate"
 	public static val IMPORT_DUPLICATE_MESSAGE = "Import '%s' must not be declared %s."
 	public static val INVALID_NAME=CODE_PREFIX+'invalidName'
+	public static val NO_THIS_VARIABLE=CODE_PREFIX+'noThisVariable'
 	
 	@Check
 	def checkParametersofMethodCall(OperationCallStatement callStatement) {
@@ -283,6 +285,18 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 			error("ObjectVariable name is not a valid Java name: " + oVarStmt.name, oVarStmt,
 					MoslControlFlowPackage.Literals.OBJECT_VARIABLE_STATEMENT.getEStructuralFeature(
 						MoslControlFlowPackage.OBJECT_VARIABLE_STATEMENT__NAME), INVALID_NAME)
+		}
+	}
+	
+	@Check
+	def containsThisObjectVariable(MethodDec operation){
+		if(operation.eAllContents.filter[content| content instanceof ObjectVariableStatement].exists[oVar| (oVar as ObjectVariableStatement).name.equals("this")]){
+			return
+		}
+		else{
+			error("this ObjectVariable required", operation,
+					MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(
+						MoslControlFlowPackage.METHOD_DEC__START_STATEMENT), NO_THIS_VARIABLE)
 		}
 	}
 //	public static val INVALID_NAME = 'invalidName'
