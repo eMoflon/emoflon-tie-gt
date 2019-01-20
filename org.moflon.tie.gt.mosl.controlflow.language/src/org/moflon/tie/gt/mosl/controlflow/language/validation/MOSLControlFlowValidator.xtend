@@ -296,7 +296,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 		else{
 			error("this ObjectVariable required", operation,
 					MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(
-						MoslControlFlowPackage.METHOD_DEC__START_STATEMENT), NO_THIS_VARIABLE)
+						MoslControlFlowPackage.METHOD_DEC), NO_THIS_VARIABLE)
 		}
 	}
 //	public static val INVALID_NAME = 'invalidName'
