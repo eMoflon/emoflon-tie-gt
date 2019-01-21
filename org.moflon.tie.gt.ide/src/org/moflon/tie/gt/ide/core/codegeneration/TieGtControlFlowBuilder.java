@@ -117,10 +117,11 @@ public class TieGtControlFlowBuilder {
 			if (!ecoreResource.getContents().isEmpty()) {
 				final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
 
-				return helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet,
+				final IStatus status = helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet,
 						this.ecorePackage);
-			} else {
-				return Status.OK_STATUS;
+				if (!status.isOK()) {
+					return status;
+				}
 			}
 		}
 		return Status.OK_STATUS;

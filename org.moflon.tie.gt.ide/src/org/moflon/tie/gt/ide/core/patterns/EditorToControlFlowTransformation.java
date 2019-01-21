@@ -132,6 +132,9 @@ public class EditorToControlFlowTransformation {
 		if (hasErrors())
 			return;
 
+		if (correspondingEClass == null)
+			return;
+
 		patternNameGenerator.setEClass(correspondingEClass);
 		for (final MethodDec editorEOperation : editorEClass.getOperations()) {
 			transformOperationDefinition(correspondingEClass, editorEOperation);
@@ -829,12 +832,13 @@ public class EditorToControlFlowTransformation {
 	private EClass resolveEClass(final EClassDef editorEClass) {
 		final String name = editorEClass.getName().getName();
 		if (name == null) {
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
-					"Cannot resolve proxy: " + editorEClass.getName());
+			TransformationExceptions.recordTransformationErrorMessage(transformationStatus, "Cannot resolve proxy: %s",
+					editorEClass.getName());
 			return null;
 		}
 
 		final EClass correspondingEClass = (EClass) ePackage.getEClassifier(name);
+
 		return correspondingEClass;
 	}
 

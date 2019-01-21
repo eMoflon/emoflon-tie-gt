@@ -11,9 +11,9 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.xtext.EcoreUtil2;
 import org.moflon.core.utilities.eMoflonEMFUtil;
@@ -24,12 +24,12 @@ public class ControlFlowEditorModelUtil {
 	/**
 	 * The set of meta-model resources loaded.
 	 */
-	private static Map<URI, Resource> metaModelResources = new HashMap<URI, Resource>();
+	private static Map<URI, Resource> metaModelResources = new HashMap<>();
 
 	/**
 	 * The resource set used for loading the meta-model resources.
 	 */
-	private static final ResourceSetImpl resourceSet = createNewXtextEnabledResourceSet();
+	private static final ResourceSet resourceSet = createNewXtextEnabledResourceSet();
 
 	/**
 	 * Returns all EClasses imported into the given file.
@@ -37,7 +37,7 @@ public class ControlFlowEditorModelUtil {
 	 * @param file the GT file
 	 */
 	public static ArrayList<EClass> getClasses(final GraphTransformationControlFlowFile file) {
-		final ArrayList<EClass> classes = new ArrayList<EClass>();
+		final ArrayList<EClass> classes = new ArrayList<>();
 		file.getImports().forEach(i -> {
 			loadEcoreModel(i.getName()).ifPresent(m -> classes.addAll(getElements(m, EClass.class)));
 		});
@@ -76,9 +76,7 @@ public class ControlFlowEditorModelUtil {
 	public static Optional<Resource> loadEcoreModel(final String uriString) {
 		final URI uri = URI.createURI(uriString);
 		try {
-			final ResourceSet resourceset = new ResourceSetImpl();
 			eMoflonEMFUtil.createPluginToResourceMapping(resourceSet);
-			// Resource resource=eMoflonEMFUtil.loadModel(uri, resourceset).eResource();
 			final Resource resource = resourceSet.getResource(uri, true);
 			resource.load(null);
 
@@ -133,12 +131,9 @@ public class ControlFlowEditorModelUtil {
 		metaModelResources.put(uri, resource);
 	}
 
-	private static ResourceSetImpl createNewXtextEnabledResourceSet() {
-		/*
-		 * eMoflonEMFUtil.installCrossReferencers(resourceSet); try {
-		 * eMoflonEMFUtil.createPluginToResourceMapping(resourceSet); } catch
-		 * (CoreException e) { // TODO Auto-generated catch block e.printStackTrace(); }
-		 */
-		return new ResourceSetImpl();
+	private static ResourceSet createNewXtextEnabledResourceSet() {
+		final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
+		resourceSet.getPackageRegistry().put(EcorePackage.eINSTANCE.getNsURI(), EcorePackage.eINSTANCE);
+		return resourceSet;
 	}
 }

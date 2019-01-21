@@ -226,7 +226,7 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
   def <T extends EObject> IScope createScope(List<URI> uris, Class<? extends EObject> clazz, Class<T> type,
     List<T> currentFound, ResourceSet set) throws CannotFindScopeException{
     try {
-      var candidates = new ArrayList<EObject>();
+      var candidates = newArrayList;
 
       for (URI uri : uris) {
         var scopingObject = getScopingObject(uri, clazz, set);
