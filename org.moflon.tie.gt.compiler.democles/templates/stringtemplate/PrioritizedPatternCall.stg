@@ -7,7 +7,7 @@ if (result_<InvokedPatternName(chain)> != null) {
 >>
 
 WriteFreeVariables(operation, importManager) ::= <<
-<operation.parameters,operation.precondition.rawBindingInformation:{ variable,binding | <if(binding.isFree)><variable:/democles/ParameterType(importManager)> <variable:/democles/ParameterName(importManager,false)> = (<variable:/democles/ParameterType(importManager)>) result_<operation.origin.type.invokedPattern.name>.getValue(<i0>);
+<operation.parameters,operation.precondition.rawBindingInformation:{ variable,binding | <if(binding.isFree)><variable:/democles/ParameterType(importManager)> <variable:/democles/ParameterName(importManager,false)> = (<variable:/democles/ParameterType(importManager)>) result_<operation.origin.type.invokedPattern.name>[<i0>];
 <endif> }>
 >>
 
