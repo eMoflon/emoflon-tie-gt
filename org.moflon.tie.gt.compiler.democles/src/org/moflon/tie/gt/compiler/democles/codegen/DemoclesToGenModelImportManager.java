@@ -4,13 +4,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
-import org.gervarro.democles.codegen.ImportManager;
 
-public final class DemoclesToGenModelImportManager implements ImportManager {
-	private final GenModel genModel;
+public final class DemoclesToGenModelImportManager extends TieGtImportManager {
 
 	public DemoclesToGenModelImportManager(final GenModel genModel) {
-		this.genModel = genModel;
+		super(genModel);
 	}
 
 	@Override
@@ -26,6 +24,6 @@ public final class DemoclesToGenModelImportManager implements ImportManager {
 
 	@Override
 	public final void upload(final String fullyQualifiedName) {
-		genModel.addImport(fullyQualifiedName);
+		getGenModel().addImport(fullyQualifiedName);
 	}
 }

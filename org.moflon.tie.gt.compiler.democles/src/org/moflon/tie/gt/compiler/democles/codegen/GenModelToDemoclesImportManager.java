@@ -4,23 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
-import org.gervarro.democles.codegen.ImportManager;
 
-public final class GenModelToDemoclesImportManager implements ImportManager {
-	private final GenModel genModel;
+public final class GenModelToDemoclesImportManager extends TieGtImportManager {
 
 	public GenModelToDemoclesImportManager(final GenModel genModel) {
-		this.genModel = genModel;
+		super(genModel);
 	}
 
 	@Override
 	public final List<String> getImportList() {
-		return new ArrayList<>(genModel.getImportManager().getImports());
+		return new ArrayList<>(getGenModel().getImportManager().getImports());
 	}
 
 	@Override
 	public final String getImportedName(final String fullyQualifiedName) {
-		return genModel.getImportedName(fullyQualifiedName);
+		return getGenModel().getImportedName(fullyQualifiedName);
 	}
 
 	@Override

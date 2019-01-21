@@ -14,10 +14,16 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.emf.codegen.ecore.generator.Generator;
 import org.eclipse.emf.codegen.ecore.generator.GeneratorAdapterFactory.Descriptor;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel;
+import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage;
+import org.eclipse.emf.codegen.ecore.genmodel.generator.GenBaseGeneratorAdapter;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.util.BasicMonitor;
+import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.Monitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -28,7 +34,6 @@ import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.build.MoflonEmfCodeGenerator;
 import org.moflon.emf.build.MonitoredGenModelBuilder;
-import org.moflon.emf.codegen.CodeGenerator;
 import org.moflon.emf.injection.ide.InjectionManager;
 import org.moflon.tie.gt.compiler.democles.codegen.template.TemplateConfigurationProvider;
 import org.moflon.tie.gt.compiler.democles.config.DemoclesGeneratorAdapterFactory;
@@ -159,8 +164,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 				.createTemplateConfiguration(this.getGenModel());
 		final Descriptor codeGenerationEngine = new DemoclesGeneratorAdapterFactory(templateConfig,
 				this.getInjectorManager());
-		final CodeGenerator codeGenerator = new CodeGenerator(codeGenerationEngine);
-		final IStatus codeGenerationStatus = codeGenerator.generateCode(getGenModel(),
+		final IStatus codeGenerationStatus = generateCode(codeGenerationEngine, getGenModel(),
 				new BasicMonitor.EclipseSubProgress(monitor, 30));
 
 		getProject().refreshLocal(IResource.DEPTH_INFINITE, monitor);
@@ -271,6 +275,58 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 	private String getPluginId() {
 		return WorkspaceHelper.getPluginId(getClass());
+	}
+
+	private final IStatus generateCode(final Descriptor descriptor, final GenModel genModel, final Monitor monitor) {
+		final Generator generator = new Generator();
+		generator.getAdapterFactoryDescriptorRegistry().addDescriptor(GenModelPackage.eNS_URI, descriptor);
+		generator.setInput(genModel);
+		genModel.setCanGenerate(true);
+
+		final Diagnostic diagnostic = generator.generate(genModel, GenBaseGeneratorAdapter.MODEL_PROJECT_TYPE,
+				"eMoflon::TIE-GT Code Generation", monitor);
+		return createStatusFromDiagnostic(diagnostic);
+	}
+
+	private IStatus createStatusFromDiagnostic(final Diagnostic diagnostic) {
+		if (!isOK(diagnostic)) {
+			if (diagnostic.getChildren().isEmpty()) {
+				return new Status(getStatusSeverity(diagnostic), getPluginId(), diagnostic.getMessage(),
+						diagnostic.getException());
+			} else {
+				final MultiStatus emfCodeGeneratorStatus = new MultiStatus(getPluginId(), getStatusSeverity(diagnostic),
+						diagnostic.getMessage(), diagnostic.getException());
+				for (final Diagnostic childDiagnostic : diagnostic.getChildren()) {
+					if (!isOK(childDiagnostic)) {
+						emfCodeGeneratorStatus.add(createStatusFromDiagnostic(childDiagnostic));
+					}
+				}
+				return emfCodeGeneratorStatus;
+			}
+		} else {
+			return Status.OK_STATUS;
+		}
+
+	}
+
+	private boolean isOK(final Diagnostic diagnostic) {
+		return Diagnostic.OK == diagnostic.getSeverity();
+	}
+
+	private int getStatusSeverity(final Diagnostic diagnostic) {
+		final int diagnosticSeverity = diagnostic.getSeverity();
+		switch (diagnosticSeverity) {
+		case Diagnostic.OK:
+			return IStatus.OK;
+		case Diagnostic.INFO:
+			return Status.INFO;
+		case Diagnostic.WARNING:
+			return IStatus.WARNING;
+		case Diagnostic.ERROR:
+			return IStatus.ERROR;
+		default:
+			throw new IllegalArgumentException(String.format("Unknown severity: %s", diagnosticSeverity));
+		}
 	}
 
 }
