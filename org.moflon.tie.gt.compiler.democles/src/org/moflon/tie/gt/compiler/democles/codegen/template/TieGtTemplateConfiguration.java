@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.codegen.template;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.codegen.ecore.genmodel.GenBase;
@@ -44,9 +45,9 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 	public static final String CONTROL_FLOW_GENERATOR = "ControlFlowGenerator";
 
-	private final HashMap<String, STGroup> templates = new HashMap<String, STGroup>();
+	private final Map<String, STGroup> templates = new HashMap<>();
 
-	private final HashMap<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<String, OperationSequenceCompiler>();
+	private final Map<String, OperationSequenceCompiler> operationSequenceCompilers = new HashMap<>();
 
 	public TieGtTemplateConfiguration(final GenModel genModel,
 			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
@@ -79,12 +80,28 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 	private static final STGroup createControlFlowTemplates() {
 		final STGroup group = new STGroup();
+		registerTieGtCommonTemplates(group);
 		registerErrorLogger(group);
-		group.loadGroupFile("/" + CONTROL_FLOW_GENERATOR + "/",
-				getCompilerURI() + "templates/stringtemplate/ControlFlow.stg");
+		group.loadGroupFile(String.format("/%s/", CONTROL_FLOW_GENERATOR),
+				String.format("%stemplates/stringtemplate/ControlFlow.stg", getCompilerURI()));
 
 		registerControlFlowModelAdaptor(group);
 		registerImportModelAdaptor(group);
+		return group;
+	}
+
+	private STGroup createPatternTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
+		final STGroup group = new STGroup();
+		registerErrorLogger(group);
+		registerTieGtCommonTemplates(group);
+		registerDemoclesCommonTemplates(group);
+		registerRegularTemplates(group);
+		registerConstantTemplates(group);
+		registerNumberTemplates(group);
+
+		registerGenModelAdaptor(group);
+		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
+
 		return group;
 	}
 
@@ -128,19 +145,14 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	}
 
 	private final STGroup createBindingAndBlackTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
-		final STGroup group = new STGroup();
-		registerErrorLogger(group);
-		registerDemoclesCommonTemplates(group);
-		registerRegularTemplates(group);
-		registerPrioritizedPatternCallTemplates(group);
+		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
+		registerPrioritizedPatternCallTemplates(group);
 		registerImportModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);
 		registerStringModelAdaptor(group);
 
 		registerParameterModelAdaptor(group);
-		registerGenModelAdaptor(group);
-		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 		templates.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR, group);
 
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.BINDING_AND_BLACK_PATTERN_MATCHER_GENERATOR,
@@ -154,13 +166,8 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	}
 
 	private final STGroup createBindingTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
-		final STGroup group = new STGroup();
-		registerErrorLogger(group);
-		registerDemoclesCommonTemplates(group);
-		registerRegularTemplates(group);
-		registerConstantTemplates(group);
+		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
-		registerNumberTemplates(group);
 		registerEmfOperationTemplates(group);
 		registerAssignmentTemplates(group);
 
@@ -168,9 +175,6 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		registerParameterModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);
 		registerStringModelAdaptor(group);
-
-		registerGenModelAdaptor(group);
-		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 
 		templates.put(TieGtCodeGenerationConfiguration.BINDING_PATTERN_MATCHER_GENERATOR, group);
 
@@ -182,13 +186,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 	private final STGroup createBlackTemplates(final EcoreModelAdaptor ecoreModelAdaptor,
 			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
-		final STGroup group = new STGroup();
-		registerErrorLogger(group);
-		registerDemoclesCommonTemplates(group);
-		registerRegularTemplates(group);
-		registerConstantTemplates(group);
-
-		registerNumberTemplates(group);
+		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
 		registerEmfOperationTemplates(group);
 		registerPatternCallTemplates(group);
@@ -198,9 +196,6 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		registerParameterModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);
 		registerStringModelAdaptor(group);
-
-		registerGenModelAdaptor(group);
-		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 
 		templates.put(TieGtCodeGenerationConfiguration.BLACK_PATTERN_MATCHER_GENERATOR, group);
 		addAttributeConstraintTemplates(group, attributeConstraintLibraries);
@@ -219,11 +214,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	}
 
 	private final STGroup createRedTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
-		final STGroup group = new STGroup();
-		registerErrorLogger(group);
-		registerDemoclesCommonTemplates(group);
-		registerRegularTemplates(group);
-		registerConstantTemplates(group);
+		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
 		registerEmfDeletionTemplates(group);
 
@@ -232,8 +223,6 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		registerParameterModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);
 
-		registerGenModelAdaptor(group);
-		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 		templates.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR, group);
 
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.RED_PATTERN_MATCHER_GENERATOR,
@@ -246,12 +235,7 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	}
 
 	private final STGroup createGreenTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
-		final STGroup group = new STGroup();
-		registerErrorLogger(group);
-		registerDemoclesCommonTemplates(group);
-		registerRegularTemplates(group);
-		registerNumberTemplates(group);
-		registerConstantTemplates(group);
+		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
 		registerAssignmentTemplates(group);
 		registerEmfCreationTemplates(group);
@@ -262,8 +246,6 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		registerParameterModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);
 
-		registerGenModelAdaptor(group);
-		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 		templates.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR, group);
 
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.GREEN_PATTERN_MATCHER_GENERATOR,
@@ -276,22 +258,17 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 	}
 
 	private final STGroup createExpressionTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
-		final STGroup group = new STGroup();
-		registerErrorLogger(group);
-		registerDemoclesCommonTemplates(group);
-		registerConstantTemplates(group);
-		registerAssignmentTemplates(group);
-		registerEmfOperationTemplates(group);
-		registerNumberTemplates(group);
-		registerExpressionTemplates(group);
+		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
+		registerExpressionTemplates(group);
+		registerEmfOperationTemplates(group);
+
+		registerAssignmentTemplates(group);
 		registerImportModelAdaptor(group);
 		registerParameterModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);
 		registerStringModelAdaptor(group);
 
-		registerGenModelAdaptor(group);
-		registerEcoreModelAdaptor(ecoreModelAdaptor, group);
 		templates.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR, group);
 
 		operationSequenceCompilers.put(TieGtCodeGenerationConfiguration.EXPRESSION_PATTERN_MATCHER_GENERATOR,
@@ -338,6 +315,10 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 	private static void registerConstantTemplates(final STGroup group) {
 		group.loadGroupFile("/democles/", getDemoclesEMFURI() + "templates/stringtemplate/EMFConstant.stg");
+	}
+
+	private static void registerTieGtCommonTemplates(final STGroup group) {
+		group.loadGroupFile("/tiegt/", getCompilerURI() + "templates/stringtemplate/TieGtCommon.stg");
 	}
 
 	private static void registerEmfOperationTemplates(final STGroup group) {

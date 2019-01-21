@@ -1,6 +1,6 @@
 PatternCall(engine, importManager, body, chain) ::= <<
-<GenericDataFrame(importManager)> result_<chain.value.operation.origin.type.invokedPattern.name> = <chain.value.operation.origin.type.invokedPattern.name><chain.value.operation.precondition>(<chain.value.operation.boundParameters:/democles/ParameterName(importManager); separator=", ">);
-if (result_<chain.value.operation.origin.type.invokedPattern.name> != null) {
+</tiegt/GenericDataFrame(importManager)> result_<InvokedPatternName(chain)> = <InvokedPatternName(chain)><chain.value.operation.precondition>(<chain.value.operation.boundParameters:/democles/ParameterName(importManager); separator=", ">);
+if (result_<InvokedPatternName(chain)> != null) {
 	<chain.value.operation:WriteFreeVariables(importManager)>
 	<if (chain.next)><(chain.next.value.template)(engine, importManager, body, chain.next)><endif>
 }
@@ -11,6 +11,6 @@ WriteFreeVariables(operation, importManager) ::= <<
 <endif> }>
 >>
 
-GenericDataFrame(importManager) ::= <<
-<importManager.("java.lang.Object")>[]
+InvokedPatternName(chain) ::= <<
+<chain.value.operation.origin.type.invokedPattern.name>
 >>

@@ -1,0 +1,11 @@
+/*
+ * This implementation of data frames avoid dependencies to Democles
+ * Alternative (change consistently everywhere!):
+ *   <importManager.("org.gervarro.democles.common.GenericDataFrame")>
+ * Additional necessary changes:
+ *   * change access to data frame contents from [...] to getValue(...)
+ *   * change creation of data frames from new <GenericDataFrame(importManager)>{...} to new <GenericDataFrame(importManager)>(new Object[]{...}) 
+ */
+GenericDataFrame(importManager) ::= <<
+<importManager.("java.lang.Object")>[]
+>>
