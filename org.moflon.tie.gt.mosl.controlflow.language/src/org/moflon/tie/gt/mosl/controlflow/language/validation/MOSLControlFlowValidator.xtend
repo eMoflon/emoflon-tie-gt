@@ -46,6 +46,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val NO_THIS_VARIABLE=CODE_PREFIX+'noThisVariable'
 	public static val UNKNOWN_PATTERN_NAME=CODE_PREFIX+'unknownPattern'
 	public static val VARIABLE_ASSIGNED_MORE_THAN_ONCE=CODE_PREFIX+'multipleAssignmentsToVariable'
+	public static val NO_GT_IMPORT=CODE_PREFIX+'noGTImport'
 	
 	
 	/*@Check
@@ -116,6 +117,14 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 						MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PARAMETERS, VARIABLE_ASSIGNED_MORE_THAN_ONCE)
 			}
 		]
+	}
+	
+	@Check
+	def noUsingDirective(GraphTransformationControlFlowFile gtcf){
+		if(gtcf.includedPatterns.empty){
+			error("No .GT files referenced", gtcf,
+						MoslControlFlowPackage.Literals.GRAPH_TRANSFORMATION_CONTROL_FLOW_FILE__INCLUDED_PATTERNS, NO_GT_IMPORT)
+		}
 	}
 
 	@Check
