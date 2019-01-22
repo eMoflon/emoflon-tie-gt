@@ -66,7 +66,7 @@ public final class PatternPrintingUtil {
 			appendf(sb, "[%x],", reference.hashCode());
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
-		appendf(sb, "    [class: %s]", constraint.getClass().getName());
+		appendf(sb, "%s        [class: %s]", NL, constraint.getClass().getName());
 		return sb.toString();
 	}
 
@@ -78,7 +78,7 @@ public final class PatternPrintingUtil {
 			appendf(sb, "%s[%x],", getName(parameter), parameter.hashCode());
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
-		appendf(sb, "    [class: %s]", constraint.getClass().getName());
+		appendf(sb, "%s        [class: %s]", NL, constraint.getClass().getName());
 		return sb.toString();
 	}
 
@@ -165,8 +165,7 @@ public final class PatternPrintingUtil {
 
 	public static Object describe(final GeneratorOperation operation) {
 		final StringBuilder sb = new StringBuilder();
-		sb.append(operation.toString());
-		sb.append("  [origin:").append(describe(operation.getOrigin())).append("]");
+		appendf(sb, "%s%s        [origin:%s]", operation.toString(), NL, describe(operation.getOrigin()));
 		return sb.toString();
 	}
 
@@ -196,7 +195,7 @@ public final class PatternPrintingUtil {
 				final WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> weightedOperation = builder
 						.createSearchPlanOperation(operation);
 				if (weightedOperation != null) {
-					appendf(sb, "  %s [origin: %s]%s", describe(weightedOperation), describe(operation), NL);
+					appendf(sb, "  %s%s    [origin: %s]%s", describe(weightedOperation), NL, describe(operation), NL);
 					foundSearchPlanOperation = true;
 				}
 			}
