@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.runtime.utilities;
+package org.moflon.tie.gt.mosl.controlflow.language.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,10 +11,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.emf.common.util.URI;
 import org.moflon.core.utilities.WorkspaceHelper;
-import org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature;
 
 public class TieGTWorkspaceSearch {
-	
+	private static String TIE_GT_PROJECT_NATURE_ID ="org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature";
 	/**
 	 * Returns a list of URIs to .ecore files of eMoflon EMF Projects in the
 	 * workspace.
@@ -26,7 +25,7 @@ public class TieGTWorkspaceSearch {
 	public static List<String> getEcoreURIsInWorkspace(final List<String> excludeURIs) {
 		ArrayList<String> uris = new ArrayList<String>();
 		Arrays.stream(ResourcesPlugin.getWorkspace().getRoot().getProjects()) //
-				.filter(project -> WorkspaceHelper.hasNature(project, TieGtNature.getId())) //
+				.filter(project -> WorkspaceHelper.hasNature(project,TIE_GT_PROJECT_NATURE_ID)) //
 				.forEach(project -> uris.addAll(TieGTWorkspaceSearch.getEcoreURIsInProject(project)));
 		if (excludeURIs != null) {
 			uris.removeAll(excludeURIs);
