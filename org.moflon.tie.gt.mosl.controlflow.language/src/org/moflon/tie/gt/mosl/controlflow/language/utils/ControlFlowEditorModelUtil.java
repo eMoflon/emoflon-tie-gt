@@ -87,7 +87,32 @@ public class ControlFlowEditorModelUtil {
 	public static Optional<Resource> loadEcoreModel(final String uriString) {
 		URI uri = URI.createURI(uriString);
 		try {
-			final ResourceSet resourceset = new ResourceSetImpl();
+			eMoflonEMFUtil.createPluginToResourceMapping(resourceSet);
+			//Resource resource=eMoflonEMFUtil.loadModel(uri, resourceset).eResource();
+			final Resource resource=resourceSet.getResource(uri, true);
+			resource.load(null);
+
+			// Early return if the resource does not exist or is empty.
+			if (resource.getContents().isEmpty()) {
+				removeResource(uri);
+				return Optional.empty();
+			}
+
+			// Add/update resource if necessary.
+			if (!metaModelResources.containsKey(uri)
+					|| metaModelResources.get(uri).getTimeStamp() < resource.getTimeStamp()) {
+				updateResource(uri);
+			}
+			return Optional.of(metaModelResources.get(uri));
+		} catch (final Exception e) {
+			removeResource(uri);
+			return Optional.empty();
+		}
+	}
+	
+	public static Optional<Resource> loadGTResource(final String gtUriString){
+		URI uri = URI.createURI(gtUriString);
+		try {
 			eMoflonEMFUtil.createPluginToResourceMapping(resourceSet);
 			//Resource resource=eMoflonEMFUtil.loadModel(uri, resourceset).eResource();
 			final Resource resource=resourceSet.getResource(uri, true);

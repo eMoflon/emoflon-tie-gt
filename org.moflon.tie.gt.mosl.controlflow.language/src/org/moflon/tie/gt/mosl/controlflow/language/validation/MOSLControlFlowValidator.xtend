@@ -22,7 +22,6 @@ import org.moflon.tie.gt.mosl.controlflow.language.utils.ControlFlowEditorModelU
 import org.eclipse.emf.ecore.EPackage
 import javax.lang.model.SourceVersion
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec
-
 /**
  * This class contains custom validation rules.
  * 
@@ -45,6 +44,31 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 	public static val IMPORT_DUPLICATE_MESSAGE = "Import '%s' must not be declared %s."
 	public static val INVALID_NAME=CODE_PREFIX+'invalidName'
 	public static val NO_THIS_VARIABLE=CODE_PREFIX+'noThisVariable'
+	public static val UNKNOWN_PATTERN_NAME=CODE_PREFIX+'unknownPattern'
+	public static val VARIABLE_ASSIGNED_MORE_THAN_ONCE=CODE_PREFIX+'multipleAssignmentsToVariable'
+	
+	
+	/*@Check
+	def checkPatternName(PatternStatement patternStmt){
+			val gtcf = getControlFlowFile(patternStmt)
+			val gtFiles=resolvePatterns(gtcf.includedPatterns)
+			gtFiles.map[res|
+				val contents=res.contents
+				return contents.filter[content|content instanceof EditorPattern]
+			].reduce[patterns1,patterns2|patterns1+patterns2].filter[patternObj|
+				val pattern=patternObj as EditorPattern
+				return patternStmt.patternReference.pattern.name
+			]
+	}
+	
+	def resolvePatterns(EList<IncludePattern> patternFileNames) {
+		return patternFileNames.map[fileName|
+			val url=WorkspaceHelper.getResource(fileName.importURI)
+			val optResource=ControlFlowEditorModelUtil.loadGTResource(fileName.importURI)
+			if(optResource.isPresent)
+				return optResource.get
+		]
+	}*/
 	
 	@Check
 	def checkParametersofMethodCall(OperationCallStatement callStatement) {
@@ -79,6 +103,19 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 
 	@Check
 	def notSet() {
+	}
+
+	@Check
+	def nodesOnlyAssignedOnce(PatternStatement patternstmt){
+		patternstmt.parameters.forEach[param|
+			val otherCandidates = patternstmt.parameters.filter[candidateParam|
+				candidateParam.parameter.name.equals(param.parameter.name)&&candidateParam!==param
+			]
+			if(!otherCandidates.empty){
+				error("Parameter " + param.parameter.name+" should only be assigned once.", patternstmt,
+						MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PARAMETERS, VARIABLE_ASSIGNED_MORE_THAN_ONCE)
+			}
+		]
 	}
 
 	@Check
@@ -260,7 +297,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 
 	}
 
-	def getEcoreSpecs(EObject elem) {
+	/*def getEcoreSpecs(EObject elem) {
 		var gtcf = elem
 		while (gtcf !== null && !(gtcf instanceof GraphTransformationControlFlowFile)) {
 			gtcf = gtcf.eContainer
@@ -270,7 +307,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 			val resources = file.imports.map[import|ControlFlowEditorModelUtil.loadEcoreModel(import.name)]
 			val epacks = EPackages
 		}
-	}
+	}*/
 
 	/**
 	 * Converts an integer into a "... times" String.
@@ -298,6 +335,14 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 					MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(
 						MoslControlFlowPackage.METHOD_DEC), NO_THIS_VARIABLE)
 		}
+	}
+	
+	def getControlFlowFile(EObject obj){
+		var gtcf = obj
+		while(!(gtcf instanceof GraphTransformationControlFlowFile)){
+			gtcf = gtcf.eContainer
+		}
+		return gtcf as GraphTransformationControlFlowFile
 	}
 //	public static val INVALID_NAME = 'invalidName'
 //
