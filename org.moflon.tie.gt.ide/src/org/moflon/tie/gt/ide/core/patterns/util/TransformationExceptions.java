@@ -26,14 +26,14 @@ public final class TransformationExceptions {
 	 * {@link MultiStatus} object. The message of the status object is created from
 	 * the format string and the arguments list.
 	 * 
-	 * @param transformationStatus the {@link MultiStatus} to which the new status
+	 * @param parentStatus the {@link MultiStatus} to which the new status
 	 *                             will be added
 	 * @param message              the format string representing the message
 	 * @param arguments            the arguments of the format string.
 	 */
-	public static void recordTransformationErrorMessage(final MultiStatus transformationStatus, final String message,
+	public static void recordError(final MultiStatus parentStatus, final String message,
 			final Object... arguments) {
-		recordTransformationMessage(transformationStatus, message, IStatus.ERROR, arguments);
+		recordMessage(parentStatus, message, IStatus.ERROR, arguments);
 	}
 
 	/**
@@ -41,14 +41,14 @@ public final class TransformationExceptions {
 	 * {@link MultiStatus} object. The message of the status object is created from
 	 * the format string and the arguments list.
 	 * 
-	 * @param transformationStatus the {@link MultiStatus} to which the new status
+	 * @param parentStatus the {@link MultiStatus} to which the new status
 	 *                             will be added
 	 * @param message              the format string representing the message
 	 * @param arguments            the arguments of the format string.
 	 */
-	public static void recordTransformationWarnMessage(final MultiStatus transformationStatus, final String message,
+	public static void recordWarning(final MultiStatus parentStatus, final String message,
 			final String arguments) {
-		recordTransformationMessage(transformationStatus, message, IStatus.WARNING, arguments);
+		recordMessage(parentStatus, message, IStatus.WARNING, arguments);
 	}
 
 	/**
@@ -56,16 +56,16 @@ public final class TransformationExceptions {
 	 * {@link MultiStatus} object. The message of the status object is created from
 	 * the format string and the arguments list.
 	 * 
-	 * @param transformationStatus the {@link MultiStatus} to which the new status
+	 * @param parentStatus the {@link MultiStatus} to which the new status
 	 *                             will be added
 	 * @param message              the format string representing the message
 	 * @param severity             the severity level
 	 * @param arguments            the arguments of the format string.
 	 */
-	private static void recordTransformationMessage(final MultiStatus transformationStatus, final String message,
+	private static void recordMessage(final MultiStatus parentStatus, final String message,
 			final int severity, final Object... arguments) {
 		final String detailedMessage = String.format(message, arguments);
-		transformationStatus.add(
+		parentStatus.add(
 				new Status(severity, WorkspaceHelper.getPluginId(TransformationExceptions.class), detailedMessage));
 	}
 

@@ -11,24 +11,56 @@ public class PatternLookup {
 
 	private final Map<DemoclesPatternType, Pattern> lookupData = new HashMap<>();
 
-	public boolean hasPatternForType(final DemoclesPatternType type) {
+	public boolean hasBindingAndBlack() {
+		return contains(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
+	}
+
+	public boolean contains(final DemoclesPatternType type) {
 		return lookupData.containsKey(type);
 	}
 
-	public Pattern getPattern(final DemoclesPatternType patternType) {
+	public Pattern get(final DemoclesPatternType patternType) {
+		if (!contains(patternType))
+			add(patternType);
 		return lookupData.get(patternType);
 	}
 
-	public Pattern registerPattern(final DemoclesPatternType patternType, final Pattern pattern) {
-		return lookupData.put(patternType, pattern);
-	}
-
 	public Pattern getBlackPattern() {
-		return getPattern(DemoclesPatternType.BLACK_PATTERN);
+		return get(DemoclesPatternType.BLACK_PATTERN);
 	}
 
 	public Pattern getBindingPattern() {
-		return getPattern(DemoclesPatternType.BINDING_PATTERN);
+		return get(DemoclesPatternType.BINDING_PATTERN);
+	}
+
+	public Pattern getBindingAndBlackPattern() {
+		return get(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
+	}
+
+	private Pattern add(final DemoclesPatternType patternType) {
+		if (contains(patternType))
+			return get(patternType);
+		else {
+			final Pattern pattern = Patterns.createEmptyPattern();
+			add(patternType, pattern);
+			return pattern;
+		}
+	}
+
+	public Pattern add(final DemoclesPatternType patternType, final Pattern pattern) {
+		return lookupData.put(patternType, pattern);
+	}
+
+	public Pattern addExpressionPattern() {
+		return add(DemoclesPatternType.EXPRESSION_PATTERN);
+	}
+
+	public Pattern addBindingAndBlackPattern() {
+		return add(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
+	}
+
+	public Pattern addBindingPattern() {
+		return add(DemoclesPatternType.BINDING_PATTERN);
 	}
 
 	@Override
@@ -36,13 +68,4 @@ public class PatternLookup {
 		return String.format("PatternLookup: %s", lookupData.toString());
 	}
 
-	Pattern createAndRegisterPattern(final DemoclesPatternType patternType) {
-		final Pattern pattern = Patterns.createEmptyPattern();
-		registerPattern(patternType, pattern);
-		return pattern;
-	}
-
-	Pattern createAndRegisterExpressionPattern() {
-		return createAndRegisterPattern(DemoclesPatternType.EXPRESSION_PATTERN);
-	}
 }

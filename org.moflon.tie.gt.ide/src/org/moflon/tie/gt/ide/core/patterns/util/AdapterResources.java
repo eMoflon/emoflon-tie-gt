@@ -1,9 +1,11 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.gervarro.democles.specification.emf.Pattern;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.tie.gt.compiler.democles.eclipse.AdapterResource;
 import org.moflon.tie.gt.compiler.democles.eclipse.DemoclesValidationUtils;
@@ -15,18 +17,24 @@ public final class AdapterResources {
 		throw new UtilityClassNotInstantiableException();
 	}
 
-	public static AdapterResource attachToRegisteredAdapter(final EObject attachedObject, final EObject container,
+	public static AdapterResource add(final EObject attachedObject, final EObject container,
 			final DemoclesPatternType patternType, final ResourceSet resourceSet) {
-		return attachToRegisteredAdapter(attachedObject, container, patternType.getSuffix(), resourceSet);
+		return add(attachedObject, container, patternType.getSuffix(), resourceSet);
+	}
+
+	public static AdapterResource addAndSave(final Pattern pattern, final EClass eClass,
+			final DemoclesPatternType patternType, final ResourceSet resourceSet) {
+		final AdapterResource adapterResource = add(pattern, eClass, patternType, resourceSet);
+		saveResource(adapterResource);
+		return adapterResource;
 	}
 
 	public static AdapterResource attachControlFlowModelToRegisteredAdapter(final Scope rootScope,
 			final EOperation eOperation, final ResourceSet resourceSet) {
-		return attachToRegisteredAdapter(rootScope, eOperation, DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION,
-				resourceSet);
+		return add(rootScope, eOperation, DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION, resourceSet);
 	}
 
-	private static AdapterResource attachToRegisteredAdapter(final EObject attachedObject, final EObject container,
+	private static AdapterResource add(final EObject attachedObject, final EObject container,
 			final String fileExtension, final ResourceSet resourceSet) {
 		final AdapterResource adapterResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(container,
 				fileExtension);

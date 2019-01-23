@@ -1,5 +1,6 @@
 package org.moflon.tie.gt.compiler.democles.searchplan;
 
+import org.eclipse.emf.ecore.EClass;
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.CodeGeneratorProvider;
 import org.gervarro.democles.codegen.GeneratorOperation;
@@ -7,7 +8,12 @@ import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.CoreConstraintType;
+import org.gervarro.democles.constraint.emf.EMFVariable;
+import org.gervarro.democles.specification.Constraint;
 import org.gervarro.democles.specification.ConstraintType;
+import org.gervarro.democles.specification.impl.Variable;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
+import org.moflon.tie.gt.compiler.democles.pattern.PatternPrintingUtil;
 
 public class AssignmentTemplateProvider implements CodeGeneratorProvider<Chain<TemplateController>> {
 
@@ -15,23 +21,40 @@ public class AssignmentTemplateProvider implements CodeGeneratorProvider<Chain<T
 	public final Chain<TemplateController> getTemplateController(final GeneratorOperation operation,
 			final Chain<TemplateController> tail) {
 		final Adornment adornment = operation.getPrecondition();
-		if (adornment.get(0) == Adornment.FREE && adornment.get(1) == Adornment.BOUND) {
+		if (Adornments.equals(adornment, "FB")) {
 			final ConstraintType type = (ConstraintType) operation.getType();
 			if (type == CoreConstraintModule.EQUAL) {
-				// TODO@rkluge: No more postcondition
-//				if (operation.getPostcondition().get(0) == Adornment.NOT_TYPECHECKED) {
-//					return new Chain<TemplateController>(
-//							new TemplateController("/assignment/AssignWithTypeCheck", operation), tail);
-//				} else 
+				final Object origin = operation.getOrigin();
+				if (origin instanceof Constraint) {
+					final Constraint constraint = (Constraint) origin;
+					final Variable lhsVariable = (Variable) constraint.getParameters().get(0);
+					final Variable rhsVariable = (Variable) constraint.getParameters().get(1);
+					final EMFVariable lhsType = (EMFVariable) lhsVariable.getType();
+					final EMFVariable rhsType = (EMFVariable) rhsVariable.getType();
+					final EClass lhsEClass = (EClass) lhsType.getLinkedElement();
+					final EClass rhsEClass = (EClass) rhsType.getLinkedElement();
+					if (!rhsEClass.equals(lhsEClass)) {
+						if (rhsEClass.isSuperTypeOf(lhsEClass)) {
+							return createChain("/assignment/AssignWithTypeCheck", operation, tail);
+						} else if (!(lhsEClass.isSuperTypeOf(rhsEClass)))
+							throw new IllegalArgumentException(String.format("Incompatible types in constraint %s",
+									PatternPrintingUtil.describe(constraint)));
+					}
+				}
+
 				if (operation.isAlwaysSuccessful()) {
-					return new Chain<TemplateController>(new TemplateController("/assignment/Assign", operation), tail);
+					return createChain("/assignment/Assign", operation, tail);
 				} else {
-					return new Chain<TemplateController>(
-							new TemplateController("/assignment/AssignWithNullCheck", operation), tail);
+					return createChain("/assignment/AssignWithNullCheck", operation, tail);
 				}
 			}
 		}
 		throw new RuntimeException("Invalid operation");
+	}
+
+	private Chain<TemplateController> createChain(final String templateName, final GeneratorOperation operation,
+			final Chain<TemplateController> tail) {
+		return new Chain<>(new TemplateController(templateName, operation), tail);
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
@@ -25,11 +26,17 @@ public final class PatternInvocationConstraints {
 		return constraint;
 	}
 
-	public static PatternInvocationConstraint createAndRegister(final Pattern pattern, final boolean isPositive,
+	public static PatternInvocationConstraint createAndAdd(final Pattern pattern, final boolean isPositive,
 			final List<? extends Variable> parameters, final PatternBody body) {
 		final PatternInvocationConstraint constraint = create(pattern, isPositive, parameters);
 		Patterns.addConstraint(constraint, body);
 		return constraint;
+	}
+
+	public static Stream<PatternInvocationConstraint> streamPatternInvocationConstraints(final Pattern pattern) {
+		return Patterns.getConstraints(pattern).stream()
+				.filter(constraint -> constraint instanceof PatternInvocationConstraint)
+				.map(constraint -> (PatternInvocationConstraint) constraint);
 	}
 
 }

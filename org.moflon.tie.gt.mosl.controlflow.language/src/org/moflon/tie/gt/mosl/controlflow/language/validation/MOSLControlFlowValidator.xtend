@@ -165,7 +165,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 
     for (candidate : eClassCandidates) {
       val eClassCand = candidate as EClass
-      val opsWithSameName = eClassCand.EOperations.filter [ method |
+      val opsWithSameName = eClassCand.EAllOperations.filter [ method |
         !(method === methodImpl) && method.name.equals(methodName)
       ]
 

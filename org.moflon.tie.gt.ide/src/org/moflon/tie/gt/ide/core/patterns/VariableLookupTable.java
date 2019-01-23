@@ -18,7 +18,6 @@ import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 
 class VariableLookupTable {
-	private final EMFTypeFactory emfHelper = EMFTypeFactory.eINSTANCE;
 	private final Map<DemoclesPatternType, Map<Object, EMFVariable>> data = new HashMap<>();
 	private final PatternLookup patternLookup;
 	private final TypeLookup typeLookup;
@@ -45,7 +44,7 @@ class VariableLookupTable {
 			final EMFVariable variable = getOrCreateEMFVariable(object, patternType);
 
 			variable.setEClassifier(typeLookup.getEClassifier(type));
-			final Pattern pattern = patternLookup.getPattern(patternType);
+			final Pattern pattern = patternLookup.get(patternType);
 			Patterns.addSymbolicParameter(variable, pattern);
 			return variable;
 		} else {
@@ -73,12 +72,12 @@ class VariableLookupTable {
 	public EMFVariable getLocalVariable(final Object child, final Object parent, final EClassifier type,
 			final DemoclesPatternType patternType) {
 		if (!containsKey(child, parent, patternType)) {
-			final EMFVariable newAttribute = getOrCreateVariable(child, parent, patternType);
+			final EMFVariable variable = getOrCreateVariable(child, parent, patternType);
 
-			newAttribute.setEClassifier(typeLookup.getEClassifier(type));
-			final Pattern pattern = patternLookup.getPattern(patternType);
-			Patterns.addLocalVariable(newAttribute, pattern);
-			return newAttribute;
+			variable.setEClassifier(typeLookup.getEClassifier(type));
+			final Pattern pattern = patternLookup.get(patternType);
+			Patterns.addLocalVariable(variable, pattern);
+			return variable;
 		} else {
 			return get(child, parent, patternType);
 		}
@@ -122,7 +121,7 @@ class VariableLookupTable {
 		if (variableLookupForPatternType.containsKey(keyForLookup))
 			return variableLookupForPatternType.get(keyForLookup);
 		else {
-			final EMFVariable newVariable = emfHelper.createEMFVariable();
+			final EMFVariable newVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
 			newVariable.setName(keyForLookup);
 			variableLookupForPatternType.put(keyForLookup, newVariable);
 			return newVariable;

@@ -63,7 +63,6 @@ public final class PatternPrintingUtil {
 				sb.append(constant.getValue());
 			} else
 				sb.append(parameter);
-			appendf(sb, "[%x],", reference.hashCode());
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
 		appendf(sb, "%s        [class: %s]", NL, constraint.getClass().getName());

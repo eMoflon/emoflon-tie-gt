@@ -20,6 +20,10 @@ public abstract class PatternMatcher {
 
 	public abstract IStatus generateSearchPlan(Pattern pattern, Adornment adornment, boolean isMultipleMatch);
 
+	public IStatus generateSearchPlan(final Pattern pattern, final Adornment adornment) {
+		return generateSearchPlan(pattern, adornment, false);
+	}
+
 	/**
 	 * Creates a 'no search plan found' error for the given {@link Pattern} and
 	 * attaches it to the {@link ValidationReport}.

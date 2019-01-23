@@ -84,8 +84,8 @@ public final class Patterns {
 
 	public static void moveSymbolicParameterToLocalVariable(final Variable symbolicParameter,
 			final Pattern newPattern) {
-		newPattern.getSymbolicParameters().remove(symbolicParameter);
-		newPattern.getBodies().get(0).getLocalVariables().add(symbolicParameter);
+		removeSymbolicParameter(symbolicParameter, newPattern);
+		addLocalVariable(symbolicParameter, newPattern);
 	}
 
 	public static Variable getSymbolicParameterByName(final Pattern pattern, final String variableName) {
@@ -115,8 +115,8 @@ public final class Patterns {
 		return pattern.getSymbolicParameters().remove(variable);
 	}
 
-	public static boolean addLocalVariable(final Variable newAttribute, final Pattern pattern) {
-		return getBody(pattern).getLocalVariables().add(newAttribute);
+	public static boolean addLocalVariable(final Variable localVariable, final Pattern pattern) {
+		return getBody(pattern).getLocalVariables().add(localVariable);
 	}
 
 	private static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorOperator operator,
@@ -129,10 +129,14 @@ public final class Patterns {
 		case CREATE:
 			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
 		default:
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
-					"Unsupported operator: " + operator);
+			TransformationExceptions.recordError(transformationStatus, "Unsupported operator: %s",
+					operator);
 			return null;
 		}
+	}
+
+	public static List<Constraint> getConstraints(final Pattern pattern) {
+		return getBody(pattern).getConstraints();
 	}
 
 }

@@ -13,6 +13,7 @@ import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.CoreConstraintType;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.impl.Variable;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 import org.moflon.tie.gt.compiler.democles.searchplan.AssignmentOperationBuilder;
 
 public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvider<Chain<TemplateController>> {
@@ -21,7 +22,7 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 	public final Chain<TemplateController> getTemplateController(final GeneratorOperation operation,
 			final Chain<TemplateController> tail) {
 		final Adornment adornment = operation.getPrecondition();
-		if (adornment.get(0) == Adornment.FREE && adornment.get(1) == Adornment.BOUND) {
+		if (Adornments.equals(adornment, "FB")) {
 			final ConstraintType type = (ConstraintType) operation.getType();
 			if (type == CoreConstraintModule.EQUAL) {
 				if (operation.isAlwaysSuccessful()) {

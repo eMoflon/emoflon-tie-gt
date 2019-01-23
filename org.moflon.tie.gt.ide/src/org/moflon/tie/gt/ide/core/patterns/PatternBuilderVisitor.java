@@ -1,5 +1,8 @@
 package org.moflon.tie.gt.ide.core.patterns;
 
+import static org.emoflon.ibex.gt.editor.utils.GtPrettyPrinter.describe;
+import static org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptions.recordError;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +23,7 @@ import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorApplicationConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
@@ -30,6 +33,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorCondition;
 import org.emoflon.ibex.gt.editor.gT.EditorConditionReference;
 import org.emoflon.ibex.gt.editor.gT.EditorEnumExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorExpression;
+import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
 import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
@@ -44,8 +48,8 @@ import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
 import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariableReference;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
+import org.emoflon.ibex.gt.editor.gT.GTFactory;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
-import org.emoflon.ibex.gt.editor.utils.GtPrettyPrinter;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
@@ -83,13 +87,14 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpres
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter;
 
 public class PatternBuilderVisitor {
-	private PatternLookup patterns;
-	private VariableLookupTable variables;
+	private final PatternLookup patterns;
+	private final VariableLookupTable variables;
 	private final TypeLookup types;
 	private final MultiStatus transformationStatus;
+	private final List<EPackage> ePackages;
 
-	public PatternBuilderVisitor(final List<EPackage> ePackages, final ResourceSet resourceSet,
-			final MultiStatus transformationStatus) {
+	public PatternBuilderVisitor(final List<EPackage> ePackages, final MultiStatus transformationStatus) {
+		this.ePackages = ePackages;
 		this.transformationStatus = transformationStatus;
 
 		patterns = new PatternLookup();
@@ -135,7 +140,7 @@ public class PatternBuilderVisitor {
 		default: {
 			final EditorCondition condition = pattern.getConditions().get(0);
 			visit(condition, pattern);
-			TransformationExceptions.recordTransformationWarnMessage(transformationStatus,
+			TransformationExceptions.recordWarning(transformationStatus,
 					"Ignoring all but the first condition of pattern %s", pattern.getName());
 			break;
 		}
@@ -149,7 +154,7 @@ public class PatternBuilderVisitor {
 	}
 
 	Pattern createExpressionPatternForObjectVariables(final CFVariable returnVariable) {
-		final Pattern pattern = patterns.createAndRegisterExpressionPattern();
+		final Pattern pattern = patterns.addExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final EMFVariable target = getReturnVariable(returnVariable, pattern);
@@ -157,7 +162,7 @@ public class PatternBuilderVisitor {
 		final EMFVariable source = variables.getSymbolicParameter(returnVariable,
 				DemoclesPatternType.EXPRESSION_PATTERN);
 
-		RelationalConstraints.createAndRegisterEqual(source, target, body);
+		RelationalConstraints.addEqual(source, target, body);
 
 		return pattern;
 	}
@@ -165,20 +170,19 @@ public class PatternBuilderVisitor {
 	Pattern createExpressionPatternForObjectVariableAttribute(final CFVariable returnVariable,
 			final EAttribute attribute) {
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
-		final Pattern pattern = patterns.createAndRegisterExpressionPattern();
+		final Pattern pattern = patterns.addExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final EClassifier returnVariableType = returnVariable.getType();
 		if (!(returnVariableType instanceof EClass)) {
-			TransformationExceptions.recordTransformationErrorMessage(getStatus(),
-					"Type of %s should be an EClass, but was %s", returnVariable, returnVariableType.getName());
+			recordError(getStatus(), "Type of %s should be an EClass, but was %s", returnVariable,
+					returnVariableType.getName());
 			return null;
 		}
 
 		final EClass returnValueClass = (EClass) returnVariableType;
 		if (!returnValueClass.getEAllAttributes().contains(attribute)) {
-			TransformationExceptions.recordTransformationErrorMessage(getStatus(), "%s has no EAttribute %s",
-					returnValueClass.getName(), attribute.getName());
+			recordError(getStatus(), "%s has no EAttribute %s", returnValueClass.getName(), attribute.getName());
 			return null;
 		}
 
@@ -191,13 +195,13 @@ public class PatternBuilderVisitor {
 
 		Attributes.createAndRegister(attribute, emfObjectVariable, attributeVariable, body);
 
-		RelationalConstraints.createAndRegisterEqual(attributeVariable, emfReturnVariable, body);
+		RelationalConstraints.addEqual(attributeVariable, emfReturnVariable, body);
 
 		return pattern;
 	}
 
 	Pattern createExpressionPatternForLiteralValues(final CFVariable returnVariable, final String value) {
-		final Pattern pattern = patterns.createAndRegisterExpressionPattern();
+		final Pattern pattern = patterns.addExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final Constant source = SpecificationFactory.eINSTANCE.createConstant();
@@ -206,14 +210,14 @@ public class PatternBuilderVisitor {
 
 		final EMFVariable resultEmfVariable = getReturnVariable(returnVariable, pattern);
 
-		RelationalConstraints.createAndRegisterEqual(source, resultEmfVariable, body);
+		RelationalConstraints.addEqual(source, resultEmfVariable, body);
 
 		return body.getHeader();
 	}
 
 	Pattern createExpressionPatternForEnumValues(final CFVariable returnVariable, final EEnumLiteral enumLiteral) {
 
-		final Pattern pattern = patterns.createAndRegisterExpressionPattern();
+		final Pattern pattern = patterns.addExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final EMFVariable resultEmfVariable = getReturnVariable(returnVariable, pattern);
@@ -222,7 +226,7 @@ public class PatternBuilderVisitor {
 		Constants.setConstantValueWithAdjustedType(source, enumLiteral);
 		Patterns.addConstant(body, source);
 
-		final Equal equal = RelationalConstraints.createAndRegisterEqual(source, resultEmfVariable, body);
+		final Equal equal = RelationalConstraints.addEqual(source, resultEmfVariable, body);
 		Patterns.addConstraint(equal, body);
 
 		return pattern;
@@ -233,7 +237,7 @@ public class PatternBuilderVisitor {
 			final EList<OperationCallStatementParameter> operationParameters) {
 
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
-		final Pattern pattern = patterns.createAndRegisterExpressionPattern();
+		final Pattern pattern = patterns.addExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final Operation operationConstraint = PatternInvocationActions.createOperationConstraint(eOperation);
@@ -276,7 +280,7 @@ public class PatternBuilderVisitor {
 
 			final EMFVariable resultEmfVariable = getReturnVariable(resultCFVariable, pattern);
 
-			RelationalConstraints.createAndRegisterEqual(operationResultVariable, resultEmfVariable, body);
+			RelationalConstraints.addEqual(operationResultVariable, resultEmfVariable, body);
 		}
 
 		return pattern;
@@ -284,24 +288,26 @@ public class PatternBuilderVisitor {
 
 	private void visit(final EditorNode node, final EditorPattern editorPattern) {
 		final List<DemoclesPatternType> patternTypes = Patterns.mapOperatorToPatternTypes(node, getStatus());
-		if (patternTypes == null) {
+
+		if (hasErrors())
 			return;
-		}
 
-		for (final DemoclesPatternType type : patternTypes) {
-			if (!patterns.hasPatternForType(type)) {
-				createPattern(editorPattern, type);
-			}
-
+		patternTypes.forEach(type -> {
+			initializeVariablesForParameters(editorPattern, type);
 			variables.getSymbolicParameter(node, type);
-		}
+		});
+
 		node.getAttributes().forEach(attribute -> visit(attribute, node, editorPattern));
 		node.getReferences().forEach(reference -> visit(reference, node, editorPattern));
 
-		if (node.getBinding() != null) {
-			createBindingPattern(node);
+		if (hasBinding(node)) {
+			createBindingConstraint(node);
 			createBindingAndBlackPattern(node);
 		}
+	}
+
+	private boolean hasBinding(final EditorNode node) {
+		return node.getBinding() != null;
 	}
 
 	private void visit(final EditorPatternAttributeCondition cac, final EditorPattern pattern) {
@@ -342,15 +348,13 @@ public class PatternBuilderVisitor {
 
 						Patterns.addConstraint(attributeVariableConstraint, body);
 					} else {
-						TransformationExceptions.recordTransformationErrorMessage(getStatus(),
+						recordError(getStatus(),
 								"No constraint specification with symbol %s matches the type signature %s of predicate %s",
-								predicateSymbol, formatTypeList(predicateArgumentTypes),
-								GtPrettyPrinter.describe(predicate));
+								predicateSymbol, formatTypeList(predicateArgumentTypes), describe(predicate));
 					}
 
 				} else {
-					TransformationExceptions.recordTransformationErrorMessage(getStatus(),
-							"Predicate symbol of %s not in constraints library.", GtPrettyPrinter.describe(predicate));
+					recordError(getStatus(), "Predicate symbol of %s not in constraints library.", describe(predicate));
 				}
 			}
 
@@ -369,25 +373,19 @@ public class PatternBuilderVisitor {
 		final ConstraintVariable variable;
 		if (predicateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression) {
 			final EditorPatternAttributeConstraintAttributeValueExpression attributeValueExpression = (EditorPatternAttributeConstraintAttributeValueExpression) predicateArgument;
-			final EAttribute eAttribute = attributeValueExpression.getAttribute();
-			final EditorNode editorNode = attributeValueExpression.getEditorNode();
-			variable = variables.getLocalVariable(eAttribute, editorNode, DemoclesPatternType.BLACK_PATTERN);
-
-			final EMFVariable emfObjectVariable = variables.getSymbolicParameter(editorNode,
-					DemoclesPatternType.BLACK_PATTERN);
-
-			AttributeValueConstraints.createAndRegister(eAttribute, emfObjectVariable, variable, body);
+			variable = createVariable(attributeValueExpression, body);
 		} else if (predicateArgument instanceof EditorLiteralExpression) {
 			final EditorLiteralExpression literalExpression = (EditorLiteralExpression) predicateArgument;
-			final EDataType eDataType = GTEditorAttributeUtils.guessEDataType(literalExpression).orElse(null);
-			variable = Constants.createAndRegisterTypedConstant(literalExpression, eDataType, body);
+			variable = createVariable(literalExpression, body);
 		} else if (predicateArgument instanceof EditorEnumExpression) {
 			final EditorEnumExpression enumExpression = (EditorEnumExpression) predicateArgument;
 			variable = Constants.createAndRegister(enumExpression, body);
 		} else if (predicateArgument instanceof EditorPatternAttributeConstraintVariableReference) {
 			final EditorPatternAttributeConstraintVariableReference variableReference = (EditorPatternAttributeConstraintVariableReference) predicateArgument;
-			final EditorPatternAttributeConstraintVariable editorVariable = variableReference.getName();
-			variable = variables.getLocalVariable(editorVariable, DemoclesPatternType.BLACK_PATTERN);
+			variable = createVariable(variableReference);
+		} else if (predicateArgument instanceof EditorParameterExpression) {
+			final EditorParameterExpression parameterExpression = (EditorParameterExpression) predicateArgument;
+			variable = createVariable(parameterExpression, DemoclesPatternType.BLACK_PATTERN);
 		} else {
 			// Never happens due to preceding checks
 			variable = null;
@@ -395,8 +393,39 @@ public class PatternBuilderVisitor {
 		return variable;
 	}
 
+	private ConstraintVariable createVariable(
+			final EditorPatternAttributeConstraintVariableReference variableReference) {
+		final ConstraintVariable variable;
+		final EditorPatternAttributeConstraintVariable editorVariable = variableReference.getName();
+		variable = variables.getLocalVariable(editorVariable, DemoclesPatternType.BLACK_PATTERN);
+		return variable;
+	}
+
+	private ConstraintVariable createVariable(final EditorLiteralExpression expression, final PatternBody body) {
+		final ConstraintVariable variable;
+		final EDataType eDataType = GTEditorAttributeUtils.guessEDataType(expression).orElse(null);
+		variable = Constants.createAndRegisterTypedConstant(expression, eDataType, body);
+		return variable;
+	}
+
+	private ConstraintVariable createVariable(final EditorPatternAttributeConstraintAttributeValueExpression expression,
+			final PatternBody body) {
+		final ConstraintVariable variable;
+		final EAttribute eAttribute = expression.getAttribute();
+		final EditorNode editorNode = expression.getEditorNode();
+		variable = variables.getLocalVariable(eAttribute, editorNode, DemoclesPatternType.BLACK_PATTERN);
+
+		final EMFVariable emfObjectVariable = variables.getSymbolicParameter(editorNode,
+				DemoclesPatternType.BLACK_PATTERN);
+
+		AttributeValueConstraints.createAndRegister(eAttribute, emfObjectVariable, variable, body);
+		return variable;
+	}
+
 	private String formatTypeList(final List<EClassifier> predicateArgumentTypes) {
-		return predicateArgumentTypes.stream().map(TieGtEcoreUtil::formatEClassifier).collect(Collectors.joining(","));
+		final String typeNames = predicateArgumentTypes.stream().map(TieGtEcoreUtil::formatEClassifier)
+				.collect(Collectors.joining(","));
+		return String.format("(%s)", typeNames);
 	}
 
 	/**
@@ -438,10 +467,12 @@ public class PatternBuilderVisitor {
 			} else if (prediateArgument instanceof EditorPatternAttributeConstraintVariableReference) {
 				final EditorPatternAttributeConstraintVariableReference variableReference = (EditorPatternAttributeConstraintVariableReference) prediateArgument;
 				predicateArgumentType = variableReference.getName().getType();
+			} else if (prediateArgument instanceof EditorParameterExpression) {
+				final EditorParameterExpression expression = (EditorParameterExpression) prediateArgument;
+				predicateArgumentType = expression.getParameter().getType();
 			} else {
-				TransformationExceptions.recordTransformationErrorMessage(getStatus(),
-						"Unsupported type of argument %s of predicate %s", GtPrettyPrinter.describe(prediateArgument),
-						GtPrettyPrinter.describe(prediateArgument));
+				recordError(getStatus(), "Unsupported type of argument %s of predicate %s: %s",
+						describe(prediateArgument), describe(predicate), prediateArgument);
 				break;
 			}
 
@@ -478,7 +509,7 @@ public class PatternBuilderVisitor {
 				final EditorApplicationCondition simpleCond = (EditorApplicationCondition) partialCondition;
 				final EditorPattern applicationCondition = simpleCond.getPattern();
 				final EditorApplicationConditionType type = simpleCond.getType();
-				final Pattern invokedPattern = buildApplicationConditionPattern(applicationCondition);
+				final Pattern invokedPattern = buildInvokedPattern(pattern, applicationCondition);
 				createPatternInvocation(type, invokedPattern);
 			}
 		}
@@ -487,26 +518,14 @@ public class PatternBuilderVisitor {
 	private void visit(final EditorAttribute editorAttribute, final EditorNode source, final EditorPattern pattern) {
 		final DemoclesPatternType type = Patterns.getPatternTypeForOperator(editorAttribute);
 
-		if (!patterns.hasPatternForType(type)) {
-			createPattern(pattern, type);
-		}
-		final PatternBody body = Patterns.getBody(patterns.getPattern(type));
+		initializeVariablesForParameters(pattern, type);
+		final PatternBody body = Patterns.getBody(patterns.get(type));
 
 		final EditorExpression expr = editorAttribute.getValue();
-		final ConstraintVariable rhsVariable;
-		if (expr instanceof EditorAttributeExpression) {
-			rhsVariable = createVariable((EditorAttributeExpression) expr, type, body);
-		} else if (expr instanceof EditorLiteralExpression) {
-			rhsVariable = createAndRegisterConstant((EditorLiteralExpression) expr, editorAttribute, source, body);
-		} else if (expr instanceof EditorEnumExpression) {
-			rhsVariable = Constants.createAndRegister((EditorEnumExpression) expr, body);
-		} else if (expr instanceof EditorParameterExpression) {
-			rhsVariable = createVariable((EditorParameterExpression) expr, type);
-		} else {
-			TransformationExceptions.recordTransformationErrorMessage(getStatus(), "Cannot handle %s", expr);
+		final ConstraintParameter rhs = getConstraintParameter(editorAttribute, source, type, body, expr);
+
+		if (hasErrors())
 			return;
-		}
-		final ConstraintParameter rhs = ConstraintParameters.create(rhsVariable);
 
 		final EAttribute editorAttributeEAttribute = editorAttribute.getAttribute();
 
@@ -529,6 +548,25 @@ public class PatternBuilderVisitor {
 		body.getConstraints().add(relationalConstraint);
 	}
 
+	private ConstraintParameter getConstraintParameter(final EditorAttribute editorAttribute, final EditorNode source,
+			final DemoclesPatternType type, final PatternBody body, final EditorExpression expr) {
+		final ConstraintVariable rhsVariable;
+		if (expr instanceof EditorAttributeExpression) {
+			rhsVariable = createVariable((EditorAttributeExpression) expr, type, body);
+		} else if (expr instanceof EditorLiteralExpression) {
+			rhsVariable = createAndRegisterConstant((EditorLiteralExpression) expr, editorAttribute, source, body);
+		} else if (expr instanceof EditorEnumExpression) {
+			rhsVariable = Constants.createAndRegister((EditorEnumExpression) expr, body);
+		} else if (expr instanceof EditorParameterExpression) {
+			rhsVariable = createVariable((EditorParameterExpression) expr, type);
+		} else {
+			recordError(getStatus(), "Cannot handle %s", expr);
+			rhsVariable = null;
+		}
+		final ConstraintParameter rhs = ConstraintParameters.create(rhsVariable);
+		return rhs;
+	}
+
 	private void visit(final EditorReference editorReference, final EditorNode source,
 			final EditorPattern editorPattern) {
 		final List<DemoclesPatternType> patternTypes = Patterns.mapOperatorToPatternTypes(editorReference, getStatus());
@@ -536,10 +574,9 @@ public class PatternBuilderVisitor {
 			return;
 
 		for (final DemoclesPatternType type : patternTypes) {
-			if (!patterns.hasPatternForType(type)) {
-				createPattern(editorPattern, type);
-			}
-			final PatternBody patternBody = patterns.getPattern(type).getBodies().get(0);
+
+			initializeVariablesForParameters(editorPattern, type);
+			final PatternBody patternBody = patterns.get(type).getBodies().get(0);
 
 			final EMFVariable fromVariable = variables.getSymbolicParameter(source, type);
 
@@ -558,98 +595,164 @@ public class PatternBuilderVisitor {
 		}
 	}
 
-	private Pattern buildApplicationConditionPattern(final EditorPattern applicationCondition) {
+	private Pattern buildInvokedPattern(final EditorPattern invoker, final EditorPattern invokee) {
 
-		// Store the current state to restore it after constraint has been processed
-		final PatternLookup patternCache = patterns;
-		patterns = new PatternLookup();
+		final PatternBuilderVisitor invokeeVisitor = new PatternBuilderVisitor(ePackages, transformationStatus);
 
-		final VariableLookupTable variableCache = variables;
-		variables = new VariableLookupTable(patterns, types);
+		final EditorPattern copiedInvokee = createPatternWithCastingSourceNodes(invoker, invokee);
 
-		visit(applicationCondition);
+		final PatternLookup nacLookup = invokeeVisitor.visit(copiedInvokee);
 
 		if (hasErrors())
 			return null;
 
-		final Pattern newInvokedPattern = patterns.getBlackPattern();
-
-		// Restore lookup tables
-		patterns = patternCache;
-		variables = variableCache;
-		return newInvokedPattern;
+		final Pattern invokeeDemoclesPattern;
+		if (nacLookup.hasBindingAndBlack()) {
+			invokeeDemoclesPattern = nacLookup.getBindingAndBlackPattern();
+			invokeeDemoclesPattern.setName(DemoclesPatternType.BINDING_AND_BLACK_PATTERN.getSuffix());
+		} else {
+			invokeeDemoclesPattern = nacLookup.getBlackPattern();
+			invokeeDemoclesPattern.setName(DemoclesPatternType.BLACK_PATTERN.getSuffix());
+		}
+		return invokeeDemoclesPattern;
 	}
 
-	private void createPatternInvocation(final EditorApplicationConditionType type, final Pattern newInvokedPattern) {
+	/**
+	 * For each nodes that is present in both the invoker pattern and the invoked
+	 * pattern, an additional
+	 * 
+	 * @param invokerPattern
+	 * @param invokedPattern
+	 * @return
+	 */
+	private EditorPattern createPatternWithCastingSourceNodes(final EditorPattern invokerPattern,
+			final EditorPattern invokedPattern) {
+		final EditorPattern copiedInvokedPattern = EcoreUtil.copy(invokedPattern);
+		final EditorGTFile gtFile = (EditorGTFile) invokedPattern.eContainer();
+		gtFile.getPatterns().add(copiedInvokedPattern);
+
+		final List<EditorNode> commonInvokedNodes = collectCommonNodes(invokerPattern, copiedInvokedPattern);
+
+		for (final EditorNode invokedNode : commonInvokedNodes) {
+			final EditorNode invokerNode = findNodeWithName(invokerPattern, invokedNode.getName()).get();
+			if (!invokedNode.getType().equals(invokerNode.getType())) {
+				if (hasBinding(invokedNode)) {
+					recordError(transformationStatus,
+							"Node %s in invoked pattern %s has a binding and cannot be used in a condition with type cast due to editor nodes with same names but different types (invoker pattern: %s).",
+							describe(invokedNode), describe(invokerPattern), describe(invokerPattern));
+				} else if (haveSuperTypeSubtypeRelation(invokedNode, invokerNode)) {
+					addCastingSourceNode(copiedInvokedPattern, invokedNode, invokerNode);
+				} else if (!haveSuperTypeSubtypeRelation(invokerNode, invokedNode)) {
+					recordError(transformationStatus,
+							"Node %s in invoking pattern %s is neither a super nor sub-type of node %s in invoked pattern %s",
+							describe(invokerNode), describe(invokerPattern), describe(invokedNode),
+							describe(invokerPattern));
+				}
+			}
+		}
+		return copiedInvokedPattern;
+	}
+
+	/**
+	 * Collects all {@link EditorNode} objects in the invoked {@link EditorPattern}
+	 * for which an {@link EditorNode} with the same name exists in the invoker
+	 * pattern
+	 * 
+	 * @param invokerPattern the invoked pattern
+	 * @param invokedPattern the invoker pattern
+	 * @return
+	 */
+	private static List<EditorNode> collectCommonNodes(final EditorPattern invokerPattern,
+			final EditorPattern invokedPattern) {
+		final List<EditorNode> invokedNodes = invokedPattern.getNodes().stream()
+				.filter(invokedNode -> findNodeWithName(invokerPattern, invokedNode.getName()).isPresent())
+				.collect(Collectors.toList());
+		return invokedNodes;
+	}
+
+	/**
+	 * We add an {@link EditorNode} to the invoked pattern that has the same type as
+	 * the invoker {@link EditorNode} and bind.
+	 * 
+	 * @param invokedPattern
+	 * @param invokedNode
+	 * @param invokerNode
+	 */
+	private void addCastingSourceNode(final EditorPattern invokedPattern, final EditorNode invokedNode,
+			final EditorNode invokerNode) {
+		final EditorNode castingSourceNode = GTFactory.eINSTANCE.createEditorNode();
+		castingSourceNode.setName(deriveCastingSourceNodeName(invokedNode));
+		castingSourceNode.setType(invokerNode.getType());
+		invokedPattern.getNodes().add(castingSourceNode);
+
+		final EditorBindingExpression binding = GTFactory.eINSTANCE.createEditorBindingExpression();
+		binding.setNode(castingSourceNode);
+		invokedNode.setBinding(binding);
+	}
+
+	private static Optional<EditorNode> findNodeWithName(final EditorPattern pattern, final String name) {
+		final Optional<EditorNode> invokerNodeNameMatch = pattern.getNodes().stream().filter(invokingNode -> {
+			return invokingNode.getName().equals(name);
+		}).findAny();
+		return invokerNodeNameMatch;
+	}
+
+	private boolean haveSuperTypeSubtypeRelation(final EditorNode subTypeNode, final EditorNode superTypeNode) {
+		return superTypeNode.getType().isSuperTypeOf(subTypeNode.getType());
+	}
+
+	private String deriveCastingSourceNodeName(final EditorNode invokedNode) {
+		return String.format("%s%s", CodeConventions.CASTING_SOURCE_PREFIX, invokedNode.getName());
+	}
+
+	private void createPatternInvocation(final EditorApplicationConditionType type, final Pattern invokedPattern) {
 		final PatternInvocationConstraint invocationConstraint = SpecificationFactory.eINSTANCE
 				.createPatternInvocationConstraint();
 		final Pattern pattern = patterns.getBlackPattern();
-		final EList<Variable> symbolicParamsInvoker = pattern.getSymbolicParameters();
-		final boolean isPositive = type == EditorApplicationConditionType.POSITIVE ? true : false;
+		final List<Variable> invokerParameters = pattern.getSymbolicParameters();
+		final boolean isPositive = isPositive(type);
 		invocationConstraint.setPositive(isPositive);
-		invocationConstraint.setInvokedPattern(newInvokedPattern);
-		createConstraintParameters(newInvokedPattern, invocationConstraint, symbolicParamsInvoker);
+		invocationConstraint.setInvokedPattern(invokedPattern);
+		createConstraintParameters(invokedPattern, invocationConstraint, invokerParameters);
 		Patterns.addConstraint(invocationConstraint, Patterns.getBody(pattern));
 	}
 
-	private void createConstraintParameters(final Pattern invokedPattern,
-			final PatternInvocationConstraint invocationConstraintNegative,
-			final EList<Variable> symbolicParamsInvoker) {
-		final List<Variable> symbolicParametersToMove = new ArrayList<Variable>();
-		invokedPattern.getSymbolicParameters().forEach(symbolicParam -> {
-			final Optional<Variable> match = symbolicParamsInvoker.stream().filter(candidate -> {
-				return candidate.getName().equals(symbolicParam.getName());
-			}).findAny();
-			ConstraintParameter constraintParameter = null;
-			if (match.isPresent()) {
-				if (symbolicParam instanceof EMFVariable) {
-					final EMFVariable symParamEMF = (EMFVariable) symbolicParam;
-					if (match.get() instanceof EMFVariable) {
-						final EMFVariable varOnInvokerSide = (EMFVariable) match.get();
-						if (varOnInvokerSide.getEClassifier() instanceof EClass
-								&& symParamEMF.getEClassifier() instanceof EClass) {
-							final EClass invokerSideEClass = (EClass) varOnInvokerSide.getEClassifier();
-							final EClass invokeSideEClass = (EClass) symParamEMF.getEClassifier();
-							if (invokeSideEClass.getEAllSuperTypes().contains(invokerSideEClass)) {
-								final PatternBody patternBody = Patterns.getBody(invokedPattern);
+	private static boolean isPositive(final EditorApplicationConditionType conditionType) {
+		return conditionType == EditorApplicationConditionType.POSITIVE ? true : false;
+	}
 
-								// Create temporary EMFVariable for casting
-								final String variableName = "casted" + symParamEMF.getName();
-								final EMFVariable superTypeVariable = variables.getSymbolicParameter(variableName,
-										invokerSideEClass, DemoclesPatternType.BLACK_PATTERN);
+	private void createConstraintParameters(final Pattern invokee,
+			final PatternInvocationConstraint invocationConstraint, final List<Variable> invokerParameters) {
+		final List<Variable> symbolicParametersToMove = new ArrayList<>();
+		invokee.getSymbolicParameters().forEach(invokeeParameters -> {
+			final String variableName = invokeeParameters.getName();
+			final String variableNameWithoutCastinPrefix = variableName.replace(CodeConventions.CASTING_SOURCE_PREFIX,
+					"");
+			final Optional<Variable> candidateVariable = findVariableByName(invokerParameters,
+					variableNameWithoutCastinPrefix);
+			if (candidateVariable.isPresent()) {
 
-								Patterns.removeSymbolicParameter(symParamEMF, invokedPattern);
-								patternBody.getLocalVariables().add(symParamEMF);
+				final ConstraintParameter constraintParameter = ConstraintParameters.create(candidateVariable.get());
+				invocationConstraint.getParameters().add(constraintParameter);
 
-								RelationalConstraints.createAndRegisterEqual(superTypeVariable, symbolicParam,
-										patternBody);
-								constraintParameter = ConstraintParameters.create(superTypeVariable);
-							}
-						}
-					}
-				}
-				if (constraintParameter == null) {
-					constraintParameter = ConstraintParameters.create(match.get());
-				}
-				invocationConstraintNegative.getParameters().add(constraintParameter);
 			} else {
-				symbolicParametersToMove.add(symbolicParam);
+				symbolicParametersToMove.add(invokeeParameters);
 			}
 
 		});
 		symbolicParametersToMove
-				.forEach(symbolicParam -> Patterns.moveSymbolicParameterToLocalVariable(symbolicParam, invokedPattern));
+				.forEach(symbolicParam -> Patterns.moveSymbolicParameterToLocalVariable(symbolicParam, invokee));
 	}
 
-	private void createPattern(final EditorPattern pattern, final DemoclesPatternType patternType) {
-		final Pattern democlesPattern = SpecificationFactory.eINSTANCE.createPattern();
-		patterns.registerPattern(patternType, democlesPattern);
-		final PatternBody body = SpecificationFactory.eINSTANCE.createPatternBody();
-		body.setHeader(democlesPattern);
-		pattern.getParameters().forEach(param -> createEMFVariableFromEditorParameter(param, patternType));
+	private static Optional<Variable> findVariableByName(final List<Variable> variables, final String keyVariableName) {
+		return variables.stream().filter(variable -> variable.getName().equals(keyVariableName)).findAny();
 	}
 
-	private void createEMFVariableFromEditorParameter(final EditorParameter param, final DemoclesPatternType type) {
+	private void initializeVariablesForParameters(final EditorPattern pattern, final DemoclesPatternType patternType) {
+		pattern.getParameters().forEach(param -> createVariable(param, patternType));
+	}
+
+	private void createVariable(final EditorParameter param, final DemoclesPatternType type) {
 		switch (type) {
 		case RED_PATTERN:
 			return;
@@ -663,10 +766,10 @@ public class PatternBuilderVisitor {
 		final EditorBindingExpression bindingExpression = node.getBinding();
 		final EditorNode source = bindingExpression.getNode();
 
-		final DemoclesPatternType patternType = DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
-		final Pattern bindingAndBlack = patterns.createAndRegisterPattern(patternType);
+		final Pattern bindingAndBlack = patterns.getBindingAndBlackPattern();
 		final PatternBody body = Patterns.getBody(bindingAndBlack);
 
+		final DemoclesPatternType patternType = DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
 		final EMFVariable emfVarSource = variables.getSymbolicParameter(source, patternType);
 
 		final Pattern blackPattern = patterns.getBlackPattern();
@@ -678,27 +781,25 @@ public class PatternBuilderVisitor {
 
 		final Pattern bindingPattern = patterns.getBindingPattern();
 		final List<Variable> bindingParameters = Arrays.asList(emfVarTarget, emfVarSource);
-		PatternInvocationConstraints.createAndRegister(bindingPattern, true, bindingParameters, body);
+		PatternInvocationConstraints.createAndAdd(bindingPattern, true, bindingParameters, body);
 
 		final List<Variable> blackParameters = Arrays.asList(emfVarTarget);
-		PatternInvocationConstraints.createAndRegister(blackPattern, true, blackParameters, body);
+		PatternInvocationConstraints.createAndAdd(blackPattern, true, blackParameters, body);
 	}
 
-	private void createBindingPattern(final EditorNode node) {
+	private void createBindingConstraint(final EditorNode node) {
 
-		final DemoclesPatternType patternType = DemoclesPatternType.BINDING_PATTERN;
-		final Pattern bindingPattern = patterns.createAndRegisterPattern(patternType);
+		final Pattern bindingPattern = patterns.getBindingPattern();
 		final PatternBody body = Patterns.getBody(bindingPattern);
 
+		final DemoclesPatternType patternType = DemoclesPatternType.BINDING_PATTERN;
 		final EMFVariable emfVarTarget = variables.getSymbolicParameter(node, patternType);
 		final EditorBindingExpression bindingExpression = node.getBinding();
 
 		final EditorNode source = bindingExpression.getNode();
 		final EMFVariable emfVarSource = variables.getSymbolicParameter(source, patternType);
 
-		body.setHeader(bindingPattern);
-
-		RelationalConstraints.createAndRegisterEqual(emfVarSource, emfVarTarget, body);
+		RelationalConstraints.addEqual(emfVarSource, emfVarTarget, body);
 	}
 
 	private EMFVariable createVariable(final EditorAttributeExpression attributeExpression,

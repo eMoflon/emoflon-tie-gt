@@ -305,7 +305,8 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	private PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
 
 		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
-				DemoclesPatternType.BINDING_AND_BLACK_PATTERN, asList(basicOperationBuilder));
+				DemoclesPatternType.BINDING_AND_BLACK_PATTERN,
+				asList(basicOperationBuilder, emfBlackOperationBuilder, relationalOperationBuilder));
 
 		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = new BindingAndBlackPatternMatcherCompiler(
 				bindingAndBlackPatternBuilder, matcherModule);

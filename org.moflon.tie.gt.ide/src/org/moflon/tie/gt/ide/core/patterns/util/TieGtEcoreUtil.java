@@ -43,7 +43,7 @@ public final class TieGtEcoreUtil {
 			final EParameter editorEParam = editorEOperation.getEParameters().get(i);
 			final EParameter ecoreEParam = eOperation.getEParameters().get(i);
 			if (!(editorEParam.getName().equals(ecoreEParam.getName()))) {
-				TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
+				TransformationExceptions.recordError(transformationStatus,
 						"Cannot find parameter with name %s in EOperation %s", editorEParam.getName(),
 						eOperation.getName());
 			}
@@ -56,7 +56,7 @@ public final class TieGtEcoreUtil {
 		final int parameterCountInEcore = eOperation.getEParameters().size();
 		final int parameterCountInMcf = editorOperationParameters.size();
 		if (parameterCountInEcore != parameterCountInMcf) {
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordError(transformationStatus,
 					"Parameter count mismatches for EOperation %s.%s (%d in .ecore, %d in .mcf)",
 					eOperation.getEContainingClass().getName(), eOperation.getName(), parameterCountInEcore,
 					parameterCountInMcf);
@@ -66,7 +66,7 @@ public final class TieGtEcoreUtil {
 	public static EClassifier validateTypeExists(final Variable var, final MultiStatus transformationStatus) {
 		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
 		if (editorObjectVariableType == null) {
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordError(transformationStatus,
 					"Variable %s has no type.", var);
 		}
 		return editorObjectVariableType;
@@ -78,7 +78,7 @@ public final class TieGtEcoreUtil {
 		final EClassifier properCfVariableType = TypeLookup
 				.lookupTypeInEcoreFile(editorObjectVariableType, ePackage, ecorePackage);
 		if (properCfVariableType == null) {
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordError(transformationStatus,
 					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, ePackage);
 		}
 	}

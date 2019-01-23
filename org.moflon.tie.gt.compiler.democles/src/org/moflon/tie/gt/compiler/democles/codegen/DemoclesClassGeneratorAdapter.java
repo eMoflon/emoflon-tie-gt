@@ -168,7 +168,7 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 			st.add(entry.getKey(), entry.getValue());
 		}
 		code.append(st.render());
-
+		// st.inspect();
 		code.append("\n\n");
 		return code.toString();
 	}

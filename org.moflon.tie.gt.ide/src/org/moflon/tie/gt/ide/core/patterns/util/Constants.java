@@ -124,7 +124,7 @@ public final class Constants {
 			body.getConstants().add(constant);
 			return constant;
 		} else {
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
+			TransformationExceptions.recordError(transformationStatus,
 					"The type of %s::%s must be an EDataType but is", eParameter.getEOperation().getName(),
 					eParameter.getName(), parameterType);
 			return null;

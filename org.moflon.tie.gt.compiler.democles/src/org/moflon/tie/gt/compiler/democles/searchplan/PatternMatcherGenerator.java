@@ -5,6 +5,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
@@ -61,8 +62,13 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 	 */
 	@Override
 	public IStatus generateSearchPlan(final Pattern pattern, final Adornment adornment, final boolean isMultipleMatch) {
-		LogUtils.debug(logger, "Generating search plan for '%s'.", pattern.getName());
-		final EClass eClass = (EClass) ((AdapterResource) pattern.eResource()).getTarget();
+		LogUtils.debug(logger, "Generating search plan for '%s%s'.", pattern.getName(), adornment.toString());
+		final Resource patternResource = pattern.eResource();
+		if (patternResource == null || !(patternResource instanceof AdapterResource))
+			throw new IllegalArgumentException(
+					String.format("The pattern %s must be contained in an AdapterResource, but its resource is %s.",
+							pattern.getName(), patternResource));
+		final EClass eClass = (EClass) ((AdapterResource) patternResource).getTarget();
 		final CompilerPattern compilerPattern = patternMatcher.compilePattern(pattern, adornment);
 		final CompilerPatternBody body = compilerPattern.getBodies().get(0);
 		try {
@@ -73,6 +79,9 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 				final Chain<GeneratorOperation> searchPlan = PatternMatcherCompiler.generateSearchPlan(body, adornment);
 				final SearchPlanAdapter adapter = createSearchPlanAdapter(body, adornment, searchPlan, isMultipleMatch);
 				eClass.eAdapters().add(adapter);
+
+				printDebugInformation(pattern, body, adornment);
+
 			} else {
 				return createAndAddErrorMessage(pattern,
 						new IllegalArgumentException("Reachability analysis was negative."));
@@ -105,6 +114,12 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 			status = createAndAddErrorMessage(pattern, exception);
 		}
 
+		printDebugInformation(pattern, body, adornment);
+		return status;
+	}
+
+	private void printDebugInformation(final Pattern pattern, final CompilerPatternBody body,
+			final Adornment adornment) {
 		if (logger.isDebugEnabled()) {
 			final List<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> compilerSearchPlanAlgorithm = this.patternMatcher
 					.getCompilablePatternBuilder().getAlgorithm().getSearchPlanAlgorithm().getOperationBuilders();
@@ -113,7 +128,6 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 			LogUtils.debug(logger, "Debug information of search plan generation%s%s", PatternPrintingUtil.NL,
 					formattedPattern);
 		}
-		return status;
 	}
 
 	/**

@@ -51,13 +51,13 @@ public final class RelationalConstraints {
 		case ASSIGNMENT:
 			return factory.createEqual();
 		default:
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus, "Unsupported relation %s",
+			TransformationExceptions.recordError(transformationStatus, "Unsupported relation %s",
 					relation);
 			return null;
 		}
 	}
 
-	public static Equal createAndRegisterEqual(final ConstraintVariable lhsVariable,
+	public static Equal addEqual(final ConstraintVariable lhsVariable,
 			final ConstraintVariable rhsVariable, final PatternBody body) {
 		final Equal equal = createEqual(lhsVariable, rhsVariable);
 		Patterns.addConstraint(equal, body);

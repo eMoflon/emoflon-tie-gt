@@ -14,6 +14,7 @@ import org.gervarro.democles.constraint.emf.EMFVariable;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.VariableType;
 import org.gervarro.democles.specification.impl.Variable;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 
 public class AssignmentOperationBuilder implements TieGtOperationBuilder {
 
@@ -23,9 +24,8 @@ public class AssignmentOperationBuilder implements TieGtOperationBuilder {
 		if (constraint == CoreConstraintModule.EQUAL) {
 			final List<CompilableAdornedOperation> result = new LinkedList<>();
 			final boolean isTypeCheckNeeded = isTypeCheckNeeded(parameters);
-//			Adornment.create(isTypeCheckNeeded ? Adornment.NOT_TYPECHECKED : Adornment.BOUND, Adornment.BOUND)
 			final int isAlwaysSuccessfull = isTypeCheckNeeded ? 0 : CompilableAdornedOperation.ALWAYS_SUCCESSFUL;
-			final Adornment precondition = Adornment.create(Adornment.FREE, Adornment.BOUND);
+			final Adornment precondition = Adornments.create("FB");
 			result.add(new CompilableAdornedOperation(precondition, constraint, isAlwaysSuccessfull));
 			return result;
 		}

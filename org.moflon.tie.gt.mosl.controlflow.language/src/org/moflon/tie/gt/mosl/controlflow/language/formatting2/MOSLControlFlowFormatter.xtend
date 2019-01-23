@@ -16,8 +16,6 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Statement
 
 class MOSLControlFlowFormatter extends AbstractFormatter2 {
 
-	//@Inject extension MOSLControlFlowGrammarAccess
-
 	static final String BRACE_LEFT = "{"
 	static final String BRACE_RIGHT = "}"
 	static final String COMMA = ","
