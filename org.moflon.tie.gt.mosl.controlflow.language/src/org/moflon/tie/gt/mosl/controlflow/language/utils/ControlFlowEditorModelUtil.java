@@ -1,5 +1,6 @@
 package org.moflon.tie.gt.mosl.controlflow.language.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.eclipse.emf.common.CommonPlugin;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
@@ -77,19 +79,10 @@ public class ControlFlowEditorModelUtil {
 		final URI uri = URI.createURI(uriString);
 		try {
 			eMoflonEMFUtil.createPluginToResourceMapping(resourceSet);
-			// Resource resource=eMoflonEMFUtil.loadModel(uri, resourceset).eResource();
-			final Resource resource = resourceSet.getResource(uri, true);
-			resource.load(null);
-
-			// Early return if the resource does not exist or is empty.
-			if (resource.getContents().isEmpty()) {
-				removeResource(uri);
-				return Optional.empty();
-			}
+			final long timestamp = calculateTimestamp(uri, resourceSet);
 
 			// Add/update resource if necessary.
-			if (!metaModelResources.containsKey(uri)
-					|| metaModelResources.get(uri).getTimeStamp() < resource.getTimeStamp()) {
+			if (!metaModelResources.containsKey(uri) || metaModelResources.get(uri).getTimeStamp() < timestamp) {
 				updateResource(uri);
 			}
 			return Optional.of(metaModelResources.get(uri));
@@ -103,18 +96,10 @@ public class ControlFlowEditorModelUtil {
 		final URI uri = URI.createURI(gtUriString);
 		try {
 			eMoflonEMFUtil.createPluginToResourceMapping(resourceSet);
-			final Resource resource = resourceSet.getResource(uri, true);
-			resource.load(null);
-
-			// Early return if the resource does not exist or is empty.
-			if (resource.getContents().isEmpty()) {
-				removeResource(uri);
-				return Optional.empty();
-			}
+			final long timestamp = calculateTimestamp(uri, resourceSet);
 
 			// Add/update resource if necessary.
-			if (!metaModelResources.containsKey(uri)
-					|| metaModelResources.get(uri).getTimeStamp() < resource.getTimeStamp()) {
+			if (!metaModelResources.containsKey(uri) || metaModelResources.get(uri).getTimeStamp() < timestamp) {
 				updateResource(uri);
 			}
 			return Optional.of(metaModelResources.get(uri));
@@ -154,12 +139,38 @@ public class ControlFlowEditorModelUtil {
 		final Resource resource = resourceSet.getResource(uri, true);
 		resource.load(null);
 		EcoreUtil.resolveAll(resourceSet);
-		metaModelResources.put(uri, resource);
+
+		if (!resource.getContents().isEmpty()) {
+			metaModelResources.put(uri, resource);
+		} else {
+			removeResource(uri);
+		}
+
 	}
 
 	private static ResourceSet createNewXtextEnabledResourceSet() {
 		final ResourceSet resourceSet = eMoflonEMFUtil.createDefaultResourceSet();
 		resourceSet.getPackageRegistry().put(EcorePackage.eINSTANCE.getNsURI(), EcorePackage.eINSTANCE);
 		return resourceSet;
+	}
+
+	/**
+	 * Calculates the timestamp of the file associated with the given {@link URI} If
+	 * no such file can be found, a negative value is returned
+	 * 
+	 * @param uri         the {@link URI} to check
+	 * @param resourceSet the {@link ResourceSet} to consult
+	 * @return the last-modification timestamp or a negative value if the check is
+	 *         not possible
+	 */
+	private static long calculateTimestamp(final URI uri, final ResourceSet resourceSet) {
+		final URI normalizedUri = resourceSet.getURIConverter().normalize(uri);
+		final String fileString = CommonPlugin.resolve(normalizedUri).toFileString();
+		if (fileString != null) {
+			final File file = new File(fileString);
+			return file.lastModified();
+		} else
+			return -1;
+
 	}
 }
