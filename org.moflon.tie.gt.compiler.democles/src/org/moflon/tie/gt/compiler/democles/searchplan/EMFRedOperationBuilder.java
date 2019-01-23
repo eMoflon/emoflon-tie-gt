@@ -21,7 +21,7 @@ public class EMFRedOperationBuilder implements TieGtOperationBuilder {
 			final List<? extends SpecificationExtendedVariableRuntime> parameters) {
 		if (constraint instanceof Reference) {
 			final List<CompilableAdornedOperation> result = new LinkedList<>();
-			final Adornment precondition = Adornments.create("BB");
+			final Adornment precondition = Adornments.BB;
 			result.add(new CompilableAdornedOperation(precondition, constraint,
 					CompilableAdornedOperation.ALWAYS_SUCCESSFUL));
 
@@ -37,7 +37,7 @@ public class EMFRedOperationBuilder implements TieGtOperationBuilder {
 		if (variable instanceof EMFVariable) {
 			final EClassifier eClassifier = ((EMFVariable) variable).getLinkedElement();
 			if (eClassifier instanceof EClass) {
-				final Adornment precondition = Adornments.create("U");
+				final Adornment precondition = Adornments.U;
 				return new CompilableAdornedOperation(precondition, variable,
 						CompilableAdornedOperation.ALWAYS_SUCCESSFUL);
 			}

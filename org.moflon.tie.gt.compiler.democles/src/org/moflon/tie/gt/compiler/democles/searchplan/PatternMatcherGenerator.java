@@ -79,9 +79,6 @@ public abstract class PatternMatcherGenerator extends PatternMatcher {
 				final Chain<GeneratorOperation> searchPlan = PatternMatcherCompiler.generateSearchPlan(body, adornment);
 				final SearchPlanAdapter adapter = createSearchPlanAdapter(body, adornment, searchPlan, isMultipleMatch);
 				eClass.eAdapters().add(adapter);
-
-				printDebugInformation(pattern, body, adornment);
-
 			} else {
 				return createAndAddErrorMessage(pattern,
 						new IllegalArgumentException("Reachability analysis was negative."));
