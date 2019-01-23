@@ -47,7 +47,31 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
   public static val INVALID_NAME = CODE_PREFIX + 'invalidName'
   public static val NO_THIS_VARIABLE = CODE_PREFIX + 'noThisVariable'
   public static val MISSING_OPERATION = CODE_PREFIX + 'missingOperation'
+  public static val UNKNOWN_PATTERN_NAME = CODE_PREFIX + 'unknownPattern'
+  public static val VARIABLE_ASSIGNED_MORE_THAN_ONCE = CODE_PREFIX + 'multipleAssignmentsToVariable'
+  public static val NO_GT_IMPORT = CODE_PREFIX + 'noGTImport'
 
+  /*@Check
+   * def checkPatternName(PatternStatement patternStmt){
+   * 		val gtcf = getControlFlowFile(patternStmt)
+   * 		val gtFiles=resolvePatterns(gtcf.includedPatterns)
+   * 		gtFiles.map[res|
+   * 			val contents=res.contents
+   * 			return contents.filter[content|content instanceof EditorPattern]
+   * 		].reduce[patterns1,patterns2|patterns1+patterns2].filter[patternObj|
+   * 			val pattern=patternObj as EditorPattern
+   * 			return patternStmt.patternReference.pattern.name
+   * 		]
+   * }
+   * 
+   * def resolvePatterns(EList<IncludePattern> patternFileNames) {
+   * 	return patternFileNames.map[fileName|
+   * 		val url=WorkspaceHelper.getResource(fileName.importURI)
+   * 		val optResource=ControlFlowEditorModelUtil.loadGTResource(fileName.importURI)
+   * 		if(optResource.isPresent)
+   * 			return optResource.get
+   * 	]
+   }*/
   @Check
   def checkParametersofMethodCall(OperationCallStatement callStatement) {
     val operation = getOperation(callStatement)
@@ -80,7 +104,24 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
   }
 
   @Check
-  def notSet() {
+  def nodesOnlyAssignedOnce(PatternStatement patternstmt) {
+    patternstmt.parameters.forEach [ param |
+      val otherCandidates = patternstmt.parameters.filter [ candidateParam |
+        candidateParam.parameter.name.equals(param.parameter.name) && candidateParam !== param
+      ]
+      if (!otherCandidates.empty) {
+        error("Parameter " + param.parameter.name + " should only be assigned once.", patternstmt,
+          MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PARAMETERS, VARIABLE_ASSIGNED_MORE_THAN_ONCE)
+      }
+    ]
+  }
+
+  @Check
+  def noUsingDirective(GraphTransformationControlFlowFile gtcf) {
+    if (gtcf.includedPatterns.empty) {
+      error("No .GT files referenced", gtcf,
+        MoslControlFlowPackage.Literals.GRAPH_TRANSFORMATION_CONTROL_FLOW_FILE__INCLUDED_PATTERNS, NO_GT_IMPORT)
+    }
   }
 
   @Check
@@ -175,7 +216,17 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
         for (op : opsWithSameName) {
 
           var typesAreEqual = false
-
+          /*def getEcoreSpecs(EObject elem) {
+           * 	var gtcf = elem
+           * 	while (gtcf !== null && !(gtcf instanceof GraphTransformationControlFlowFile)) {
+           * 		gtcf = gtcf.eContainer
+           * 	}
+           * 	if (gtcf !== null) {
+           * 		val file = gtcf as GraphTransformationControlFlowFile
+           * 		val resources = file.imports.map[import|ControlFlowEditorModelUtil.loadEcoreModel(import.name)]
+           * 		val epacks = EPackages
+           * 	}
+           }*/
           if ((methodImpl.EType === null && op.EType === null) || methodImpl.EType !== null && op.EType !== null &&
             methodImpl.EType.name.equals(op.EType.name)) {
             typesAreEqual = true
@@ -208,20 +259,20 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
       }
 
     }
-    
+
     var String message = "Operation " + describe(methodImpl) + " missing from metamodel.";
     if (!candidatesWithSameParameters.empty) {
       message += " Possible candidates: " + candidatesWithSameParameters.map[describe(it)]
     } else if (!candidatesWithSameNames.empty) {
       message += " Possible candidates: " + candidatesWithSameNames.map[describe(it)]
     }
-    
+
     error(message, methodImpl,
-        MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC__NAME),
-        MISSING_OPERATION)
+      MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC__NAME),
+      MISSING_OPERATION)
 
   }
-  
+
   def describe(MethodDec methodDec) {
     val formattedParameters = methodDec.EParameters.map[it.name + ":" + it.EType.name].join(",")
     var String returnType;
@@ -229,7 +280,8 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
       returnType = "void"
     else
       returnType = methodDec.EType.name
-    return String.format("%s::%s(%s):%s", (methodDec.eContainer as EClassDef).name.name, methodDec.name, formattedParameters, returnType)
+    return String.format("%s::%s(%s):%s", (methodDec.eContainer as EClassDef).name.name, methodDec.name,
+      formattedParameters, returnType)
   }
 
   def describe(EOperation operation) {
@@ -239,7 +291,8 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
       returnType = "void"
     else
       returnType = operation.EType.name
-    return String.format("%s::%s(%s):%s", operation.EContainingClass.name, operation.name, formattedParameters, returnType)
+    return String.format("%s::%s(%s):%s", operation.EContainingClass.name, operation.name, formattedParameters,
+      returnType)
   }
 
   @Check
@@ -252,7 +305,6 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
     var match = false
     if (!opsWithSameName.empty) {
       for (op : opsWithSameName) {
-        // TODO: Check Return Type
         var typesEqual = false
         if ((methodImpl.EType === null && op.EType === null) || methodImpl.EType !== null && op.EType !== null &&
           methodImpl.EType.name.equals(op.EType.name)) {
@@ -290,7 +342,6 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
 
   def getEClassCandidatesFromSpec(String eclassName, GraphTransformationControlFlowFile gtcf) {
     val resources = gtcf.imports.map[import|ControlFlowEditorModelUtil.loadEcoreModel(import.name)]
-    var emptyList = newArrayList
     val result = resources.filter[res|res.isPresent].map [ res |
       val resource = res.get
       val ePack = resource.contents.get(0) as EPackage
@@ -298,18 +349,6 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
     ].filter(list|!list.empty).reduce[list1, list2|list1 + list2]
     return result
 
-  }
-
-  def getEcoreSpecs(EObject elem) {
-    var gtcf = elem
-    while (gtcf !== null && !(gtcf instanceof GraphTransformationControlFlowFile)) {
-      gtcf = gtcf.eContainer
-    }
-    if (gtcf !== null) {
-      val file = gtcf as GraphTransformationControlFlowFile
-      val resources = file.imports.map[import|ControlFlowEditorModelUtil.loadEcoreModel(import.name)]
-      val epacks = EPackages
-    }
   }
 
   /**
@@ -340,14 +379,13 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
         NO_THIS_VARIABLE)
     }
   }
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital',
-//					MOSLControlFlowPackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
+
+  def getControlFlowFile(EObject obj) {
+    var gtcf = obj
+    while (!(gtcf instanceof GraphTransformationControlFlowFile)) {
+      gtcf = gtcf.eContainer
+    }
+    return gtcf as GraphTransformationControlFlowFile
+  }
+
 }
