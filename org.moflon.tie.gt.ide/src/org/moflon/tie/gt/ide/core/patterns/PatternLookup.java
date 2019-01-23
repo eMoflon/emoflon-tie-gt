@@ -37,6 +37,10 @@ public class PatternLookup {
 		return get(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
 	}
 
+	public Pattern getGreenPattern() {
+		return get(DemoclesPatternType.GREEN_PATTERN);
+	}
+
 	private Pattern add(final DemoclesPatternType patternType) {
 		if (contains(patternType))
 			return get(patternType);
@@ -51,16 +55,8 @@ public class PatternLookup {
 		return lookupData.put(patternType, pattern);
 	}
 
-	public Pattern addExpressionPattern() {
-		return add(DemoclesPatternType.EXPRESSION_PATTERN);
-	}
-
-	public Pattern addBindingAndBlackPattern() {
-		return add(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
-	}
-
-	public Pattern addBindingPattern() {
-		return add(DemoclesPatternType.BINDING_PATTERN);
+	public Pattern getExpressionPattern() {
+		return get(DemoclesPatternType.EXPRESSION_PATTERN);
 	}
 
 	@Override

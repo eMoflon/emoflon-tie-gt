@@ -50,6 +50,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorReference;
 import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
 import org.emoflon.ibex.gt.editor.gT.GTFactory;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
+import org.emoflon.ibex.gt.editor.utils.GTEnumExpressionHelper;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
@@ -64,6 +65,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Reference;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
+import org.moflon.tie.gt.compiler.democles.CodeConventions;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.constraints.democles.AttributeVariableConstraint;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
@@ -154,7 +156,7 @@ public class PatternBuilderVisitor {
 	}
 
 	Pattern createExpressionPatternForObjectVariables(final CFVariable returnVariable) {
-		final Pattern pattern = patterns.addExpressionPattern();
+		final Pattern pattern = patterns.getExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final EMFVariable target = getReturnVariable(returnVariable, pattern);
@@ -170,7 +172,7 @@ public class PatternBuilderVisitor {
 	Pattern createExpressionPatternForObjectVariableAttribute(final CFVariable returnVariable,
 			final EAttribute attribute) {
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
-		final Pattern pattern = patterns.addExpressionPattern();
+		final Pattern pattern = patterns.getExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final EClassifier returnVariableType = returnVariable.getType();
@@ -201,7 +203,7 @@ public class PatternBuilderVisitor {
 	}
 
 	Pattern createExpressionPatternForLiteralValues(final CFVariable returnVariable, final String value) {
-		final Pattern pattern = patterns.addExpressionPattern();
+		final Pattern pattern = patterns.getExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final Constant source = SpecificationFactory.eINSTANCE.createConstant();
@@ -217,7 +219,7 @@ public class PatternBuilderVisitor {
 
 	Pattern createExpressionPatternForEnumValues(final CFVariable returnVariable, final EEnumLiteral enumLiteral) {
 
-		final Pattern pattern = patterns.addExpressionPattern();
+		final Pattern pattern = patterns.getExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final EMFVariable resultEmfVariable = getReturnVariable(returnVariable, pattern);
@@ -237,7 +239,7 @@ public class PatternBuilderVisitor {
 			final EList<OperationCallStatementParameter> operationParameters) {
 
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
-		final Pattern pattern = patterns.addExpressionPattern();
+		final Pattern pattern = patterns.getExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
 
 		final Operation operationConstraint = PatternInvocationActions.createOperationConstraint(eOperation);
@@ -334,28 +336,24 @@ public class PatternBuilderVisitor {
 
 					// 3. We have found a constraint specification matching the predicate!
 					if (selectedConstraintSpecification.isPresent()) {
-						final Pattern blackPattern = this.patterns.getBlackPattern();
-						final PatternBody body = Patterns.getBody(blackPattern);
-
 						final AttributeVariableConstraint attributeVariableConstraint = createAttributeVariableConstraint(
 								predicateSymbol);
-						for (final EditorPatternAttributeConstraintArgument predicateArgument : predicate.getArgs()) {
-							final ConstraintVariable variable = getConstraintVariableForPredicateArgument(body,
-									predicateArgument);
+						predicate.getArgs().forEach(predicateArgument -> {
+							final ConstraintVariable variable = getConstraintVariable(predicateArgument);
 							final ConstraintParameter constraintParameter = ConstraintParameters.create(variable);
 							attributeVariableConstraint.getParameters().add(constraintParameter);
-						}
+						});
 
-						Patterns.addConstraint(attributeVariableConstraint, body);
-					} else {
+						final PatternBody blackBody = Patterns.getBody(patterns.getBlackPattern());
+						Patterns.addConstraint(attributeVariableConstraint, blackBody);
+					} else
 						recordError(getStatus(),
 								"No constraint specification with symbol %s matches the type signature %s of predicate %s",
 								predicateSymbol, formatTypeList(predicateArgumentTypes), describe(predicate));
-					}
 
-				} else {
-					recordError(getStatus(), "Predicate symbol of %s not in constraints library.", describe(predicate));
-				}
+				} else
+					recordError(getStatus(), "Predicate symbol of %s missing from constraints library.",
+							describe(predicate));
 			}
 
 		}
@@ -368,58 +366,70 @@ public class PatternBuilderVisitor {
 		return constraint;
 	}
 
-	private ConstraintVariable getConstraintVariableForPredicateArgument(final PatternBody body,
-			final EditorPatternAttributeConstraintArgument predicateArgument) {
-		final ConstraintVariable variable;
-		if (predicateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression) {
-			final EditorPatternAttributeConstraintAttributeValueExpression attributeValueExpression = (EditorPatternAttributeConstraintAttributeValueExpression) predicateArgument;
-			variable = createVariable(attributeValueExpression, body);
-		} else if (predicateArgument instanceof EditorLiteralExpression) {
-			final EditorLiteralExpression literalExpression = (EditorLiteralExpression) predicateArgument;
-			variable = createVariable(literalExpression, body);
-		} else if (predicateArgument instanceof EditorEnumExpression) {
-			final EditorEnumExpression enumExpression = (EditorEnumExpression) predicateArgument;
-			variable = Constants.createAndRegister(enumExpression, body);
-		} else if (predicateArgument instanceof EditorPatternAttributeConstraintVariableReference) {
-			final EditorPatternAttributeConstraintVariableReference variableReference = (EditorPatternAttributeConstraintVariableReference) predicateArgument;
-			variable = createVariable(variableReference);
-		} else if (predicateArgument instanceof EditorParameterExpression) {
-			final EditorParameterExpression parameterExpression = (EditorParameterExpression) predicateArgument;
-			variable = createVariable(parameterExpression, DemoclesPatternType.BLACK_PATTERN);
-		} else {
-			// Never happens due to preceding checks
-			variable = null;
-		}
-		return variable;
+	private ConstraintVariable getConstraintVariable(final EditorPatternAttributeConstraintArgument predicateArgument) {
+		if (predicateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression)
+			return createVariable((EditorPatternAttributeConstraintAttributeValueExpression) predicateArgument);
+		else if (predicateArgument instanceof EditorLiteralExpression)
+			return createVariable((EditorLiteralExpression) predicateArgument);
+		else if (predicateArgument instanceof EditorEnumExpression)
+			return createVariable((EditorEnumExpression) predicateArgument);
+		else if (predicateArgument instanceof EditorPatternAttributeConstraintVariableReference)
+			return createVariable((EditorPatternAttributeConstraintVariableReference) predicateArgument);
+		else if (predicateArgument instanceof EditorParameterExpression)
+			return createVariable((EditorParameterExpression) predicateArgument, DemoclesPatternType.BLACK_PATTERN);
+		else
+			return null;
+	}
+
+	private Constant createVariable(final EditorEnumExpression expression) {
+		final PatternBody body = Patterns.getBody(patterns.getBlackPattern());
+		final EDataType enumDataType = types.getEClassifier(GTEnumExpressionHelper.getEnumDataType(expression));
+		return Constants.createAndRegisterTypedConstant(expression, enumDataType, body);
+	}
+
+	/**
+	 * Handle a reference to a local variable (only declared in the context of this
+	 * constraint)
+	 * 
+	 * @param variableReference the reference
+	 * @return the created variable
+	 */
+	private ConstraintVariable createVariable(
+			final EditorPatternAttributeConstraintVariableReference variableReference) {
+		final EditorPatternAttributeConstraintVariable editorVariable = variableReference.getName();
+		return variables.getLocalVariable(editorVariable, DemoclesPatternType.BLACK_PATTERN);
+	}
+
+	private ConstraintVariable createVariable(final EditorLiteralExpression expression) {
+		final PatternBody blackBody = Patterns.getBody(patterns.getBlackPattern());
+		final EDataType eDataType = GTEditorAttributeUtils.guessEDataType(expression).orElse(null);
+		return Constants.createAndRegisterTypedConstant(expression, eDataType, blackBody);
 	}
 
 	private ConstraintVariable createVariable(
-			final EditorPatternAttributeConstraintVariableReference variableReference) {
-		final ConstraintVariable variable;
-		final EditorPatternAttributeConstraintVariable editorVariable = variableReference.getName();
-		variable = variables.getLocalVariable(editorVariable, DemoclesPatternType.BLACK_PATTERN);
-		return variable;
-	}
-
-	private ConstraintVariable createVariable(final EditorLiteralExpression expression, final PatternBody body) {
-		final ConstraintVariable variable;
-		final EDataType eDataType = GTEditorAttributeUtils.guessEDataType(expression).orElse(null);
-		variable = Constants.createAndRegisterTypedConstant(expression, eDataType, body);
-		return variable;
-	}
-
-	private ConstraintVariable createVariable(final EditorPatternAttributeConstraintAttributeValueExpression expression,
-			final PatternBody body) {
-		final ConstraintVariable variable;
+			final EditorPatternAttributeConstraintAttributeValueExpression expression) {
+		final PatternBody blackBody = Patterns.getBody(patterns.getBlackPattern());
 		final EAttribute eAttribute = expression.getAttribute();
 		final EditorNode editorNode = expression.getEditorNode();
-		variable = variables.getLocalVariable(eAttribute, editorNode, DemoclesPatternType.BLACK_PATTERN);
-
 		final EMFVariable emfObjectVariable = variables.getSymbolicParameter(editorNode,
 				DemoclesPatternType.BLACK_PATTERN);
+		final ConstraintVariable blackAttributeVariable;
+		if (expression.isFree()) {
+			blackAttributeVariable = variables.getSymbolicParameter(eAttribute, editorNode,
+					DemoclesPatternType.BLACK_PATTERN, CodeConventions.FREE_VARIABLE_SUFFIX);
 
-		AttributeValueConstraints.createAndRegister(eAttribute, emfObjectVariable, variable, body);
-		return variable;
+			final EMFVariable greenObjectVariable = variables.getSymbolicParameter(editorNode,
+					DemoclesPatternType.GREEN_PATTERN);
+			final ConstraintVariable greenAttributeVariable = variables.getSymbolicParameter(eAttribute, editorNode,
+					DemoclesPatternType.GREEN_PATTERN, CodeConventions.FREE_VARIABLE_SUFFIX);
+			final PatternBody greenBody = Patterns.getBody(patterns.getGreenPattern());
+			AttributeValueConstraints.add(eAttribute, greenObjectVariable, greenAttributeVariable, greenBody);
+		} else {
+			blackAttributeVariable = variables.getLocalVariable(eAttribute, editorNode,
+					DemoclesPatternType.BLACK_PATTERN);
+			AttributeValueConstraints.add(eAttribute, emfObjectVariable, blackAttributeVariable, blackBody);
+		}
+		return blackAttributeVariable;
 	}
 
 	private String formatTypeList(final List<EClassifier> predicateArgumentTypes) {
@@ -454,31 +464,38 @@ public class PatternBuilderVisitor {
 	private List<EClassifier> getPredicateArgumentTypes(final EditorPatternAttributeConstraintPredicate predicate) {
 		final List<EClassifier> predicateArgumentTypes = new ArrayList<>();
 		for (final EditorPatternAttributeConstraintArgument prediateArgument : predicate.getArgs()) {
-			final EClassifier predicateArgumentType;
-			if (prediateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression) {
-				final EditorPatternAttributeConstraintAttributeValueExpression attributeValueExpression = (EditorPatternAttributeConstraintAttributeValueExpression) prediateArgument;
-				predicateArgumentType = attributeValueExpression.getAttribute().getEType();
-			} else if (prediateArgument instanceof EditorLiteralExpression) {
-				final EditorLiteralExpression literalExpresion = (EditorLiteralExpression) prediateArgument;
-				predicateArgumentType = GTEditorAttributeUtils.guessEDataType(literalExpresion).orElse(null);
-			} else if (prediateArgument instanceof EditorEnumExpression) {
-				final EditorEnumExpression enumExpression = (EditorEnumExpression) prediateArgument;
-				predicateArgumentType = enumExpression.getLiteral().getEEnum();
-			} else if (prediateArgument instanceof EditorPatternAttributeConstraintVariableReference) {
-				final EditorPatternAttributeConstraintVariableReference variableReference = (EditorPatternAttributeConstraintVariableReference) prediateArgument;
-				predicateArgumentType = variableReference.getName().getType();
-			} else if (prediateArgument instanceof EditorParameterExpression) {
-				final EditorParameterExpression expression = (EditorParameterExpression) prediateArgument;
-				predicateArgumentType = expression.getParameter().getType();
-			} else {
-				recordError(getStatus(), "Unsupported type of argument %s of predicate %s: %s",
-						describe(prediateArgument), describe(predicate), prediateArgument);
+			final EClassifier predicateArgumentType = getPredicateArgumentType(predicate, prediateArgument);
+
+			if (hasErrors())
 				break;
-			}
 
 			predicateArgumentTypes.add(predicateArgumentType);
 		}
 		return predicateArgumentTypes;
+	}
+
+	private EClassifier getPredicateArgumentType(final EditorPatternAttributeConstraintPredicate predicate,
+			final EditorPatternAttributeConstraintArgument prediateArgument) {
+		if (prediateArgument instanceof EditorPatternAttributeConstraintAttributeValueExpression) {
+			final EditorPatternAttributeConstraintAttributeValueExpression attributeValueExpression = (EditorPatternAttributeConstraintAttributeValueExpression) prediateArgument;
+			return attributeValueExpression.getAttribute().getEType();
+		} else if (prediateArgument instanceof EditorLiteralExpression) {
+			final EditorLiteralExpression literalExpresion = (EditorLiteralExpression) prediateArgument;
+			return GTEditorAttributeUtils.guessEDataType(literalExpresion).orElse(null);
+		} else if (prediateArgument instanceof EditorEnumExpression) {
+			final EditorEnumExpression enumExpression = (EditorEnumExpression) prediateArgument;
+			return types.getEClassifier(enumExpression.getLiteral().getEEnum());
+		} else if (prediateArgument instanceof EditorPatternAttributeConstraintVariableReference) {
+			final EditorPatternAttributeConstraintVariableReference variableReference = (EditorPatternAttributeConstraintVariableReference) prediateArgument;
+			return variableReference.getName().getType();
+		} else if (prediateArgument instanceof EditorParameterExpression) {
+			final EditorParameterExpression expression = (EditorParameterExpression) prediateArgument;
+			return expression.getParameter().getType();
+		} else {
+			recordError(getStatus(), "Unsupported type of argument %s of predicate %s: %s", describe(prediateArgument),
+					describe(predicate), prediateArgument);
+			return null;
+		}
 	}
 
 	private boolean haveSameParameterTypes(final ConstraintSpecification possibleConstraintSpecification,
@@ -490,8 +507,8 @@ public class PatternBuilderVisitor {
 			return false;
 
 		for (int i = 0; i < constraintParameterCount; ++i) {
-			final EClassifier constraintParameterType = constraintParameters.get(i).getType();
-			final EClassifier predicateArgumentType = predicateArgumentTypes.get(i);
+			final EClassifier constraintParameterType = types.getEClassifier(constraintParameters.get(i).getType());
+			final EClassifier predicateArgumentType = types.getEClassifier(predicateArgumentTypes.get(i));
 			if (!constraintParameterType.equals(predicateArgumentType))
 				return false;
 		}

@@ -182,7 +182,7 @@ public class AttributeConstraintLibraryImpl extends EObjectImpl implements Attri
 						if (typeA != null) {
 
 							final EClassifier typeB = constSpec.getParameterTypes().get(i).getType();
-							if (typeA != typeB) {
+							if (!typeA.equals(typeB)) {
 								successful = false;
 								break;
 							}

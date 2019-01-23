@@ -34,6 +34,7 @@ import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.tie.gt.compiler.democles.CodeConventions;
 import org.moflon.tie.gt.compiler.democles.eclipse.AdapterResource;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcher;

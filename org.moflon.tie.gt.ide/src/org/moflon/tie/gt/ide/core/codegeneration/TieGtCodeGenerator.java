@@ -1,5 +1,7 @@
 package org.moflon.tie.gt.ide.core.codegeneration;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -25,6 +27,7 @@ import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.Monitor;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -42,6 +45,8 @@ import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
+import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
+import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
@@ -79,17 +84,17 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			if (StatusUtil.addAndCheckForErrors(resourceErrorStatus, processStatus))
 				return processStatus;
 
-			final TieGtCodeGenerationConfiguration codeGeneratorConfig = createCodeGeneratorConfiguration();
-			subMon.worked(5);
-			if (subMon.isCanceled()) {
-				return Status.CANCEL_STATUS;
-			}
-
 			final IStatus genModelBuilderStatus = processGenModel(subMon);
 			if (subMon.isCanceled())
 				return Status.CANCEL_STATUS;
 			if (StatusUtil.addAndCheckForErrors(genModelBuilderStatus, processStatus))
 				return processStatus;
+
+			final TieGtCodeGenerationConfiguration codeGeneratorConfig = createCodeGeneratorConfiguration();
+			subMon.worked(5);
+			if (subMon.isCanceled()) {
+				return Status.CANCEL_STATUS;
+			}
 
 			final IStatus controlFlowBuilderStatus = processControlFlowSpecification(codeGeneratorConfig, subMon);
 			if (subMon.isCanceled())
@@ -123,12 +128,22 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	}
 
 	private TieGtCodeGenerationConfiguration createCodeGeneratorConfiguration() {
-		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries();
+		final TypeLookup typeLookup = createTypeLookup();
+		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries(
+				typeLookup);
 
 		final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(
 				getResourceSet(), getPreferencesStorage(), attributeConstraintLibraries);
 		inititializeResourceSet();
 		return codeGeneratorConfig;
+	}
+
+	private TypeLookup createTypeLookup() {
+		final List<EPackage> typeList = new ArrayList<>();
+		typeList.add(this.getGenModel().getEcoreGenPackage().getEcorePackage());
+		getResourceSet().getResources().stream().filter(TieGtEcoreUtil::isEcoreResource)
+				.forEach(resource -> typeList.addAll(TieGtEcoreUtil.getEPackages(resource)));
+		return new TypeLookup(typeList);
 	}
 
 	private IStatus processGenModel(final SubMonitor subMon) {
@@ -201,6 +216,13 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	 * @return the resulting status
 	 */
 	private IStatus checkResourcesForErrors() {
+		getResourceSet().getResources().forEach(resource -> {
+			try {
+				resource.load(null);
+			} catch (final IOException e) {
+				e.printStackTrace();
+			}
+		});
 		final List<Resource> resourcesWithErrors = getResourceSet().getResources().stream()
 				.filter(r -> !r.getErrors().isEmpty()).collect(Collectors.toList());
 		if (!resourcesWithErrors.isEmpty()) {
@@ -210,19 +232,21 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 					"eMoflon::TIE-GT skipped project %s due to errors in the resources with the following URIs: %s",
 					getProject().getName(), uriList);
 			return createErrorStatus(message);
-		} else {
+		} else
 			return Status.OK_STATUS;
-		}
 	}
 
 	/**
 	 * Loads all attribute constraint libraries from the {@link EditorGTFile}
 	 * objects in the resource set ({@link #getResourceSet()}
 	 * 
+	 * @param typeLookup
+	 * 
 	 * @return
 	 */
-	private AttributeConstraintsLibraryRegistry loadAttributeConstraintLibraries() {
-		final AttributeConstraintsLibraryLoader attributeConstraintsLibraryLoader = new AttributeConstraintsLibraryLoader();
+	private AttributeConstraintsLibraryRegistry loadAttributeConstraintLibraries(final TypeLookup typeLookup) {
+		final AttributeConstraintsLibraryLoader attributeConstraintsLibraryLoader = new AttributeConstraintsLibraryLoader(
+				typeLookup);
 		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = attributeConstraintsLibraryLoader
 				.run(this.getResourceSet());
 		return attributeConstraintLibraries;

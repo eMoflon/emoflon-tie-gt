@@ -22,8 +22,15 @@ import org.moflon.tie.gt.constraints.operationspecification.OperationSpecificati
 import org.moflon.tie.gt.constraints.operationspecification.OperationspecificationFactory;
 import org.moflon.tie.gt.constraints.operationspecification.ParamIdentifier;
 import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
+import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 
 public class AttributeConstraintsLibraryLoader {
+
+	private final TypeLookup typeLookup;
+
+	public AttributeConstraintsLibraryLoader(final TypeLookup typeLookup) {
+		this.typeLookup = typeLookup;
+	}
 
 	public AttributeConstraintsLibraryRegistry run(final ResourceSet resourceSet) {
 
@@ -108,7 +115,7 @@ public class AttributeConstraintsLibraryLoader {
 			final ConstraintSpecification democlesConstraintSpecification,
 			final OperationSpecificationGroup democlesOperationSpecificationGroup) {
 		for (final EditorAttributeConditionParameter editorParameter : editorConditionSpecification.getParameters()) {
-			final EDataType parameterType = editorParameter.getType();
+			final EDataType parameterType = typeLookup.getEClassifier(editorParameter.getType());
 			final ParameterType democlesParameterType = OperationspecificationFactory.eINSTANCE.createParameterType();
 			democlesParameterType.setType(parameterType);
 			democlesConstraintSpecification.getParameterTypes().add(democlesParameterType);

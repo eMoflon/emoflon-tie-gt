@@ -1,11 +1,15 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EParameter;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
@@ -81,5 +85,14 @@ public final class TieGtEcoreUtil {
 			TransformationExceptions.recordError(transformationStatus,
 					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, ePackage);
 		}
+	}
+
+	public static boolean isEcoreResource(final Resource resource) {
+		return resource.getURI().fileExtension().equals("ecore");
+	}
+
+	public static List<EPackage> getEPackages(final Resource resource) {
+		return resource.getContents().stream().filter(object -> object instanceof EPackage)
+				.map(object -> (EPackage) object).collect(Collectors.toList());
 	}
 }

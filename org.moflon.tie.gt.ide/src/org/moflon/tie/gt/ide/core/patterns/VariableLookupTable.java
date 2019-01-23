@@ -12,6 +12,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.moflon.tie.gt.compiler.democles.CodeConventions;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
@@ -19,37 +20,42 @@ import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 
 class VariableLookupTable {
 	private final Map<DemoclesPatternType, Map<Object, EMFVariable>> data = new HashMap<>();
-	private final PatternLookup patternLookup;
-	private final TypeLookup typeLookup;
+	private final PatternLookup patterns;
+	private final TypeLookup types;
 
-	public VariableLookupTable(final PatternLookup patternLookup, final TypeLookup typeLookup) {
-		this.patternLookup = patternLookup;
-		this.typeLookup = typeLookup;
+	private enum VariableLocality {
+		PARAMETER, LOCAL;
 	}
 
-	public EMFVariable getSymbolicParameter(final Object object, final EClassifier type,
-			final DemoclesPatternType patternType) {
-		return getSymbolicParameter(object, type, patternType);
+	public VariableLookupTable(final PatternLookup patternLookup, final TypeLookup typeLookup) {
+		this.patterns = patternLookup;
+		this.types = typeLookup;
 	}
 
 	public EMFVariable getSymbolicParameter(final EObject object, final DemoclesPatternType patternType) {
-		final EClassifier type = typeLookup.determineType(object);
-
+		final EClassifier type = types.determineType(object);
 		return getSymbolicParameter(object, type, patternType);
 	}
 
-	public EMFVariable getSymbolicParameter(final EObject object, final EClassifier type,
+	public EMFVariable getSymbolicParameter(final EObject child, final EObject parent,
 			final DemoclesPatternType patternType) {
-		if (!containsKey(object, patternType)) {
-			final EMFVariable variable = getOrCreateEMFVariable(object, patternType);
+		return getSymbolicParameter(child, parent, patternType, null);
+	}
 
-			variable.setEClassifier(typeLookup.getEClassifier(type));
-			final Pattern pattern = patternLookup.get(patternType);
-			Patterns.addSymbolicParameter(variable, pattern);
-			return variable;
-		} else {
-			return get(object, patternType);
-		}
+	public EMFVariable getSymbolicParameter(final EObject child, final EObject parent,
+			final DemoclesPatternType patternType, final String suffix) {
+		final EClassifier type = types.determineType(child);
+		return getSymbolicParameter(child, parent, type, patternType, suffix);
+	}
+
+	private EMFVariable getSymbolicParameter(final EObject object, final EClassifier type,
+			final DemoclesPatternType patternType) {
+		return getSymbolicParameter(object, null, type, patternType, null);
+	}
+
+	private EMFVariable getSymbolicParameter(final Object child, final Object parent, final EClassifier type,
+			final DemoclesPatternType patternType, final String suffix) {
+		return getVariable(child, parent, type, patternType, VariableLocality.PARAMETER, suffix);
 	}
 
 	public EMFVariable getLocalVariable(final EObject object, final DemoclesPatternType patternType) {
@@ -63,60 +69,68 @@ class VariableLookupTable {
 
 	public EMFVariable getLocalVariable(final EObject child, final Object parent,
 			final DemoclesPatternType patternType) {
-
-		final EClassifier type = typeLookup.determineType(child);
-
+		final EClassifier type = types.determineType(child);
 		return getLocalVariable(child, parent, type, patternType);
 	}
 
-	public EMFVariable getLocalVariable(final Object child, final Object parent, final EClassifier type,
+	private EMFVariable getLocalVariable(final Object child, final Object parent, final EClassifier type,
 			final DemoclesPatternType patternType) {
-		if (!containsKey(child, parent, patternType)) {
-			final EMFVariable variable = getOrCreateVariable(child, parent, patternType);
+		return getLocalVariable(child, parent, type, patternType, null);
+	}
 
-			variable.setEClassifier(typeLookup.getEClassifier(type));
-			final Pattern pattern = patternLookup.get(patternType);
-			Patterns.addLocalVariable(variable, pattern);
+	private EMFVariable getLocalVariable(final Object child, final Object parent, final EClassifier type,
+			final DemoclesPatternType patternType, final String suffix) {
+		return getVariable(child, parent, type, patternType, VariableLocality.LOCAL, suffix);
+	}
+
+	private EMFVariable getVariable(final Object child, final Object parent, final EClassifier type,
+			final DemoclesPatternType patternType, final VariableLocality locality, final String suffix) {
+		if (!containsKey(child, parent, patternType, suffix)) {
+			final EMFVariable variable = getOrCreateVariable(child, parent, patternType, suffix);
+
+			variable.setEClassifier(types.getEClassifier(type));
+			final Pattern pattern = patterns.get(patternType);
+			addVariable(variable, pattern, locality);
 			return variable;
-		} else {
-			return get(child, parent, patternType);
+		} else
+			return get(child, parent, patternType, suffix);
+	}
+
+	private void addVariable(final EMFVariable variable, final Pattern pattern, final VariableLocality locality) {
+		switch (locality) {
+		case PARAMETER:
+			Patterns.addSymbolicParameter(variable, pattern);
+			break;
+		case LOCAL:
+			Patterns.addLocalVariable(variable, pattern);
+			break;
 		}
 	}
 
 	public EMFVariable getReturnVariable(final EObject returnObject, final Pattern pattern) {
 		final EMFVariable returnEmfVariable = EMFTypeFactory.eINSTANCE.createEMFVariable();
 		returnEmfVariable.setName(CodeConventions.RESULT_VARIABLE_NAME);
-		returnEmfVariable.setEClassifier(typeLookup.getEClassifier(typeLookup.determineType(returnObject)));
+		returnEmfVariable.setEClassifier(types.getEClassifier(types.determineType(returnObject)));
 		pattern.getSymbolicParameters().add(0, returnEmfVariable);
 
 		return returnEmfVariable;
 	}
 
-	public EMFVariable get(final Object object, final DemoclesPatternType type) {
-		final String key = calculateLookupKey(object, null);
-		return this.getVariableLookupForPatternType(type).get(key);
-	}
-
-	private boolean containsKey(final Object object, final Object parent, final DemoclesPatternType type) {
-		final String key = calculateLookupKey(object, parent);
+	private boolean containsKey(final Object object, final Object parent, final DemoclesPatternType type,
+			final String suffix) {
+		final String key = calculateLookupKey(object, parent, suffix);
 		return this.getVariableLookupForPatternType(type).containsKey(key);
 	}
 
-	private boolean containsKey(final Object object, final DemoclesPatternType type) {
-		return containsKey(object, null, type);
-	}
-
-	private EMFVariable get(final Object object, final Object parent, final DemoclesPatternType type) {
-		final String key = calculateLookupKey(object, parent);
+	private EMFVariable get(final Object object, final Object parent, final DemoclesPatternType type,
+			final String suffix) {
+		final String key = calculateLookupKey(object, parent, suffix);
 		return this.getVariableLookupForPatternType(type).get(key);
 	}
 
-	private EMFVariable getOrCreateEMFVariable(final Object node, final DemoclesPatternType type) {
-		return getOrCreateVariable(node, null, type);
-	}
-
-	private EMFVariable getOrCreateVariable(final Object obj, final Object parent, final DemoclesPatternType type) {
-		final String keyForLookup = calculateLookupKey(obj, parent);
+	private EMFVariable getOrCreateVariable(final Object obj, final Object parent, final DemoclesPatternType type,
+			final String suffix) {
+		final String keyForLookup = calculateLookupKey(obj, parent, suffix);
 		final Map<Object, EMFVariable> variableLookupForPatternType = getVariableLookupForPatternType(type);
 		if (variableLookupForPatternType.containsKey(keyForLookup))
 			return variableLookupForPatternType.get(keyForLookup);
@@ -128,13 +142,13 @@ class VariableLookupTable {
 		}
 	}
 
-	private String calculateLookupKey(final Object childObject, final Object parentObject) {
+	private String calculateLookupKey(final Object childObject, final Object parentObject, final String suffix) {
 
 		final String childName = getName(childObject);
 
 		final String parentName = getName(parentObject);
 
-		final String keyForLookup = combineChildAndParentName(childName, parentName);
+		final String keyForLookup = combineChildParentAndSuffix(childName, parentName, suffix);
 		return keyForLookup;
 	}
 
@@ -164,13 +178,15 @@ class VariableLookupTable {
 		}
 	}
 
-	public String combineChildAndParentName(final String childName, final String parentName) {
-		if (parentName.isEmpty())
-			return childName;
-		else if (childName.isEmpty())
-			return parentName;
-		else
-			return parentName + "_" + childName;
+	private String combineChildParentAndSuffix(final String childName, final String parentName, final String suffix) {
+		final StringBuilder sb = new StringBuilder();
+		if (parentName != null && !parentName.isEmpty())
+			sb.append(parentName).append("_");
+		sb.append(childName);
+		if (suffix != null && !suffix.isEmpty())
+			sb.append("_").append(suffix);
+
+		return sb.toString();
 	}
 
 	private Map<Object, EMFVariable> getVariableLookupForPatternType(final DemoclesPatternType patternType) {

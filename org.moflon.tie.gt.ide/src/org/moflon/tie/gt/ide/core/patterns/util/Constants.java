@@ -104,13 +104,24 @@ public final class Constants {
 		return constant;
 	}
 
+	public static TypedConstant createAndRegisterTypedConstant(final EditorEnumExpression enumExpression,
+			final EDataType eDataType, final PatternBody patternBody) {
+
+		final TypedConstant constant = DemoclesFactory.eINSTANCE.createTypedConstant();
+		constant.setEClassifier(eDataType);
+		constant.setValue(enumExpression.getLiteral());
+		Patterns.addConstant(patternBody, constant);
+
+		return constant;
+	}
+
 	public static Constant createConstant(final LiteralExpression literalExpression, final EParameter eParameter,
 			final PatternBody body, final MultiStatus transformationStatus) {
-	
+
 		final EClassifier parameterType = eParameter.getEType();
 		if (parameterType instanceof EDataType) {
 			final EDataType parameterDataType = (EDataType) parameterType;
-	
+
 			final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
 			final Optional<Object> value = LiteralExpressions.convertLiteralValueToObject(parameterDataType,
 					literalExpression);
@@ -120,13 +131,12 @@ public final class Constants {
 			} else {
 				constant.setValue(literalExpression.getVal());
 			}
-	
+
 			body.getConstants().add(constant);
 			return constant;
 		} else {
-			TransformationExceptions.recordError(transformationStatus,
-					"The type of %s::%s must be an EDataType but is", eParameter.getEOperation().getName(),
-					eParameter.getName(), parameterType);
+			TransformationExceptions.recordError(transformationStatus, "The type of %s::%s must be an EDataType but is",
+					eParameter.getEOperation().getName(), eParameter.getName(), parameterType);
 			return null;
 		}
 	}

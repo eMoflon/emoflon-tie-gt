@@ -46,6 +46,45 @@ public final class PatternPrintingUtil {
 		throw new UtilityClassNotInstantiableException();
 	}
 
+	public static String describe(final Pattern pattern, final CompilerPatternBody body, final Adornment adornment,
+			final List<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> operationBuilders) {
+		final StringBuilder sb = new StringBuilder();
+		appendf(sb, "Pattern: %s%s", describePatternName(pattern), NL);
+		appendf(sb, "Symbolic parameters: %s%s", describeSymbolicParameters(pattern, adornment), NL);
+		appendf(sb, "Local variables:     %s%s", describeLocalVariables(pattern), NL);
+
+		final PatternBody originalPattern = pattern.getBodies().get(0);
+
+		appendf(sb, "Constraints%s", NL);
+		for (final Constraint constraint : originalPattern.getConstraints()) {
+			appendf(sb, "  %s%s", describe(constraint), NL);
+		}
+
+		appendf(sb, "Operations%s", NL);
+		for (final GeneratorOperation operation : body.getOperations()) {
+			appendf(sb, "  %s%s", describe(operation), NL);
+		}
+
+		appendf(sb, "Search plan operations%s", NL);
+		for (final GeneratorOperation operation : body.getOperations()) {
+			boolean foundSearchPlanOperation = false;
+			for (final SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> builder : operationBuilders) {
+				final WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> weightedOperation = builder
+						.createSearchPlanOperation(operation);
+				if (weightedOperation != null) {
+					appendf(sb, "  %s%s    [origin: %s]%s", describe(weightedOperation), NL, describe(operation), NL);
+					foundSearchPlanOperation = true;
+				}
+			}
+			if (!foundSearchPlanOperation) {
+				appendf(sb, "  [Warning] No search plan operation for %s", describe(operation));
+			}
+		}
+
+		final String formattedPattern = sb.toString();
+		return formattedPattern;
+	}
+
 	public static String describe(final Constraint constraint) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append(getName(constraint));
@@ -63,6 +102,7 @@ public final class PatternPrintingUtil {
 				sb.append(constant.getValue());
 			} else
 				sb.append(parameter);
+			sb.append(",");
 		}
 		sb.replace(sb.length() - 1, sb.length(), ")");
 		appendf(sb, "%s        [class: %s]", NL, constraint.getClass().getName());
@@ -166,45 +206,6 @@ public final class PatternPrintingUtil {
 		final StringBuilder sb = new StringBuilder();
 		appendf(sb, "%s%s        [origin:%s]", operation.toString(), NL, describe(operation.getOrigin()));
 		return sb.toString();
-	}
-
-	public static String describe(final Pattern pattern, final CompilerPatternBody body, final Adornment adornment,
-			final List<SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation>> operationBuilders) {
-		final StringBuilder sb = new StringBuilder();
-		appendf(sb, "Pattern: %s%s", describePatternName(pattern), NL);
-		appendf(sb, "Symbolic parameters: %s%s", describeSymbolicParameters(pattern, adornment), NL);
-		appendf(sb, "Local variables:     %s%s", describeLocalVariables(pattern), NL);
-
-		final PatternBody originalPattern = pattern.getBodies().get(0);
-
-		appendf(sb, "Constraints%s", NL);
-		for (final Constraint constraint : originalPattern.getConstraints()) {
-			appendf(sb, "  %s%s", describe(constraint), NL);
-		}
-
-		appendf(sb, "Operations%s", NL);
-		for (final GeneratorOperation operation : body.getOperations()) {
-			appendf(sb, "  %s%s", describe(operation), NL);
-		}
-
-		appendf(sb, "Search plan operations%s", NL);
-		for (final GeneratorOperation operation : body.getOperations()) {
-			boolean foundSearchPlanOperation = false;
-			for (final SearchPlanOperationBuilder<WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer>, GeneratorOperation> builder : operationBuilders) {
-				final WeightedOperation<SearchPlanOperation<GeneratorOperation>, Integer> weightedOperation = builder
-						.createSearchPlanOperation(operation);
-				if (weightedOperation != null) {
-					appendf(sb, "  %s%s    [origin: %s]%s", describe(weightedOperation), NL, describe(operation), NL);
-					foundSearchPlanOperation = true;
-				}
-			}
-			if (!foundSearchPlanOperation) {
-				appendf(sb, "  [Warning] No search plan operation for %s", describe(operation));
-			}
-		}
-
-		final String formattedPattern = sb.toString();
-		return formattedPattern;
 	}
 
 	public static String describePatternName(final Pattern pattern) {
