@@ -136,7 +136,8 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 
 	@SuppressWarnings("unchecked")
 	private static final OperationSequenceCompiler createBindingAndBlackOperationSequenceCompiler() {
-		return new OperationSequenceCompiler(new BindingAndBlackTemplateProvider());
+		return new OperationSequenceCompiler(new BindingAndBlackTemplateProvider(),
+				new PatternInvocationConstraintTemplateProvider());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -144,9 +145,11 @@ public class TieGtTemplateConfiguration implements TemplateConfigurationProvider
 		return new OperationSequenceCompiler(new AssignmentTemplateProvider(), new EMFTemplateProvider());
 	}
 
+	// TODO@rkluge: Refactor
 	private final STGroup createBindingAndBlackTemplates(final EcoreModelAdaptor ecoreModelAdaptor) {
 		final STGroup group = createPatternTemplates(ecoreModelAdaptor);
 
+		registerPatternCallTemplates(group);
 		registerPrioritizedPatternCallTemplates(group);
 		registerImportModelAdaptor(group);
 		registerAdornmentModelAdaptor(group);

@@ -11,6 +11,7 @@ import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.codegen.TemplateInvocation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 
 public class RegularPatternMatcher extends SearchPlanAdapter {
 
@@ -30,7 +31,7 @@ public class RegularPatternMatcher extends SearchPlanAdapter {
 		final List<GeneratorOperation> internalSymbolicParameters = body.getHeader().getInternalSymbolicParameters();
 		final List<GeneratorOperation> boundInternalSymbolicParameters = new LinkedList<>();
 		for (int i = 0; i < adornment.size(); i++) {
-			if (adornment.get(i) == Adornment.BOUND) {
+			if (Adornments.isBound(adornment, i)) {
 				boundInternalSymbolicParameters.add(internalSymbolicParameters.get(i));
 			}
 		}

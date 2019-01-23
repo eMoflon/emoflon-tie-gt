@@ -164,12 +164,16 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 				democlesImportManager);
 
 		final ST st = templateProvider.getTemplateGroup(patternType).getInstanceOf(template.getTemplateName());
-		for (final Entry<String, Object> entry : template.getAttributes().entrySet()) {
-			st.add(entry.getKey(), entry.getValue());
-		}
+		configureTemplate(template, st);
 		code.append(st.render());
 		// st.inspect();
 		code.append("\n\n");
 		return code.toString();
+	}
+
+	private void configureTemplate(final TemplateInvocation templateInvocation, final ST stringTemplate) {
+		for (final Entry<String, Object> entry : templateInvocation.getAttributes().entrySet()) {
+			stringTemplate.add(entry.getKey(), entry.getValue());
+		}
 	}
 }

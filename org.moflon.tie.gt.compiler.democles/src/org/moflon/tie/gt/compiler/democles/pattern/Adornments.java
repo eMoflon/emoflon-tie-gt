@@ -119,4 +119,8 @@ public class Adornments {
 		}
 	}
 
+	public static boolean isBound(final Adornment adornment, final int i) {
+		return adornment.get(i) == Adornment.BOUND;
+	}
+
 }
