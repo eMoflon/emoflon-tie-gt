@@ -1063,7 +1063,7 @@ public class EditorToControlFlowTransformation {
 		this.ePackage = ePackage;
 		this.ecorePackage = ecorePackage;
 
-		this.adapterResourceManager = new AdapterResources(resourceSet, false);
+		this.adapterResourceManager = new AdapterResources(resourceSet, true);
 		this.patternNameGenerator = new PatternNameGenerator();
 
 		this.transformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
