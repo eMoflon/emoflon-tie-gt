@@ -35,7 +35,7 @@ import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.tie.gt.compiler.democles.CodeConventions;
-import org.moflon.tie.gt.compiler.democles.eclipse.AdapterResource;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcher;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
@@ -105,8 +105,8 @@ public class EditorToControlFlowTransformation {
 	 */
 	private EPackage ePackage;
 	private PatternNameGenerator patternNameGenerator;
-	private ResourceSet resourceSet;
 	private MultiStatus transformationStatus;
+	private AdapterResources adapterResourceManager;
 
 	public EditorToControlFlowTransformation(final PatternMatcherConfiguration patternMatcherConfiguration,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -165,10 +165,7 @@ public class EditorToControlFlowTransformation {
 				.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
 				.forEach(thisVariable -> thisVariable.setConstructor(null));
 
-		final AdapterResource adapterResource = AdapterResources.attachControlFlowModelToRegisteredAdapter(rootScope,
-				eOperation, resourceSet);
-
-		AdapterResources.saveResource(adapterResource);
+		adapterResourceManager.addControlFlowModel(rootScope, eOperation);
 	}
 
 	private void visitStatement(Statement statement, final Scope scope, final EClass eClass,
@@ -341,7 +338,7 @@ public class EditorToControlFlowTransformation {
 			patternNameGenerator.setPatternDefinition(null);
 			pattern.setName(patternNameGenerator.generateName());
 
-			AdapterResources.addAndSave(pattern, eClass, patternType, resourceSet);
+			adapterResourceManager.addPatternModel(pattern, eClass, patternType);
 
 			createAndSaveSearchPlan(resultPatternInvocation, pattern, patternType);
 		}
@@ -558,7 +555,7 @@ public class EditorToControlFlowTransformation {
 			ControlFlowUtil.createVariableReference(parameterCFVariable, parameterEmfVariable, resultPatternInvocation);
 		}
 
-		AdapterResources.addAndSave(pattern, eClass, patternType, resourceSet);
+		adapterResourceManager.addPatternModel(pattern, eClass, patternType);
 
 		createAndSaveSearchPlan(resultPatternInvocation, pattern, patternType);
 
@@ -603,7 +600,7 @@ public class EditorToControlFlowTransformation {
 				continue;
 
 			generateSearchPlansForApplicationConditions(pattern, patternType, eClass);
-			AdapterResources.addAndSave(pattern, eClass, patternType, resourceSet);
+			adapterResourceManager.addPatternModel(pattern, eClass, patternType);
 
 			if (hasErrors())
 				return;
@@ -701,7 +698,7 @@ public class EditorToControlFlowTransformation {
 
 		generateSearchPlansForApplicationConditions(invokee, invokeeType, eClass);
 
-		AdapterResources.addAndSave(invokee, eClass, typeForSaving, resourceSet);
+		adapterResourceManager.addPatternModel(invokee, eClass, typeForSaving);
 
 		final boolean isBinding = invokeeType != null && invokeeType.isBinding();
 		final List<Variable> invokerVariables = Patterns.getBody(invoker).getLocalVariables();
@@ -1065,8 +1062,8 @@ public class EditorToControlFlowTransformation {
 			final EPackage ecorePackage) {
 		this.ePackage = ePackage;
 		this.ecorePackage = ecorePackage;
-		this.resourceSet = resourceSet;
 
+		this.adapterResourceManager = new AdapterResources(resourceSet, false);
 		this.patternNameGenerator = new PatternNameGenerator();
 
 		this.transformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
@@ -1075,8 +1072,8 @@ public class EditorToControlFlowTransformation {
 
 	private void unsetTransformationParameters() {
 		this.ePackage = null;
-		this.resourceSet = null;
 		this.ecorePackage = null;
+		this.adapterResourceManager = null;
 		this.transformationStatus = null;
 		this.patternNameGenerator = null;
 	}
@@ -1086,7 +1083,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void validateAdornment(final Adornment adornment, final Pattern pattern, final DemoclesPatternType type) {
-		if (type.isRed() && !Patterns.isOnlyBound(adornment)) {
+		if (type.isRed() && !Adornments.isOnlyBound(adornment)) {
 			TransformationExceptions.recordError(transformationStatus,
 					"Red patterns should only have bound adornments. Pattern: %s. Adornment: %s", pattern.getName(),
 					adornment);

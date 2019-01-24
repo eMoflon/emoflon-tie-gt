@@ -135,4 +135,8 @@ public class Adornments {
 		return adornment.get(i) == Adornment.NOT_TYPECHECKED;
 	}
 
+	public static boolean isOnlyBound(final Adornment adornment) {
+		return adornment.getBoundColumns().length == adornment.size();
+	}
+
 }

@@ -6,36 +6,34 @@ import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.gervarro.democles.specification.emf.Pattern;
-import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.tie.gt.compiler.democles.eclipse.AdapterResource;
 import org.moflon.tie.gt.compiler.democles.eclipse.DemoclesValidationUtils;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.controlflow.democles.Scope;
 
 public final class AdapterResources {
-	private AdapterResources() {
-		throw new UtilityClassNotInstantiableException();
+	private final ResourceSet resourceSet;
+	private final boolean shallPersistAdapterResources;
+
+	public AdapterResources(final ResourceSet resourceSet, final boolean shallPersistAdapterResources) {
+		this.resourceSet = resourceSet;
+		this.shallPersistAdapterResources = shallPersistAdapterResources;
 	}
 
-	public static AdapterResource add(final EObject attachedObject, final EObject container,
-			final DemoclesPatternType patternType, final ResourceSet resourceSet) {
-		return add(attachedObject, container, patternType.getSuffix(), resourceSet);
-	}
-
-	public static AdapterResource addAndSave(final Pattern pattern, final EClass eClass,
-			final DemoclesPatternType patternType, final ResourceSet resourceSet) {
-		final AdapterResource adapterResource = add(pattern, eClass, patternType, resourceSet);
+	public AdapterResource addPatternModel(final Pattern pattern, final EClass eClass,
+			final DemoclesPatternType patternType) {
+		final AdapterResource adapterResource = add(pattern, eClass, patternType.getSuffix());
 		saveResource(adapterResource);
 		return adapterResource;
 	}
 
-	public static AdapterResource attachControlFlowModelToRegisteredAdapter(final Scope rootScope,
-			final EOperation eOperation, final ResourceSet resourceSet) {
-		return add(rootScope, eOperation, DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION, resourceSet);
+	public AdapterResource addControlFlowModel(final Scope rootScope, final EOperation eOperation) {
+		final AdapterResource resource = add(rootScope, eOperation, DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
+		saveResource(resource);
+		return resource;
 	}
 
-	private static AdapterResource add(final EObject attachedObject, final EObject container,
-			final String fileExtension, final ResourceSet resourceSet) {
+	private AdapterResource add(final EObject attachedObject, final EObject container, final String fileExtension) {
 		final AdapterResource adapterResource = (AdapterResource) EcoreUtil.getRegisteredAdapter(container,
 				fileExtension);
 		if (adapterResource.getResourceSet() == null) {
@@ -45,8 +43,9 @@ public final class AdapterResources {
 		return adapterResource;
 	}
 
-	public static void saveResource(final AdapterResource adapterResource) {
-		DemoclesValidationUtils.saveResource(adapterResource);
+	private void saveResource(final AdapterResource adapterResource) {
+		if (shallPersistAdapterResources)
+			DemoclesValidationUtils.saveResource(adapterResource);
 	}
 
 }

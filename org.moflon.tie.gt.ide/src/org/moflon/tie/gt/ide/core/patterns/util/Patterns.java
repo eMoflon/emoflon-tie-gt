@@ -9,7 +9,6 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
-import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.Constraint;
 import org.gervarro.democles.specification.emf.Pattern;
@@ -67,10 +66,6 @@ public final class Patterns {
 			final MultiStatus transformationStatus) {
 		final EditorOperator operator = editorNode.getOperator();
 		return mapOperatorToPatternTypes(operator, transformationStatus);
-	}
-
-	public static boolean isOnlyBound(final Adornment adornment) {
-		return adornment.getBoundColumns().length == adornment.size();
 	}
 
 	public static DemoclesPatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
