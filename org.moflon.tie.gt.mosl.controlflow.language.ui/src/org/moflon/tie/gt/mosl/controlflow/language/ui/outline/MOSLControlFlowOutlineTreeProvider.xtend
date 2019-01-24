@@ -3,13 +3,83 @@
  */
 package org.moflon.tie.gt.mosl.controlflow.language.ui.outline
 
+import com.google.inject.Inject
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.ui.IImageHelper
+import org.eclipse.xtext.ui.editor.outline.IOutlineNode
 import org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.IncludePattern
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile
 
 /**
  * Customization of the default outline structure.
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#outline
  */
 class MOSLControlFlowOutlineTreeProvider extends DefaultOutlineTreeProvider {
+  @Inject
+  IImageHelper imageHelper
+
+  /**
+   * Only create nodes for the elements selected in the following
+   */
+  override _createNode(IOutlineNode parentNode, EObject modelElement) {
+    if (modelElement instanceof Import //
+    || modelElement instanceof IncludePattern //
+    || modelElement instanceof IncludePattern //
+    || modelElement instanceof EClassDef //
+    || modelElement instanceof MethodDec) {
+      super._createNode(parentNode, modelElement)
+    }
+  }
+
+  def _text(GraphTransformationControlFlowFile file) {
+    'Control flow specification'
+  }
+
+  def _image(GraphTransformationControlFlowFile file) {
+    imageHelper.getImage('controlFlowIcon.gif')
+  }
+
+  def _image(Import importExpression) {
+    imageHelper.getImage('ePackage.gif')
+  }
+
+  def _text(IncludePattern include) {
+    include.importURI
+  }
+
+  def _image(IncludePattern include) {
+    imageHelper.getImage('gtPattern.gif')
+  }
+
+  def _text(EClassDef eClassDef) {
+    eClassDef.name.name
+  }
+
+  def _image(EClassDef eClassDef) {
+    imageHelper.getImage('eClass.gif')
+  }
+
+  def _text(MethodDec operation) {
+    val formattedParameters = operation.EParameters.map[it.name + ":" + it.EType.name].join(",")
+    var String returnType;
+    if (operation.EType === null)
+      returnType = "void"
+    else
+      returnType = operation.EType.name
+    return String.format("%s(%s):%s", operation.name, formattedParameters, returnType)
+  }
+
+  def _image(MethodDec methodDec) {
+    imageHelper.getImage('eOperation.gif')
+  }
+
+  def _isLeaf(MethodDec methodDec) {
+    true
+  }
 
 }

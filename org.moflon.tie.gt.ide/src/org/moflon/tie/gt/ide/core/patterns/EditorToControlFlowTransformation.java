@@ -107,10 +107,12 @@ public class EditorToControlFlowTransformation {
 	private PatternNameGenerator patternNameGenerator;
 	private MultiStatus transformationStatus;
 	private AdapterResources adapterResourceManager;
+	private final TypeLookup types;
 
 	public EditorToControlFlowTransformation(final PatternMatcherConfiguration patternMatcherConfiguration,
-			final EMoflonPreferencesStorage preferencesStorage) {
+			final TypeLookup types, final EMoflonPreferencesStorage preferencesStorage) {
 		this.patternMatchers = patternMatcherConfiguration;
+		this.types = types;
 	}
 
 	public IStatus transform(final EPackage ePackage, final GraphTransformationControlFlowFile controlFlowFile,
@@ -1055,7 +1057,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private PatternBuilderVisitor createPatternBuilderVisitor() {
-		return new PatternBuilderVisitor(Arrays.asList(ecorePackage, ePackage), transformationStatus);
+		return new PatternBuilderVisitor(types, transformationStatus);
 	}
 
 	private void setTransformationParameters(final EPackage ePackage, final ResourceSet resourceSet,

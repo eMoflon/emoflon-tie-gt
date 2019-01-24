@@ -8,7 +8,7 @@
         contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
         default="true"
         extensions="mcf"
-        icon="resources/icon/controllflowIcon.png"
+        icon="icons/controlFlowIcon.gif"
         id="org.moflon.tie.gt.mosl.controlflow.language.MOSLControlFlow"
         name="eMoflon::TIE-GT Control Flow Editor">
 		</editor>
@@ -413,7 +413,7 @@
     <wizard
           category="org.moflon.ide.ui.category"
           class="org.moflon.tie.gt.mosl.controlflow.language.ui.wizards.NewControlFlowFileWizard"
-          icon="resources/icon/controllflowIcon.png"
+          icon="icons/controlFlowIcon.gif"
           id="org.moflon.tie.gt.mosl.controlflow.language.ui.controlflowwizard"
           name="eMoflon::TIE-GT Control Flow Specification File"
           project="false">
@@ -425,7 +425,7 @@
       locationURI="toolbar:org.moflon.ide.ui.toolbar?after=org.moflon.tie.gt.ui.command.newTieGtProject">
       <command
         commandId="org.moflon.tie.gt.mosl.controlflow.language.ui.command.newTieGtControlFlowSpecificationFile"
-        icon="resources/icon/controllflowIcon.png"
+        icon="icons/controlFlowIcon.gif"
         label="New eMoflon::TIE-GT Control Flow Specification File"
         style="push">
         <visibleWhen checkEnabled="false">

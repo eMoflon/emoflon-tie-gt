@@ -51,6 +51,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 	private static final Logger logger = Logger.getLogger(TieGtCodeGenerator.class);
+	private TypeLookup typeLookup;
 
 	public TieGtCodeGenerator(final IFile ecoreFile, final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -128,7 +129,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	}
 
 	private TieGtCodeGenerationConfiguration createCodeGeneratorConfiguration() {
-		final TypeLookup typeLookup = createTypeLookup();
+		typeLookup = createTypeLookup();
 		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries(
 				typeLookup);
 
@@ -161,7 +162,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
 		controlFlowBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
 		final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
-				codeGeneratorConfig.getSearchPlanGenerators(), monitor.split(10));
+				codeGeneratorConfig.getSearchPlanGenerators(), typeLookup, monitor.split(10));
 		return controlFlowBuilderStatus;
 	}
 

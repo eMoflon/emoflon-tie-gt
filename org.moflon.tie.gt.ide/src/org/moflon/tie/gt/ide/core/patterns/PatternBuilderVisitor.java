@@ -20,7 +20,6 @@ import org.eclipse.emf.ecore.EDataType;
 import org.eclipse.emf.ecore.EEnumLiteral;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -93,14 +92,12 @@ public class PatternBuilderVisitor {
 	private final VariableLookup variables;
 	private final TypeLookup types;
 	private final MultiStatus transformationStatus;
-	private final List<EPackage> ePackages;
 
-	public PatternBuilderVisitor(final List<EPackage> ePackages, final MultiStatus transformationStatus) {
-		this.ePackages = ePackages;
+	public PatternBuilderVisitor(final TypeLookup types, final MultiStatus transformationStatus) {
 		this.transformationStatus = transformationStatus;
+		this.types = types;
 
 		patterns = new PatternLookup();
-		types = new TypeLookup(ePackages);
 		variables = new VariableLookup(patterns, types);
 	}
 
@@ -614,7 +611,7 @@ public class PatternBuilderVisitor {
 
 	private Pattern buildInvokedPattern(final EditorPattern invoker, final EditorPattern invokee) {
 
-		final PatternBuilderVisitor invokeeVisitor = new PatternBuilderVisitor(ePackages, transformationStatus);
+		final PatternBuilderVisitor invokeeVisitor = new PatternBuilderVisitor(types, transformationStatus);
 
 		final EditorPattern copiedInvokee = createPatternWithCastingSourceNodes(invoker, invokee);
 

@@ -20,6 +20,7 @@ import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
+import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import;
 
@@ -52,7 +53,8 @@ public class TieGtControlFlowBuilder {
 	}
 
 	public IStatus run(final IProject project, final Resource resource,
-			final PatternMatcherConfiguration patternMatcherConfiguration, final IProgressMonitor monitor) {
+			final PatternMatcherConfiguration patternMatcherConfiguration, final TypeLookup types,
+			final IProgressMonitor monitor) {
 
 		if (this.ecorePackage == null) {
 			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Ecore package was not set.");
@@ -60,7 +62,7 @@ public class TieGtControlFlowBuilder {
 
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
-		this.controlFlowTransformation = new EditorToControlFlowTransformation(patternMatcherConfiguration,
+		this.controlFlowTransformation = new EditorToControlFlowTransformation(patternMatcherConfiguration, types,
 				preferencesStorage);
 		return run(monitor);
 	}
