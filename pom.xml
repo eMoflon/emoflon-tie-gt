@@ -1,59 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.moflon.tie.gt</groupId>
-  <artifactId>org.moflon.tie.gt.parent</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <modules>
-  <module>org.moflon.tie.gt.branding</module>
-  <module>org.moflon.tie.gt.compiler.democles</module>
-  <module>org.moflon.tie.gt.constraints.democles</module>
-  <module>org.moflon.tie.gt.constraints.operationspecification</module>
-  <module>org.moflon.tie.gt.controlflow.democles</module>
-  <module>org.moflon.tie.gt.democles.bridge</module>
-  <module>org.moflon.tie.gt.feature</module>
-  <module>org.moflon.tie.gt.ide</module>
-  <module>org.moflon.tie.gt.mosl.controlflow.language</module>
-  <module>org.moflon.tie.gt.mosl.controlflow.language.ide</module>
-  <module>org.moflon.tie.gt.mosl.controlflow.language.ui</module>
-  <module>org.moflon.tie.gt.mosl.ui</module>
-  <module>org.moflon.tie.gt.reachability</module>
-  <module>org.moflon.tie.gt.target</module>
-  <module>org.moflon.tie.gt.ui</module>
-  <module>org.moflon.tie.gt.updatesite</module>
-  </modules>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.moflon.tie.gt</groupId>
+	<artifactId>org.moflon.tie.gt.parent</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<!-- We excluded all modules that are affected by the Xtext-based control 
+		flow specification language, which cannot be built using Tycho (state: 2019-01-24)-->
+	<modules>
+		<module>org.moflon.tie.gt.branding</module>
+		<module>org.moflon.tie.gt.compiler.democles</module>
+		<module>org.moflon.tie.gt.constraints.democles</module>
+		<module>org.moflon.tie.gt.constraints.operationspecification</module>
+		<module>org.moflon.tie.gt.controlflow.democles</module>
+		<module>org.moflon.tie.gt.democles.bridge</module>
+		<!-- <module>org.moflon.tie.gt.feature</module> <module>org.moflon.tie.gt.ide</module> 
+			<module>org.moflon.tie.gt.mosl.controlflow.language</module> <module>org.moflon.tie.gt.mosl.controlflow.language.ide</module> 
+			<module>org.moflon.tie.gt.mosl.controlflow.language.ui</module> -->
+		<module>org.moflon.tie.gt.mosl.ui</module>
+		<module>org.moflon.tie.gt.reachability</module>
+		<module>org.moflon.tie.gt.target</module>
+		<!-- <module>org.moflon.tie.gt.ui</module> <module>org.moflon.tie.gt.updatesite</module> -->
+	</modules>
 
-  <properties>
-    <tychoVersion>1.0.0</tychoVersion>
-	  <xtextVersion>2.15.0</xtextVersion>
-	  <emfVersion>2.12.0</emfVersion>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-  </properties>
+	<properties>
+		<tychoVersion>1.0.0</tychoVersion>
+		<xtextVersion>2.15.0</xtextVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
 
-  <repositories>
-    <repository>
-      <id>oxygen</id>
-      <layout>p2</layout>
-      <!--<url>http://download.eclipse.org/releases/neon</url>-->
-      <!--<url>http://download.eclipse.org/releases/oxygen</url>-->
-      <url>http://download.eclipse.org/releases/2018-09/</url>
-    </repository>
-    <repository>
-      <id>emoflon-core</id>
-      <layout>p2</layout>
-      <url>http://emoflon.org/emoflon-core-updatesite/stable/updatesite/</url>
-    </repository>
-    <repository>
-      <id>plantuml</id>
-      <layout>p2</layout>
-      <url>https://hallvard.github.io/plantuml/</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
+	<repositories>
+		<repository>
+			<id>Eclipse 2018-09</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/2018-09/</url>
+		</repository>
+		<repository>
+			<id>Eclipse 2018-12</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/2018-12/</url>
+		</repository>
+		<repository>
+			<id>emoflon-core</id>
+			<layout>p2</layout>
+			<url>https://emoflon.org/emoflon-core-updatesite/stable/updatesite/</url>
+		</repository>
+		<repository>
+			<id>plantuml</id>
+			<layout>p2</layout>
+			<url>https://hallvard.github.io/plantuml/</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
 			<id>codehaus-snapshots</id>
 			<name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
 			<url>http://nexus.codehaus.org/snapshots/</url>
@@ -64,9 +66,9 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</pluginRepository>
-  </pluginRepositories>
+	</pluginRepositories>
 
-  <build>
+	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
@@ -241,10 +243,7 @@
 					</configuration>
 				</plugin>
 				<plugin>
-					<!-- 
-						Can be removed after first generator execution
-						https://bugs.eclipse.org/bugs/show_bug.cgi?id=480097
-					-->
+					<!-- Can be removed after first generator execution https://bugs.eclipse.org/bugs/show_bug.cgi?id=480097 -->
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tychoVersion}</version>
@@ -255,33 +254,33 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-  <dependencyManagement>
-  	<dependencies>
-  		<dependency>
-  			<groupId>org.eclipse.emf</groupId>
-  			<artifactId>org.eclipse.emf.ecore</artifactId>
-  			<version>${emfVersion}</version>
-  		</dependency>
-      <dependency>
-        <groupId>org.eclipse.emf</groupId>
-        <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-        <version>${emfVersion}</version>
-      </dependency>
-  		<dependency>
-        <groupId>org.eclipse.emf</groupId>
-        <artifactId>org.eclipse.emf.common</artifactId>
-        <version>${emfVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.emf</groupId>
-        <artifactId>org.eclipse.emf.codegen</artifactId>
-        <version>${emfVersion}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.emf</groupId>
-        <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
-        <version>${emfVersion}</version>
-      </dependency>
-  	</dependencies>
-  </dependencyManagement>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.eclipse.emf</groupId>
+				<artifactId>org.eclipse.emf.ecore</artifactId>
+				<version>${emfVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.emf</groupId>
+				<artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+				<version>${emfVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.emf</groupId>
+				<artifactId>org.eclipse.emf.common</artifactId>
+				<version>${emfVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.emf</groupId>
+				<artifactId>org.eclipse.emf.codegen</artifactId>
+				<version>${emfVersion}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.emf</groupId>
+				<artifactId>org.eclipse.emf.codegen.ecore</artifactId>
+				<version>${emfVersion}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
