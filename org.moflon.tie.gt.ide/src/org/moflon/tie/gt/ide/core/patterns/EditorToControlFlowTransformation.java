@@ -60,7 +60,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationConstraints;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptions;
-import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
+import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;

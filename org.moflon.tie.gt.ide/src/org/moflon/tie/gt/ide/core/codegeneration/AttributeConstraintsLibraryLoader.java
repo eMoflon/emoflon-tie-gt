@@ -22,7 +22,7 @@ import org.moflon.tie.gt.constraints.operationspecification.OperationSpecificati
 import org.moflon.tie.gt.constraints.operationspecification.OperationspecificationFactory;
 import org.moflon.tie.gt.constraints.operationspecification.ParamIdentifier;
 import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
-import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
+import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 
 public class AttributeConstraintsLibraryLoader {
 

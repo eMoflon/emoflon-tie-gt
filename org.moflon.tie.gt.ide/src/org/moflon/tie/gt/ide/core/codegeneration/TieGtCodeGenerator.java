@@ -46,7 +46,7 @@ import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
-import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
+import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 

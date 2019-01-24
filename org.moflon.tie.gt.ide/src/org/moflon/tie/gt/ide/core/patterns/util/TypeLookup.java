@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.runtime.utilities;
+package org.moflon.tie.gt.ide.core.patterns.util;
 
 import java.util.Collection;
 import java.util.List;

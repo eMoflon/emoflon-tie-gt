@@ -13,7 +13,6 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 
 public final class TieGtEcoreUtil {
