@@ -98,7 +98,7 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			final IProgressMonitor monitor) {
 		final IFile ecoreFile = getProject()
 				.getFile(MoflonConventions.getDefaultPathToEcoreFileInProject(getProject().getName()));
-		final MultiStatus emfBuilderStatus = new MultiStatus(getPlugin(), 0,
+		final MultiStatus builderStatus = new MultiStatus(getPlugin(), 0,
 				"Problems during eMoflon::TIE-GT code generation", null);
 		try {
 			final SubMonitor subMon = SubMonitor.convert(monitor,
@@ -125,14 +125,14 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			final TieGtCodeGenerator codeGenerationTask = new TieGtCodeGenerator(ecoreFile, resourceSet,
 					preferencesStorage);
 			final IStatus status = codeGenerationTask.run(subMon.split(4));
-			emfBuilderStatus.add(status);
+			builderStatus.add(status);
 
-			if (!emfBuilderStatus.isOK())
+			if (!builderStatus.isOK())
 				return;
 
 			final GenModel genModel = codeGenerationTask.getGenModel();
 			if (genModel == null) {
-				emfBuilderStatus.add(
+				builderStatus.add(
 						createErrorStatus(String.format("No generator model in project %s", getProject().getName())));
 			} else {
 				ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
@@ -142,9 +142,9 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			ResourcesPlugin.getWorkspace().checkpoint(false);
 
 		} catch (final CoreException e) {
-			emfBuilderStatus.add(new Status(e.getStatus().getSeverity(), getPlugin(), e.getMessage(), e));
+			builderStatus.add(new Status(e.getStatus().getSeverity(), getPlugin(), e.getMessage(), e));
 		} finally {
-			handleErrorsInEclipse(emfBuilderStatus, ecoreFile);
+			handleErrorsInEclipse(builderStatus, ecoreFile);
 		}
 	}
 

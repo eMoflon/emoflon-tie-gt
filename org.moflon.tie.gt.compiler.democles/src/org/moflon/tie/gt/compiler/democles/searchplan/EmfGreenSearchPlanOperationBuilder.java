@@ -29,7 +29,7 @@ public class EmfGreenSearchPlanOperationBuilder implements TieGtSearchPlanOperat
 			final ConstraintType constraintType = constraint.getType();
 			if (constraintType instanceof StructuralFeature<?>) {
 				if (adornment.equals(Adornments.BB)) {
-					return new SearchPlanOperation<>(operation, Adornment.create(Adornment.BOUND, Adornment.BOUND));
+					return new SearchPlanOperation<>(operation, Adornments.BB);
 				}
 			}
 		}

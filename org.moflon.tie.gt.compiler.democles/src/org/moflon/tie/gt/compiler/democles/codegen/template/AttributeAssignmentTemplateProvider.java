@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.codegen.template;
 
 import static org.moflon.tie.gt.compiler.democles.util.ConstraintUtil.isEqual;
+import static org.moflon.tie.gt.compiler.democles.util.TemplateUtil.createChain;
 
 import java.util.List;
 
@@ -28,15 +29,12 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 			if (isEqual(type)) {
 				if (operation.isAlwaysSuccessful()) {
 					if (forceCasting(operation)) {
-						return new Chain<TemplateController>(
-								new TemplateController("/assignment/AssignWithClassCastException", operation), tail);
+						return createChain("/assignment/AssignWithClassCastException", operation, tail);
 					} else {
-						return new Chain<TemplateController>(new TemplateController("/assignment/Assign", operation),
-								tail);
+						return createChain("/assignment/Assign", operation, tail);
 					}
 				} else {
-					return new Chain<TemplateController>(
-							new TemplateController("/assignment/AssignWithNullCheck", operation), tail);
+					return createChain("/assignment/AssignWithNullCheck", operation, tail);
 				}
 			}
 		}
@@ -51,11 +49,10 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 
 	private final boolean forceCasting(final GeneratorOperation operation) {
 		final List<SpecificationExtendedVariableRuntime> parameters = operation.getParameters();
-		if (EcorePackage.eINSTANCE.getEDataType()
-				.isInstance(ConstraintUtil.lookupEClassifier(parameters.get(0)))) {
+		if (EcorePackage.eINSTANCE.getEDataType().isInstance(ConstraintUtil.lookupEClassifier(parameters.get(0)))) {
 			final SpecificationExtendedVariableRuntime variable = parameters.get(1);
-			if (variable.getSpecification() instanceof Variable && EcorePackage.eINSTANCE.getEJavaObject()
-					.equals(ConstraintUtil.lookupEClassifier(variable))) {
+			if (variable.getSpecification() instanceof Variable
+					&& EcorePackage.eINSTANCE.getEJavaObject().equals(ConstraintUtil.lookupEClassifier(variable))) {
 				return true;
 			}
 		}

@@ -22,4 +22,8 @@ public final class TemplateUtil {
 			final Chain<TemplateController> tail) {
 		return new Chain<>(new TemplateController(templateName, operation), tail);
 	}
+
+	public static Chain<TemplateController> createChain(final String templateName) {
+		return new Chain<>(new TemplateController(templateName));
+	}
 }

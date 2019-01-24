@@ -127,4 +127,12 @@ public class Adornments {
 		return adornment.get(i) == Adornment.BOUND;
 	}
 
+	public static boolean isFree(final Adornment adornment, final int i) {
+		return adornment.get(i) == Adornment.FREE;
+	}
+
+	public static boolean isNotTypechecked(final Adornment adornment, final int i) {
+		return adornment.get(i) == Adornment.NOT_TYPECHECKED;
+	}
+
 }

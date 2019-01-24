@@ -825,16 +825,7 @@ public class EditorToControlFlowTransformation {
 	private void generateSearchPlanForPattern(final Pattern pattern, final DemoclesPatternType type,
 			final Adornment adornment, final boolean isMultipleMatch) {
 
-		final DemoclesPatternType correctedType;
-		if (Patterns.getConstraints(pattern).stream()
-				.filter(constraint -> constraint instanceof PatternInvocationConstraint)
-				.map(constraint -> (PatternInvocationConstraint) constraint)
-				.map(PatternInvocationConstraint::getInvokedPattern).map(Pattern::getName)
-				.anyMatch(name -> name.contains(DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION))) {
-			correctedType = DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
-		} else {
-			correctedType = type;
-		}
+		final DemoclesPatternType correctedType = adjustPatternTypeBasedOnConstraints(pattern, type);
 		final PatternMatcher patternMatcher = patternMatchers.getPatternMatcher(correctedType);
 
 		validateAdornment(adornment, pattern, correctedType);
@@ -843,6 +834,19 @@ public class EditorToControlFlowTransformation {
 
 		final IStatus status = patternMatcher.generateSearchPlan(pattern, adornment, isMultipleMatch);
 		transformationStatus.add(status);
+	}
+
+	private DemoclesPatternType adjustPatternTypeBasedOnConstraints(final Pattern pattern,
+			final DemoclesPatternType type) {
+		if (Patterns.getConstraints(pattern).stream()//
+				.filter(constraint -> constraint instanceof PatternInvocationConstraint)//
+				.map(constraint -> (PatternInvocationConstraint) constraint)//
+				.map(PatternInvocationConstraint::getInvokedPattern).map(Pattern::getName)//
+				.anyMatch(name -> name.contains(DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION))) {
+			return DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
+		} else {
+			return type;
+		}
 	}
 
 	private EClass resolveEClass(final EClassDef editorEClass) {

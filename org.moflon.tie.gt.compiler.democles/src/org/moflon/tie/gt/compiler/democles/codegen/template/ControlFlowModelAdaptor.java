@@ -39,8 +39,7 @@ public class ControlFlowModelAdaptor extends ObjectModelAdaptor {
 		if (object instanceof PatternInvocation) {
 			final PatternInvocation invocation = (PatternInvocation) object;
 			if ("boundParameters".equals(propertyName)) {
-				final ArrayList<VariableReference> boundParameters = new ArrayList<VariableReference>(
-						invocation.getParameters().size());
+				final ArrayList<VariableReference> boundParameters = new ArrayList<>(invocation.getParameters().size());
 				for (final VariableReference reference : invocation.getParameters()) {
 					if (!reference.isFree()) {
 						boundParameters.add(reference);
@@ -48,8 +47,7 @@ public class ControlFlowModelAdaptor extends ObjectModelAdaptor {
 				}
 				return boundParameters;
 			} else if ("freeParameters".equals(propertyName)) {
-				final ArrayList<VariableReference> freeParameters = new ArrayList<VariableReference>(
-						invocation.getParameters().size());
+				final ArrayList<VariableReference> freeParameters = new ArrayList<>(invocation.getParameters().size());
 				for (final VariableReference reference : invocation.getParameters()) {
 					if (reference.isFree()) {
 						freeParameters.add(reference);

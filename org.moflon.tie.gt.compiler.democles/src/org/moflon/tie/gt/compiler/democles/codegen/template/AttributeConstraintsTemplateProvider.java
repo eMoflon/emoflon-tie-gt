@@ -1,5 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.codegen.template;
 
+import static org.moflon.tie.gt.compiler.democles.util.TemplateUtil.createChain;
+
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.CodeGeneratorProvider;
 import org.gervarro.democles.codegen.GeneratorOperation;
@@ -24,7 +26,7 @@ public class AttributeConstraintsTemplateProvider implements CodeGeneratorProvid
 			final ConstraintSpecification constraintType = (ConstraintSpecification) operationType;
 
 			final String fullyQualifiedTemplateName = createTemplateName(operation, constraintType);
-			return new Chain<>(new TemplateController(fullyQualifiedTemplateName, operation), tail);
+			return createChain(fullyQualifiedTemplateName, operation, tail);
 		}
 		throw new IllegalArgumentException(
 				String.format("Invalid operation type '%s' for operation '%s'", operationType, operation));

@@ -1,5 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.searchplan;
 
+import static org.moflon.tie.gt.compiler.democles.util.TemplateUtil.createChain;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,11 +13,12 @@ import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.codegen.TemplateInvocation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.compiler.CompilerPatternBody;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 
 public class ExpressionPatternMatcher extends SearchPlanAdapter {
 
-	public ExpressionPatternMatcher(String patternType, CompilerPatternBody body, Adornment adornment,
-			Chain<GeneratorOperation> searchPlan, boolean multipleMatches) {
+	public ExpressionPatternMatcher(final String patternType, final CompilerPatternBody body, final Adornment adornment,
+			final Chain<GeneratorOperation> searchPlan, final boolean multipleMatches) {
 		super(patternType, body, adornment, searchPlan, multipleMatches);
 	}
 
@@ -27,16 +30,16 @@ public class ExpressionPatternMatcher extends SearchPlanAdapter {
 		final CompilerPatternBody body = getBody();
 		Chain<TemplateController> templateChain = null;
 		if (searchPlan != null) {
-			if (adornment.get(0) == Adornment.FREE) {
-				templateChain = new Chain<TemplateController>(new TemplateController("/expression/SingleMatch"));
+			if (Adornments.isFree(adornment, 0)) {
+				templateChain = createChain("/expression/SingleMatch");
 			}
 			templateChain = operationSequenceCompiler.buildOperationChain(searchPlan, templateChain);
 		}
 
-		List<GeneratorOperation> internalSymbolicParameters = body.getHeader().getInternalSymbolicParameters();
-		List<GeneratorOperation> boundInternalSymbolicParameters = new LinkedList<GeneratorOperation>();
+		final List<GeneratorOperation> internalSymbolicParameters = body.getHeader().getInternalSymbolicParameters();
+		final List<GeneratorOperation> boundInternalSymbolicParameters = new LinkedList<>();
 		for (int i = 0; i < adornment.size(); i++) {
-			if (adornment.get(i) == Adornment.BOUND) {
+			if (Adornments.isBound(adornment, i)) {
 				boundInternalSymbolicParameters.add(internalSymbolicParameters.get(i));
 			}
 		}

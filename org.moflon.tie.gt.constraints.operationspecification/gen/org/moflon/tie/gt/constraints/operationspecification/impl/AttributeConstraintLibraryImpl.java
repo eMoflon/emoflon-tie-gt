@@ -112,8 +112,7 @@ public class AttributeConstraintLibraryImpl extends EObjectImpl implements Attri
 	 */
 	public EList<OperationSpecificationGroup> getOperationSpecifications() {
 		if (operationSpecifications == null) {
-			operationSpecifications = new EObjectContainmentWithInverseEList<OperationSpecificationGroup>(
-					OperationSpecificationGroup.class, this,
+			operationSpecifications = new EObjectContainmentWithInverseEList<>(OperationSpecificationGroup.class, this,
 					OperationspecificationPackage.ATTRIBUTE_CONSTRAINT_LIBRARY__OPERATION_SPECIFICATIONS,
 					OperationspecificationPackage.OPERATION_SPECIFICATION_GROUP__ATTRIBUTE_CONSTRAINT_LIBRARY);
 		}
@@ -127,8 +126,7 @@ public class AttributeConstraintLibraryImpl extends EObjectImpl implements Attri
 	 */
 	public EList<ConstraintSpecification> getConstraintSpecifications() {
 		if (constraintSpecifications == null) {
-			constraintSpecifications = new EObjectContainmentWithInverseEList<ConstraintSpecification>(
-					ConstraintSpecification.class, this,
+			constraintSpecifications = new EObjectContainmentWithInverseEList<>(ConstraintSpecification.class, this,
 					OperationspecificationPackage.ATTRIBUTE_CONSTRAINT_LIBRARY__CONSTRAINT_SPECIFICATIONS,
 					OperationspecificationPackage.CONSTRAINT_SPECIFICATION__ATTRIBUTE_CONSTRAINT_LIBRARY);
 		}

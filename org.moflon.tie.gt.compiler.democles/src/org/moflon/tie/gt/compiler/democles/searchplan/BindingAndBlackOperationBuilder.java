@@ -15,6 +15,7 @@ import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.PatternInvocationConstraint;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 
 public class BindingAndBlackOperationBuilder implements TieGtOperationBuilder {
 	private final Pattern pattern;
@@ -50,8 +51,8 @@ public class BindingAndBlackOperationBuilder implements TieGtOperationBuilder {
 								.equals(PatternMatcherPlugin.getIdentifier(internalPattern.getName(),
 										internalPattern.getSymbolicParameters().size()))) {
 							final List<CompilableAdornedOperation> result = new LinkedList<>();
-							result.add(new CompilableAdornedOperation(getOperationAdornment(this.pattern, current, invocationConstraint),
-									invocation));
+							result.add(new CompilableAdornedOperation(
+									getOperationAdornment(this.pattern, current, invocationConstraint), invocation));
 							return result;
 						}
 						current = getNextAdornment(this.pattern, current, invocationConstraint);
@@ -115,7 +116,7 @@ public class BindingAndBlackOperationBuilder implements TieGtOperationBuilder {
 		for (int operationIndex = 0; operationIndex < constraintParameters.size(); operationIndex++) {
 			final ConstraintParameter cp = constraintParameters.get(operationIndex);
 			final int index = determineParameterIndex(pattern, cp);
-			if (adornment.get(index) > Adornment.BOUND) {
+			if (Adornments.isFree(adornment, index) || Adornments.isNotTypechecked(adornment, index)) {
 				result.set(index, Adornment.BOUND);
 			}
 		}
