@@ -90,7 +90,7 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCall
 
 public class PatternBuilderVisitor {
 	private final PatternLookup patterns;
-	private final VariableLookupTable variables;
+	private final VariableLookup variables;
 	private final TypeLookup types;
 	private final MultiStatus transformationStatus;
 	private final List<EPackage> ePackages;
@@ -101,7 +101,7 @@ public class PatternBuilderVisitor {
 
 		patterns = new PatternLookup();
 		types = new TypeLookup(ePackages);
-		variables = new VariableLookupTable(patterns, types);
+		variables = new VariableLookup(patterns, types);
 	}
 
 	public PatternLookup visit(final EditorPattern pattern) {

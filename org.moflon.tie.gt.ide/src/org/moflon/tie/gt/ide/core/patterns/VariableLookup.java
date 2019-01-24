@@ -18,7 +18,7 @@ import org.moflon.tie.gt.controlflow.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 import org.moflon.tie.gt.ide.core.runtime.utilities.TypeLookup;
 
-class VariableLookupTable {
+class VariableLookup {
 	private final Map<DemoclesPatternType, Map<Object, EMFVariable>> data = new HashMap<>();
 	private final PatternLookup patterns;
 	private final TypeLookup types;
@@ -27,7 +27,7 @@ class VariableLookupTable {
 		PARAMETER, LOCAL;
 	}
 
-	public VariableLookupTable(final PatternLookup patternLookup, final TypeLookup typeLookup) {
+	public VariableLookup(final PatternLookup patternLookup, final TypeLookup typeLookup) {
 		this.patterns = patternLookup;
 		this.types = typeLookup;
 	}
