@@ -74,7 +74,6 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpres
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowFactory;
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.NextStatement;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableAttributeExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement;
@@ -145,8 +144,8 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private void transformOperationDefinition(final EClass eClass, final MethodDec editorEOperation) {
-		if (editorEOperation.getStartStatement() == null) {
-			editorEOperation.setStartStatement(MoslControlFlowFactory.eINSTANCE.createReturnStatement());
+		if (editorEOperation.getStatements().isEmpty()) {
+			editorEOperation.getStatements().add(MoslControlFlowFactory.eINSTANCE.createReturnStatement());
 		}
 
 		final EOperation eOperation = resolveEOperation(eClass, editorEOperation);
@@ -159,9 +158,9 @@ public class EditorToControlFlowTransformation {
 		recentControlFlowNode = null;
 
 		final Scope rootScope = createRootScopeForEOperation(eOperation, editorEOperation);
-		final Statement statement = editorEOperation.getStartStatement();
+		final List<Statement> statements = editorEOperation.getStatements();
 
-		visitStatement(statement, rootScope, eClass, eOperation);
+		visitStatements(statements, eClass, eOperation, rootScope);
 
 		rootScope.getVariables().stream()
 				.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
@@ -170,38 +169,38 @@ public class EditorToControlFlowTransformation {
 		adapterResourceManager.addControlFlowModel(rootScope, eOperation);
 	}
 
-	private void visitStatement(Statement statement, final Scope scope, final EClass eClass,
+	private void visitStatements(final List<Statement> statements, final EClass eClass, final EOperation eOperation,
+			final Scope rootScope) {
+		for (final Statement statement : statements)
+			visitStatement(statement, rootScope, eClass, eOperation);
+	}
+
+	private void visitStatement(final Statement statement, final Scope scope, final EClass eClass,
 			final EOperation eOperation) {
-		while (statement instanceof NextStatement) {
-			final NextStatement nextStatement = (NextStatement) statement;
-			if (nextStatement instanceof ObjectVariableStatement) {
-				visitStatement((ObjectVariableStatement) statement, scope, eOperation);
-			} else if (nextStatement instanceof ConditionStatement) {
-				visitStatement((ConditionStatement) statement, scope, eClass, eOperation);
-			} else if (nextStatement instanceof WhileLoopStatement) {
-				visitStatement((WhileLoopStatement) statement, scope, eClass, eOperation);
-			} else if (nextStatement instanceof ForLoopStatement) {
-				visitStatement((ForLoopStatement) statement, scope, eClass, eOperation);
-			} else if (nextStatement instanceof DoLoopStatement) {
-				visitStatement((DoLoopStatement) statement, scope, eClass, eOperation);
-			} else if (nextStatement instanceof ReturnStatement) {
-				visitStatement((ReturnStatement) statement, scope, eClass, eOperation);
-			} else if (nextStatement instanceof PatternStatement) {
-				visitStatement((PatternStatement) statement, scope, eClass, eOperation);
-			} else if (nextStatement instanceof OperationCallStatement) {
-				visitStatement((OperationCallStatement) statement, scope, eClass, eOperation);
-			}
-
-			if (hasErrors()) {
-				return;
-			}
-
-			statement = nextStatement.getNext();
-		}
-
-		if (statement instanceof ReturnStatement) {
+		if (statement instanceof ObjectVariableStatement) {
+			visitStatement((ObjectVariableStatement) statement, scope, eOperation);
+		} else if (statement instanceof ConditionStatement) {
+			visitStatement((ConditionStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof WhileLoopStatement) {
+			visitStatement((WhileLoopStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof ForLoopStatement) {
+			visitStatement((ForLoopStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof DoLoopStatement) {
+			visitStatement((DoLoopStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof ReturnStatement) {
+			visitStatement((ReturnStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof PatternStatement) {
+			visitStatement((PatternStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof OperationCallStatement) {
+			visitStatement((OperationCallStatement) statement, scope, eClass, eOperation);
+		} else if (statement instanceof ReturnStatement) {
 			visitStatement((ReturnStatement) statement, scope, eClass, eOperation);
 		}
+
+		if (hasErrors()) {
+			return;
+		}
+
 	}
 
 	private void visitStatement(final ObjectVariableStatement oVarStatement, final Scope scope,
@@ -366,7 +365,7 @@ public class EditorToControlFlowTransformation {
 			return;
 		}
 
-		for (final Statement stmt : getThenAndElseStatements(ifStatement)) {
+		for (final List<Statement> statements : getThenAndElseStatements(ifStatement)) {
 
 			final Scope nextScope = DemoclesFactory.eINSTANCE.createScope();
 			ControlFlowUtil.moveVariablesToScope(createdVariables, scope, nextScope);
@@ -378,7 +377,7 @@ public class EditorToControlFlowTransformation {
 
 			recentControlFlowNode = null;
 
-			visitStatement(stmt, nextScope, eClass, eOperation);
+			visitStatements(statements, eClass, eOperation, nextScope);
 			if (hasErrors()) {
 				return;
 			}
@@ -408,7 +407,7 @@ public class EditorToControlFlowTransformation {
 
 		this.recentControlFlowNode = null;
 
-		visitStatement(whileLoopStatement.getLoopStartStatement(), nextScope, eClass, eOperation);
+		visitStatements(whileLoopStatement.getLoopStatements(), eClass, eOperation, nextScope);
 		if (hasErrors()) {
 			return;
 		}
@@ -418,8 +417,8 @@ public class EditorToControlFlowTransformation {
 
 	}
 
-	private void visitStatement(final ForLoopStatement forLoopStatement, final Scope scope,
-			final EClass correspondingEClass, final EOperation eOperation) {
+	private void visitStatement(final ForLoopStatement forLoopStatement, final Scope scope, final EClass eClass,
+			final EOperation eOperation) {
 		final int id = cfNodeIdCounter++;
 		final ForEach forLoopDemocles = ControlFlowUtil.createForEachStatement(id, scope, recentControlFlowNode);
 
@@ -427,8 +426,8 @@ public class EditorToControlFlowTransformation {
 
 		final Condition cond = forLoopStatement.getCond();
 		final List<CFVariable> createdVariables = new ArrayList<>();
-		invokePattern(cond.getPatternReference().getPattern(), scope, correspondingEClass, cond.getParameters(),
-				forLoopDemocles, createdVariables, eOperation);
+		invokePattern(cond.getPatternReference().getPattern(), scope, eClass, cond.getParameters(), forLoopDemocles,
+				createdVariables, eOperation);
 
 		// Transform loop body
 		final Scope nextScope = ControlFlowUtil.createScope(forLoopDemocles);
@@ -437,7 +436,7 @@ public class EditorToControlFlowTransformation {
 
 		this.recentControlFlowNode = null;
 
-		visitStatement(forLoopStatement.getLoopStartStatement(), nextScope, correspondingEClass, eOperation);
+		visitStatements(forLoopStatement.getLoopStatements(), eClass, eOperation, nextScope);
 
 		if (hasErrors()) {
 			return;
@@ -461,7 +460,7 @@ public class EditorToControlFlowTransformation {
 
 		this.recentControlFlowNode = null;
 
-		visitStatement(doLoopStatement.getLoopStartStatement(), nextScope, eClass, eOperation);
+		visitStatements(doLoopStatement.getLoopStatements(), eClass, eOperation, nextScope);
 
 		if (hasErrors()) {
 			return;
@@ -713,8 +712,8 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.unsetApplicationConditionType();
 	}
 
-	private List<Statement> getThenAndElseStatements(final ConditionStatement ifStatement) {
-		return Arrays.asList(ifStatement.getThenStartStatement(), ifStatement.getElseStartStatement());
+	private List<List<Statement>> getThenAndElseStatements(final ConditionStatement ifStatement) {
+		return Arrays.asList(ifStatement.getThenStatements(), ifStatement.getElseStatements());
 	}
 
 	private EditorPattern flattenPattern(final EditorPattern editorPattern) {

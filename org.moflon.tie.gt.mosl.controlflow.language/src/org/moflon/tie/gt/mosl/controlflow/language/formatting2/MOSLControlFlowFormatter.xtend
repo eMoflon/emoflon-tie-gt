@@ -5,65 +5,74 @@ package org.moflon.tie.gt.mosl.controlflow.language.formatting2
 
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ConditionContainingStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ConditionStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LoopStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.NextStatement
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Statement
 
 class MOSLControlFlowFormatter extends AbstractFormatter2 {
 
-	static final String BRACE_LEFT = "{"
-	static final String BRACE_RIGHT = "}"
-	static final String COMMA = ","
+  static final String BRACE_LEFT = "{"
+  static final String BRACE_RIGHT = "}"
+  static final String COMMA = ","
 
-	def dispatch void format(GraphTransformationControlFlowFile gtcff, extension IFormattableDocument document) {
-		gtcff.imports.forEach[cfImport | cfImport.append[newLine]]
-		gtcff.includedPatterns.forEach[include| include.append[newLine]]
-		gtcff.EClasses.forEach[eclass | eclass.format(document)]
-	}
+  def dispatch void format(GraphTransformationControlFlowFile gtcff, extension IFormattableDocument document) {
+    gtcff.imports.forEach[it.append[newLine]]
+    gtcff.includedPatterns.forEach[it.append[newLine]]
+    gtcff.EClasses.forEach[it.format(document)]
+  }
 
-	def dispatch void format(EClassDef eclassDef, extension IFormattableDocument document) {
-		eclassDef.regionFor.keyword(BRACE_LEFT).append[newLine].append[indent]
-		eclassDef.operations.forEach[method | method.format(document)]
-		eclassDef.regionFor.keyword(BRACE_RIGHT).prepend[newLine].append[newLine]
-	}
+  def dispatch void format(EClassDef eclassDef, extension IFormattableDocument document) {
+    eclassDef.regionFor.keyword("class").prepend[newLines = 2]
+    eclassDef.regionFor.keyword(BRACE_LEFT).append[newLine]
+    eclassDef.regionFor.keyword(BRACE_RIGHT).prepend[newLines = 2]
 
-	def dispatch void format(MethodDec method, extension IFormattableDocument document){
-		method.EParameters.forEach[param | param.regionFor.keyword(COMMA).append[oneSpace]]
-		method.regionFor.keyword(BRACE_LEFT).append[newLine].append[indent]
-		method.startStatement.format(document)
-		method.regionFor.keyword(BRACE_RIGHT).append[newLine]
-	}
+    val body = eclassDef.regionFor.keywordPairs(BRACE_LEFT, BRACE_RIGHT)
+    for (var i = 0; i < body.size; i++)
+      body.get(i).interior[indent]
 
-	def dispatch void format(Statement statement, extension IFormattableDocument document){
-		statement.append[newLine]
-		if(statement instanceof NextStatement){
-			statement.next.format(document)
-		}
-		if(statement instanceof ConditionContainingStatement){
-			statement.formatStatement(document)
-		}
-	}
+    eclassDef.operations.forEach[it.format(document)]
+  }
 
-	def dispatch void formatStatement(LoopStatement loopStatement, extension IFormattableDocument document){
-		loopStatement.regionFor.keyword(BRACE_LEFT).append[newLine].append[indent]
-		loopStatement.loopStartStatement.format(document)
-		loopStatement.regionFor.keyword(BRACE_RIGHT).append[newLine]
-	}
+  def dispatch void format(MethodDec method, extension IFormattableDocument document) {
+    method.EParameters.forEach[param|param.regionFor.keyword(COMMA).append[oneSpace]]
+    method.regionFor.keyword(BRACE_LEFT).append[newLine]
+    method.regionFor.keyword(BRACE_RIGHT).append[newLines = 2]
 
-	def dispatch void formatStatement(ConditionStatement stmnt, extension IFormattableDocument document){
-		stmnt.regionFor.keyword(BRACE_LEFT).append[newLine].append[indent]
-		stmnt.thenStartStatement.format(document)
-		stmnt.regionFor.keyword(BRACE_RIGHT).append[newLine]
+    // Indent everything between "{" and "}".
+    val body = method.regionFor.keywordPairs(BRACE_LEFT, BRACE_RIGHT)
+    for (var i = 0; i < body.size; i++)
+      body.get(i).interior[indent]
 
-		stmnt.regionFor.keyword(BRACE_LEFT).append[newLine].append[indent]
-		stmnt.elseStartStatement.format(document)
-		stmnt.regionFor.keyword(BRACE_RIGHT).append[newLine]
-	}
+    method.statements.forEach[it.format(document)]
+  }
 
-	// TODO: implement for MethodDec, CalledPatternParameter, ObjectVariableStatement, NextStatement, PatternStatement, ConditionStatement, MethodCallStatement, OperationCallStatement, CalledMethodParameter, Condition, WhileLoopStatement, DoLoopStatement, ForLoopStatement
+  def dispatch void formatStatement(LoopStatement loopStatement, extension IFormattableDocument document) {
+    loopStatement.regionFor.keyword(BRACE_LEFT).append[newLine]
+    loopStatement.regionFor.keyword(BRACE_RIGHT).append[newLine]
+
+    val body = loopStatement.regionFor.keywordPairs(BRACE_LEFT, BRACE_RIGHT)
+    for (var i = 0; i < body.size; i++)
+      body.get(i).interior[indent]
+
+    loopStatement.loopStatements.forEach[it.format(document)]
+  }
+
+  def dispatch void formatStatement(ConditionStatement stmnt, extension IFormattableDocument document) {
+    stmnt.regionFor.keyword(BRACE_LEFT).append[newLine]
+    stmnt.regionFor.keyword(BRACE_RIGHT).append[newLine]
+
+    val body = stmnt.regionFor.keywordPairs(BRACE_LEFT, BRACE_RIGHT)
+    for (var i = 0; i < body.size; i++)
+      body.get(i).interior[indent]
+
+    stmnt.thenStatements.forEach[it.format(document)]
+
+    stmnt.regionFor.keyword(BRACE_LEFT).append[newLine]
+    stmnt.regionFor.keyword(BRACE_RIGHT).append[newLine]
+
+    stmnt.elseStatements.forEach[it.format(document)]
+  }
+
 }

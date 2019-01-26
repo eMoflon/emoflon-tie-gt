@@ -13,12 +13,10 @@ class ControlFlowObjectVariableQuickfixes {
 		acceptor.accept(issue,label,label,null,[element,context|
 			if(element instanceof MethodDec){
 				val operation=element as MethodDec
-				var startStmt=operation.startStatement
-				var newStartStmt= MoslControlFlowFactory.eINSTANCE.createObjectVariableStatement
-				newStartStmt.name="this"
-				newStartStmt.next=startStmt
-				operation.startStatement=newStartStmt
-				newStartStmt.EType=(operation.eContainer as EClassDef).name
+				var newObjectVariableStatement= MoslControlFlowFactory.eINSTANCE.createObjectVariableStatement
+				newObjectVariableStatement.name="this"
+				operation.statements.add(0, newObjectVariableStatement)
+				newObjectVariableStatement.EType=(operation.eContainer as EClassDef).name
 			}
 		])
 	}
