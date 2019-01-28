@@ -21,22 +21,17 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 ## Developer setup
 1. Prerequisites
    - Eclipse 2018-09 or 2018-12 with Modeling Components
-   - Xtext Complete SDK
-      * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
-   - eMoflon::Core
-      * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
-   - Democles 0.5.0
-      * Update site: http://gervarro.org/democles/integration-0.5.0/
-      * Install
-         * Pattern Matcher Specification
-         * Pattern Matcher Compiler
-1. Install the following team project set (via *Import &rarr; Team Project Set*) https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf
-1. Run MWE2 workflows (Search for files ending with *.mwe2* via *Ctrl+Shift+R*).
+   - Xtext Complete SDK from http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
+   - eMoflon::Core from https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
+   - Democles Pattern Matcher Specification and Pattern Matcher Compiler 0.5.0 from http://gervarro.org/democles/integration-0.5.0/
+1. Import https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf (*Import &rarr; Team Project Set*)
+1. Run all MWE2 workflows (see *Ctrl+Shift+R* &rarr; '*.mwe2').
    * Proceed even if Eclipse warns you about "Errors in the Workspace"
 1. The subsequent build should complete without errors.
 1. Run the test suite 
    1. Start Runtime Eclipse
    1. Check out all projects from *https://github.com/eMoflon/emoflon-tie-gt-examples*
+   1. Ensure that automatic build is enabled (*Project &rarr; Build Automatically*)
    1. Run JUnit test suite *EMoflonTieGtTestSuite*
       * Runner class *org.moflon.tie.gt.testsuite.EMoflonTieGtTestSuite*
    
