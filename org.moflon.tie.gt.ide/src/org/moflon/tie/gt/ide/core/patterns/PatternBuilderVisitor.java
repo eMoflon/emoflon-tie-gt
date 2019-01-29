@@ -113,8 +113,28 @@ public class PatternBuilderVisitor {
 		visitComplexAttributeConstraints(pattern);
 
 		visitConditions(pattern);
+		
+		addUnequalConstraints(patterns.get(DemoclesPatternType.BLACK_PATTERN));
 
 		return patterns;
+	}
+	/**
+	 * Adds Unequal constraints for every pair of EMF variables that are above each other in the inheritance chain
+	 * @param gtPattern
+	 * @param democlesPattern
+	 */
+	private void addUnequalConstraints(Pattern democlesPattern) {
+		EList<Variable> lhsVariables = democlesPattern.getSymbolicParameters();
+		lhsVariables.addAll(democlesPattern.getBodies().get(0).getLocalVariables());
+		lhsVariables.forEach(var -> 
+			lhsVariables.forEach(rhsVar ->{
+				if(var!=rhsVar&&var instanceof EMFVariable&&rhsVar instanceof EMFVariable) {
+					createInequalConstraintIfNecessary((EMFVariable)var, (EMFVariable)rhsVar, democlesPattern.getBodies().get(0), DemoclesPatternType.BLACK_PATTERN);
+				}
+			}
+			)
+			);
+		
 	}
 
 	private void visitEditorNodes(final EditorPattern pattern) {
@@ -171,7 +191,6 @@ public class PatternBuilderVisitor {
 		final DemoclesPatternType patternType = DemoclesPatternType.EXPRESSION_PATTERN;
 		final Pattern pattern = patterns.getExpressionPattern();
 		final PatternBody body = Patterns.getBody(pattern);
-
 		final EClassifier returnVariableType = returnVariable.getType();
 		if (!(returnVariableType instanceof EClass)) {
 			recordError(getStatus(), "Type of %s should be an EClass, but was %s", returnVariable,
@@ -193,7 +212,6 @@ public class PatternBuilderVisitor {
 				patternType);
 
 		Attributes.createAndRegister(attribute, emfObjectVariable, attributeVariable, body);
-
 		RelationalConstraints.addEqual(attributeVariable, emfReturnVariable, body);
 
 		return pattern;
@@ -714,6 +732,16 @@ public class PatternBuilderVisitor {
 	private boolean haveSuperTypeSubtypeRelation(final EditorNode subTypeNode, final EditorNode superTypeNode) {
 		return superTypeNode.getType().isSuperTypeOf(subTypeNode.getType());
 	}
+	
+	private boolean haveSuperTypeSubtypeRelationEMF(final EMFVariable subTypeNode, final EMFVariable superTypeNode) {
+		if(superTypeNode.getEClassifier() instanceof EClass && subTypeNode.getEClassifier() instanceof EClass) {
+			EClass superTypeEClass=(EClass)superTypeNode.getEClassifier();
+			EClass subTypeEClass=(EClass)subTypeNode.getEClassifier();
+			return superTypeEClass.isSuperTypeOf(subTypeEClass);
+		}
+		else return false;
+	}
+	
 
 	private String deriveCastingSourceNodeName(final EditorNode invokedNode) {
 		return String.format("%s%s", CodeConventions.CASTING_SOURCE_PREFIX, invokedNode.getName());
@@ -814,6 +842,15 @@ public class PatternBuilderVisitor {
 		final EMFVariable emfVarSource = variables.getSymbolicParameter(source, patternType);
 
 		RelationalConstraints.addEqual(emfVarSource, emfVarTarget, body);
+	}
+	/**
+	 * Creates an inequalConstraint and adds it to another body if both supplied nodes are above each other in the inheritance chain
+	 */
+	private void createInequalConstraintIfNecessary(EMFVariable node, EMFVariable other,PatternBody body,DemoclesPatternType patternType) {
+		if(haveSuperTypeSubtypeRelationEMF(node, other)){
+			RelationalConstraints.addUnequal(node, other, body);
+		}
+		else return;
 	}
 
 	private EMFVariable createVariable(final EditorAttributeExpression attributeExpression,

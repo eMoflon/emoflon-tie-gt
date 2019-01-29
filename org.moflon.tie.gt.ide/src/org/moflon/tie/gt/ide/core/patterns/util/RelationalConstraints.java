@@ -9,6 +9,7 @@ import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.constraint.relational.Equal;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraint;
 import org.gervarro.democles.specification.emf.constraint.relational.RelationalConstraintFactory;
+import org.gervarro.democles.specification.emf.constraint.relational.Unequal;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 
 /**
@@ -64,7 +65,23 @@ public final class RelationalConstraints {
 
 		return equal;
 	}
+	public static Unequal addUnequal(final ConstraintVariable lhsVariable,
+			final ConstraintVariable rhsVariable, final PatternBody body) {
+		final Unequal unequal = createUnequal(lhsVariable, rhsVariable);
+		Patterns.addConstraint(unequal, body);
 
+		return unequal;
+	}
+
+	private static Unequal createUnequal(final ConstraintVariable source, final ConstraintVariable target) {
+		final Unequal unequal = RelationalConstraintFactory.eINSTANCE.createUnequal();
+		final ConstraintParameter sourceConstr = ConstraintParameters.create(source);
+		final ConstraintParameter targetConstr = ConstraintParameters.create(target);
+		unequal.getParameters().add(targetConstr);
+		unequal.getParameters().add(sourceConstr);
+		return unequal;
+	}
+	
 	private static Equal createEqual(final ConstraintVariable source, final ConstraintVariable target) {
 		final Equal equal = RelationalConstraintFactory.eINSTANCE.createEqual();
 		final ConstraintParameter sourceConstr = ConstraintParameters.create(source);
