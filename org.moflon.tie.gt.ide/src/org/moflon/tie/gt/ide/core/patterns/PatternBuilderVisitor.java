@@ -50,6 +50,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorSimpleCondition;
 import org.emoflon.ibex.gt.editor.gT.GTFactory;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
 import org.emoflon.ibex.gt.editor.utils.GTEnumExpressionHelper;
+import org.emoflon.ibex.gt.editor.utils.GTFlattener;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.ConstraintParameter;
 import org.gervarro.democles.specification.emf.ConstraintVariable;
@@ -531,6 +532,17 @@ public class PatternBuilderVisitor {
 		return true;
 	}
 
+	private EditorPattern flattenPattern(final EditorPattern editorPattern) {
+		final GTFlattener flattener = new GTFlattener(editorPattern);
+		final List<String> flatteningErrors = flattener.getErrors();
+		for (final String errorMessage : flatteningErrors) {
+			TransformationExceptions.recordError(transformationStatus, "Flattening of %s failed: %s",
+					editorPattern.getName(), errorMessage);
+		}
+		final EditorPattern flattenedPattern = flattener.getFlattenedPattern();
+		return flattenedPattern;
+	}
+	
 	private void visit(final EditorCondition condition, final EditorPattern pattern) {
 		final EList<EditorSimpleCondition> conditions = condition.getConditions();
 		for (final EditorSimpleCondition partialCondition : conditions) {
@@ -539,7 +551,9 @@ public class PatternBuilderVisitor {
 				visit(simpleCond.getCondition(), pattern);
 			} else {
 				final EditorApplicationCondition simpleCond = (EditorApplicationCondition) partialCondition;
-				final EditorPattern applicationCondition = simpleCond.getPattern();
+				final EditorGTFile gtFile=(EditorGTFile)simpleCond.getPattern().eContainer();
+				final EditorPattern applicationCondition = flattenPattern(simpleCond.getPattern());
+				gtFile.getPatterns().add(applicationCondition);
 				final EditorApplicationConditionType type = simpleCond.getType();
 				final Pattern invokedPattern = buildInvokedPattern(pattern, applicationCondition);
 				createPatternInvocation(type, invokedPattern);
