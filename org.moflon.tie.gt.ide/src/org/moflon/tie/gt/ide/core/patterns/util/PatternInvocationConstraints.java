@@ -26,7 +26,7 @@ public final class PatternInvocationConstraints {
 		return constraint;
 	}
 
-	public static PatternInvocationConstraint createAndAdd(final Pattern pattern, final boolean isPositive,
+	public static PatternInvocationConstraint add(final Pattern pattern, final boolean isPositive,
 			final List<? extends Variable> parameters, final PatternBody body) {
 		final PatternInvocationConstraint constraint = create(pattern, isPositive, parameters);
 		Patterns.addConstraint(constraint, body);

@@ -114,28 +114,29 @@ public class PatternBuilderVisitor {
 		visitComplexAttributeConstraints(pattern);
 
 		visitConditions(pattern);
-		
+
 		addUnequalConstraints(patterns.get(DemoclesPatternType.BLACK_PATTERN));
 
 		return patterns;
 	}
+
 	/**
-	 * Adds Unequal constraints for every pair of EMF variables that are above each other in the inheritance chain
+	 * Adds Unequal constraints for every pair of EMF variables that are above each
+	 * other in the inheritance chain
+	 * 
 	 * @param gtPattern
 	 * @param democlesPattern
 	 */
-	private void addUnequalConstraints(Pattern democlesPattern) {
-		EList<Variable> lhsVariables = democlesPattern.getSymbolicParameters();
+	private void addUnequalConstraints(final Pattern democlesPattern) {
+		final List<Variable> lhsVariables = new ArrayList<>(democlesPattern.getSymbolicParameters());
 		lhsVariables.addAll(democlesPattern.getBodies().get(0).getLocalVariables());
-		lhsVariables.forEach(var -> 
-			lhsVariables.forEach(rhsVar ->{
-				if(var!=rhsVar&&var instanceof EMFVariable&&rhsVar instanceof EMFVariable) {
-					createInequalConstraintIfNecessary((EMFVariable)var, (EMFVariable)rhsVar, democlesPattern.getBodies().get(0), DemoclesPatternType.BLACK_PATTERN);
-				}
+		lhsVariables.forEach(var -> lhsVariables.forEach(rhsVar -> {
+			if (var != rhsVar && var instanceof EMFVariable && rhsVar instanceof EMFVariable) {
+				createUnequalConstraintIfNecessary((EMFVariable) var, (EMFVariable) rhsVar,
+						democlesPattern.getBodies().get(0), DemoclesPatternType.BLACK_PATTERN);
 			}
-			)
-			);
-		
+		}));
+
 	}
 
 	private void visitEditorNodes(final EditorPattern pattern) {
@@ -153,18 +154,22 @@ public class PatternBuilderVisitor {
 			// Do nothing
 			break;
 		case 1: {
-			final EditorCondition condition = pattern.getConditions().get(0);
+			final EditorCondition condition = getFirstCondition(pattern);
 			visit(condition, pattern);
 			break;
 		}
 		default: {
-			final EditorCondition condition = pattern.getConditions().get(0);
+			final EditorCondition condition = getFirstCondition(pattern);
 			visit(condition, pattern);
 			TransformationExceptions.recordWarning(transformationStatus,
 					"Ignoring all but the first condition of pattern %s", pattern.getName());
 			break;
 		}
 		}
+	}
+
+	private EditorCondition getFirstCondition(final EditorPattern pattern) {
+		return pattern.getConditions().get(0);
 	}
 
 	private void configureAttributeConstraintsLibrary(final EditorPattern pattern) {
@@ -212,7 +217,7 @@ public class PatternBuilderVisitor {
 		final EMFVariable attributeVariable = variables.getLocalVariable(attribute, returnVariable.getName(),
 				patternType);
 
-		Attributes.createAndRegister(attribute, emfObjectVariable, attributeVariable, body);
+		Attributes.add(attribute, emfObjectVariable, attributeVariable, body);
 		RelationalConstraints.addEqual(attributeVariable, emfReturnVariable, body);
 
 		return pattern;
@@ -542,7 +547,7 @@ public class PatternBuilderVisitor {
 		final EditorPattern flattenedPattern = flattener.getFlattenedPattern();
 		return flattenedPattern;
 	}
-	
+
 	private void visit(final EditorCondition condition, final EditorPattern pattern) {
 		final EList<EditorSimpleCondition> conditions = condition.getConditions();
 		for (final EditorSimpleCondition partialCondition : conditions) {
@@ -551,7 +556,7 @@ public class PatternBuilderVisitor {
 				visit(simpleCond.getCondition(), pattern);
 			} else {
 				final EditorApplicationCondition simpleCond = (EditorApplicationCondition) partialCondition;
-				final EditorGTFile gtFile=(EditorGTFile)simpleCond.getPattern().eContainer();
+				final EditorGTFile gtFile = (EditorGTFile) simpleCond.getPattern().eContainer();
 				final EditorPattern applicationCondition = flattenPattern(simpleCond.getPattern());
 				gtFile.getPatterns().add(applicationCondition);
 				final EditorApplicationConditionType type = simpleCond.getType();
@@ -564,11 +569,18 @@ public class PatternBuilderVisitor {
 	private void visit(final EditorAttribute editorAttribute, final EditorNode source, final EditorPattern pattern) {
 		final DemoclesPatternType type = Patterns.getPatternTypeForOperator(editorAttribute);
 
-		initializeVariablesForParameters(pattern, type);
+		initializeVariablesForParameters(pattern, type);// TODO@rkluge:Redundant call?
 		final PatternBody body = Patterns.getBody(patterns.get(type));
 
 		final EditorExpression expr = editorAttribute.getValue();
-		final ConstraintParameter rhs = getConstraintParameter(editorAttribute, source, type, body, expr);
+		final ConstraintParameter rhs = getConstraintParameter(editorAttribute, source, type, body, expr);// TODO@rkluge:Add
+																											// prefix
+																											// param__
+																											// to
+																											// EMFVariables
+																											// originating
+																											// from
+																											// paramters
 
 		if (hasErrors())
 			return;
@@ -579,7 +591,7 @@ public class PatternBuilderVisitor {
 		final EMFVariable tmpAttributeValueVariable = variables.getLocalVariable(editorAttributeEAttribute, source,
 				type);
 
-		Attributes.createAndRegister(editorAttributeEAttribute, fromVariable, tmpAttributeValueVariable, body);
+		Attributes.add(editorAttributeEAttribute, fromVariable, tmpAttributeValueVariable, body);
 
 		final ConstraintParameter leftOperatorArgumentParameter = ConstraintParameters
 				.create(variables.getLocalVariable(editorAttributeEAttribute, source, type));
@@ -597,15 +609,15 @@ public class PatternBuilderVisitor {
 	private ConstraintParameter getConstraintParameter(final EditorAttribute editorAttribute, final EditorNode source,
 			final DemoclesPatternType type, final PatternBody body, final EditorExpression expr) {
 		final ConstraintVariable rhsVariable;
-		if (expr instanceof EditorAttributeExpression) {
+		if (expr instanceof EditorAttributeExpression)
 			rhsVariable = createVariable((EditorAttributeExpression) expr, type, body);
-		} else if (expr instanceof EditorLiteralExpression) {
+		else if (expr instanceof EditorLiteralExpression)
 			rhsVariable = createAndRegisterConstant((EditorLiteralExpression) expr, editorAttribute, source, body);
-		} else if (expr instanceof EditorEnumExpression) {
+		else if (expr instanceof EditorEnumExpression)
 			rhsVariable = Constants.createAndRegister((EditorEnumExpression) expr, body);
-		} else if (expr instanceof EditorParameterExpression) {
+		else if (expr instanceof EditorParameterExpression)
 			rhsVariable = createVariable((EditorParameterExpression) expr, type);
-		} else {
+		else {
 			recordError(getStatus(), "Cannot handle %s", expr);
 			rhsVariable = null;
 		}
@@ -746,16 +758,15 @@ public class PatternBuilderVisitor {
 	private boolean haveSuperTypeSubtypeRelation(final EditorNode subTypeNode, final EditorNode superTypeNode) {
 		return superTypeNode.getType().isSuperTypeOf(subTypeNode.getType());
 	}
-	
+
 	private boolean haveSuperTypeSubtypeRelationEMF(final EMFVariable subTypeNode, final EMFVariable superTypeNode) {
-		if(superTypeNode.getEClassifier() instanceof EClass && subTypeNode.getEClassifier() instanceof EClass) {
-			EClass superTypeEClass=(EClass)superTypeNode.getEClassifier();
-			EClass subTypeEClass=(EClass)subTypeNode.getEClassifier();
+		if (superTypeNode.getEClassifier() instanceof EClass && subTypeNode.getEClassifier() instanceof EClass) {
+			final EClass superTypeEClass = (EClass) superTypeNode.getEClassifier();
+			final EClass subTypeEClass = (EClass) subTypeNode.getEClassifier();
 			return superTypeEClass.isSuperTypeOf(subTypeEClass);
-		}
-		else return false;
+		} else
+			return false;
 	}
-	
 
 	private String deriveCastingSourceNodeName(final EditorNode invokedNode) {
 		return String.format("%s%s", CodeConventions.CASTING_SOURCE_PREFIX, invokedNode.getName());
@@ -837,10 +848,10 @@ public class PatternBuilderVisitor {
 
 		final Pattern bindingPattern = patterns.getBindingPattern();
 		final List<Variable> bindingParameters = Arrays.asList(emfVarTarget, emfVarSource);
-		PatternInvocationConstraints.createAndAdd(bindingPattern, true, bindingParameters, body);
+		PatternInvocationConstraints.add(bindingPattern, true, bindingParameters, body);
 
 		final List<Variable> blackParameters = Arrays.asList(emfVarTarget);
-		PatternInvocationConstraints.createAndAdd(blackPattern, true, blackParameters, body);
+		PatternInvocationConstraints.add(blackPattern, true, blackParameters, body);
 	}
 
 	private void createBindingConstraint(final EditorNode node) {
@@ -857,14 +868,16 @@ public class PatternBuilderVisitor {
 
 		RelationalConstraints.addEqual(emfVarSource, emfVarTarget, body);
 	}
+
 	/**
-	 * Creates an inequalConstraint and adds it to another body if both supplied nodes are above each other in the inheritance chain
+	 * Creates an inequalConstraint and adds it to another body if both supplied
+	 * nodes are above each other in the inheritance chain
 	 */
-	private void createInequalConstraintIfNecessary(EMFVariable node, EMFVariable other,PatternBody body,DemoclesPatternType patternType) {
-		if(haveSuperTypeSubtypeRelationEMF(node, other)){
-			RelationalConstraints.addUnequal(node, other, body);
+	private void createUnequalConstraintIfNecessary(final EMFVariable variable1, final EMFVariable variable2,
+			final PatternBody body, final DemoclesPatternType patternType) {
+		if (haveSuperTypeSubtypeRelationEMF(variable1, variable2)) {
+			RelationalConstraints.addUnequal(variable1, variable2, body);
 		}
-		else return;
 	}
 
 	private EMFVariable createVariable(final EditorAttributeExpression attributeExpression,
@@ -875,7 +888,7 @@ public class PatternBuilderVisitor {
 		final EMFVariable fromVarAttributeExpression = variables.getSymbolicParameter(editorNode, type);
 		final EMFVariable attribute = variables.getLocalVariable(eAttribute, editorNode, type);
 
-		Attributes.createAndRegister(eAttribute, fromVarAttributeExpression, attribute, patternBody);
+		Attributes.add(eAttribute, fromVarAttributeExpression, attribute, patternBody);
 
 		return attribute;
 	}
@@ -891,8 +904,8 @@ public class PatternBuilderVisitor {
 			final EditorAttribute editorAttribute, final EditorNode source, final PatternBody patternBody) {
 		final EClass eClass = types.getEClassifier(source.getType());
 		final EAttribute eAttribute = types.getEAttribute(editorAttribute.getAttribute(), eClass);
-		final EDataType eDataType = eAttribute.getEAttributeType();
-		final Constant constant = Constants.createAndRegister(literalExpression, eDataType, patternBody);
+		final EDataType type = eAttribute.getEAttributeType();
+		final Constant constant = Constants.add(literalExpression, type, patternBody);
 		return constant;
 	}
 

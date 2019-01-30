@@ -71,7 +71,7 @@ public final class Constants {
 		return enumLiteralConstant;
 	}
 
-	public static Constant createAndRegister(final EditorLiteralExpression literalExpression, final EDataType eDataType,
+	public static Constant add(final EditorLiteralExpression literalExpression, final EDataType eDataType,
 			final PatternBody patternBody) {
 		final Optional<Object> value = GTEditorAttributeUtils.convertLiteralValueToObject(eDataType, literalExpression);
 		final Constant constant = SpecificationFactory.eINSTANCE.createConstant();

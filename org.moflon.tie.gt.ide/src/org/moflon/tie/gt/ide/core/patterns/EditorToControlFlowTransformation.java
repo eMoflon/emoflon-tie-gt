@@ -171,8 +171,11 @@ public class EditorToControlFlowTransformation {
 
 	private void visitStatements(final List<Statement> statements, final EClass eClass, final EOperation eOperation,
 			final Scope rootScope) {
-		for (final Statement statement : statements)
+		for (final Statement statement : statements) {
 			visitStatement(statement, rootScope, eClass, eOperation);
+			if (hasErrors())
+				return;
+		}
 	}
 
 	private void visitStatement(final Statement statement, final Scope scope, final EClass eClass,
@@ -196,11 +199,6 @@ public class EditorToControlFlowTransformation {
 		} else if (statement instanceof ReturnStatement) {
 			visitStatement((ReturnStatement) statement, scope, eClass, eOperation);
 		}
-
-		if (hasErrors()) {
-			return;
-		}
-
 	}
 
 	private void visitStatement(final ObjectVariableStatement oVarStatement, final Scope scope,
@@ -215,9 +213,7 @@ public class EditorToControlFlowTransformation {
 
 		final ReturnObject returnObject = returnStmt.getObj();
 		if (returnObject == null) {
-			final Action emptyAction = DemoclesFactory.eINSTANCE.createAction();
-			returnStmtDemocles.setMainAction(emptyAction);
-			emptyAction.setCfNode(returnStmtDemocles);
+			attachEmptyAction(returnStmtDemocles);
 		} else {
 
 			final SingleResultPatternInvocation resultPatternInvocation = PatternInvocationActions
@@ -346,6 +342,12 @@ public class EditorToControlFlowTransformation {
 
 		this.recentControlFlowNode = returnStmtDemocles;
 
+	}
+
+	private void attachEmptyAction(final org.moflon.tie.gt.controlflow.democles.ReturnStatement returnStmtDemocles) {
+		final Action emptyAction = DemoclesFactory.eINSTANCE.createAction();
+		returnStmtDemocles.setMainAction(emptyAction);
+		emptyAction.setCfNode(returnStmtDemocles);
 	}
 
 	private void visitStatement(final ConditionStatement ifStatement, final Scope scope, final EClass eClass,

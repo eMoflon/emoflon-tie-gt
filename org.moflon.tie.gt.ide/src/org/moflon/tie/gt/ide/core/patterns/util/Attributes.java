@@ -42,7 +42,7 @@ public final class Attributes {
 	 * @return the created {@link Attribute} it it did not exist, yet. Else the
 	 *         existing {@link Attribute} constraint.
 	 */
-	public static Attribute createAndRegister(final EAttribute attribute, final ConstraintVariable objectVariable,
+	public static Attribute add(final EAttribute attribute, final ConstraintVariable objectVariable,
 			final ConstraintVariable attributeVariable, final PatternBody body) {
 		final Attribute attributeConstraint = create(attribute, objectVariable, attributeVariable);
 

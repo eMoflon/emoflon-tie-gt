@@ -86,6 +86,7 @@ public class TypeLookup {
 					eAttribute.getName(), eClass));
 	}
 
+	// TODO@rkluge: Make non-static
 	public static EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage,
 			final EPackage ecorePackage) {
 		if (statementEType == null)

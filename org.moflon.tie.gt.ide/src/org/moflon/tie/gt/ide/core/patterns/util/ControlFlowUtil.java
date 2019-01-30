@@ -116,7 +116,8 @@ public final class ControlFlowUtil {
 		return variable;
 	}
 
-	public static Adornment calculateAdornment(final PatternInvocation invocation, final DemoclesPatternType patternType) {
+	public static Adornment calculateAdornment(final PatternInvocation invocation,
+			final DemoclesPatternType patternType) {
 		int adornmentIndex = 0;
 		final Pattern pattern = invocation.getPattern();
 		final EList<Variable> symbolicParameters = pattern.getSymbolicParameters();
@@ -129,17 +130,17 @@ public final class ControlFlowUtil {
 				final int value = variableRef.isFree() ? Adornment.FREE : Adornment.BOUND;
 				adornment.set(adornmentIndex, value);
 				adornmentIndex++;
-			} else {
+			} else
 				throw new IllegalArgumentException(
 						String.format("No binding for symbolic parameter %s of %s in invocation %s has ",
 								symbolicParameter, pattern, invocation.toString()));
-			}
+
 		}
 		return adornment;
 	}
 
-	public static org.moflon.tie.gt.controlflow.democles.ReturnStatement createReturnStatement(final int id, final Scope scope,
-			final CFNode previousNode) {
+	public static org.moflon.tie.gt.controlflow.democles.ReturnStatement createReturnStatement(final int id,
+			final Scope scope, final CFNode previousNode) {
 		final org.moflon.tie.gt.controlflow.democles.ReturnStatement returnStmtDemocles = DemoclesFactory.eINSTANCE
 				.createReturnStatement();
 		returnStmtDemocles.setId(id);
