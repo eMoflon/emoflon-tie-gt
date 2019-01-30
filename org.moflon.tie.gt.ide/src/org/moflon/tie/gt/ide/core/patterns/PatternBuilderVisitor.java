@@ -114,7 +114,8 @@ public class PatternBuilderVisitor {
 
 		visitConditions(pattern);
 
-		addUnequalConstraints(patterns.get(DemoclesPatternType.BLACK_PATTERN));
+		if (patterns.hasBlack())
+			addUnequalConstraints(patterns.getBlackPattern());
 
 		return patterns;
 	}

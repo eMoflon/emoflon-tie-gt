@@ -15,6 +15,10 @@ public class PatternLookup {
 		return contains(DemoclesPatternType.BINDING_AND_BLACK_PATTERN);
 	}
 
+	public boolean hasBlack() {
+		return contains(DemoclesPatternType.BLACK_PATTERN);
+	}
+
 	public boolean contains(final DemoclesPatternType type) {
 		return lookupData.containsKey(type);
 	}
