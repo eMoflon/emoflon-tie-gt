@@ -1,5 +1,6 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -132,6 +133,16 @@ public final class Patterns {
 
 	public static List<Constraint> getConstraints(final Pattern pattern) {
 		return getBody(pattern).getConstraints();
+	}
+
+	public static List<Variable> collectVariables(final Pattern democlesPattern) {
+		final List<Variable> variables = new ArrayList<>(democlesPattern.getSymbolicParameters());
+		variables.addAll(getBody(democlesPattern).getLocalVariables());
+		return variables;
+	}
+
+	public static Optional<Variable> findVariableByName(final List<Variable> variables, final String keyVariableName) {
+		return variables.stream().filter(variable -> variable.getName().equals(keyVariableName)).findAny();
 	}
 
 }

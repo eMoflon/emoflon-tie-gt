@@ -931,15 +931,15 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private TypedElement findPatternCallVariableByParameterName(final Variable symbolicParameter,
-			final EList<CalledPatternParameter> patternParameter) {
-		final Optional<CalledPatternParameter> objVariable = patternParameter.stream().filter(patternParam -> {
-			final CalledPatternParameterName parameterName = patternParam.getParameter();
-			return parameterName.getName().contentEquals(symbolicParameter.getName());
+			final EList<CalledPatternParameter> patternParameters) {
+		final Optional<CalledPatternParameter> objectVariable = patternParameters.stream().filter(patternParameter -> {
+			final CalledPatternParameterName parameterName = patternParameter.getParameter();
+			return parameterName.getName().equals(symbolicParameter.getName()) || CodeConventions
+					.getPatternParameterName(parameterName.getName()).equals(symbolicParameter.getName());
 		}).findAny();
-		if (objVariable.isPresent()) {
-			final TypedElement resultObject = objVariable.get().getObject();
-			return resultObject;
-		} else
+		if (objectVariable.isPresent())
+			return objectVariable.get().getObject();
+		else
 			return null;
 	}
 

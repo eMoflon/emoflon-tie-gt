@@ -5,11 +5,13 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
@@ -93,5 +95,25 @@ public final class TieGtEcoreUtil {
 	public static List<EPackage> getEPackages(final Resource resource) {
 		return resource.getContents().stream().filter(object -> object instanceof EPackage)
 				.map(object -> (EPackage) object).collect(Collectors.toList());
+	}
+
+	public static boolean haveSuperTypeSubtypeRelation(final EditorNode subTypeNode, final EditorNode superTypeNode) {
+		final EClass lhsType = superTypeNode.getType();
+		final EClass rhsType = subTypeNode.getType();
+		return haveSupertypeSubtypeRelation(lhsType, rhsType);
+	}
+
+	private static boolean haveSupertypeSubtypeRelation(final EClassifier superType, final EClassifier subType) {
+		if (superType instanceof EClass && subType instanceof EClass) {
+			final EClass superTypeEClass = (EClass) superType;
+			final EClass subTypeEClass = (EClass) subType;
+			return superTypeEClass.isSuperTypeOf(subTypeEClass);
+		} else
+			return false;
+	}
+
+	public static boolean haveSuperTypeSubtypeRelationEMF(final EMFVariable subTypeNode,
+			final EMFVariable superTypeNode) {
+		return haveSupertypeSubtypeRelation(superTypeNode.getEClassifier(), subTypeNode.getEClassifier());
 	}
 }
