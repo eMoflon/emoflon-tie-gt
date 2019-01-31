@@ -12,7 +12,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
-import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec;
@@ -65,26 +64,6 @@ public final class TieGtEcoreUtil {
 					"Parameter count mismatches for EOperation %s.%s (%d in .ecore, %d in .mcf)",
 					eOperation.getEContainingClass().getName(), eOperation.getName(), parameterCountInEcore,
 					parameterCountInMcf);
-		}
-	}
-
-	public static EClassifier validateTypeExists(final Variable var, final MultiStatus transformationStatus) {
-		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
-		if (editorObjectVariableType == null) {
-			TransformationExceptions.recordError(transformationStatus,
-					"Variable %s has no type.", var);
-		}
-		return editorObjectVariableType;
-	}
-
-	public static void validateTypeExistsInMetamodel(final Variable var, final EPackage ePackage,
-			final EPackage ecorePackage, final MultiStatus transformationStatus) {
-		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
-		final EClassifier properCfVariableType = TypeLookup
-				.lookupTypeInEcoreFile(editorObjectVariableType, ePackage, ecorePackage);
-		if (properCfVariableType == null) {
-			TransformationExceptions.recordError(transformationStatus,
-					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, ePackage);
 		}
 	}
 

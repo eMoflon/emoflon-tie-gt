@@ -53,6 +53,7 @@ import org.moflon.tie.gt.controlflow.democles.Scope;
 import org.moflon.tie.gt.controlflow.democles.SingleResultPatternInvocation;
 import org.moflon.tie.gt.controlflow.democles.TailControlledLoop;
 import org.moflon.tie.gt.controlflow.democles.VariableReference;
+import org.moflon.tie.gt.ide.core.codegeneration.StatusUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.AdapterResources;
 import org.moflon.tie.gt.ide.core.patterns.util.ControlFlowUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.PatternInvocationActions;
@@ -61,6 +62,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
 import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptions;
 import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
+import org.moflon.tie.gt.ide.core.patterns.util.Variables;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Condition;
@@ -162,9 +164,7 @@ public class EditorToControlFlowTransformation {
 
 		visitStatements(statements, eClass, eOperation, rootScope);
 
-		rootScope.getVariables().stream()
-				.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
-				.forEach(thisVariable -> thisVariable.setConstructor(null));
+		resetConstructorOfThisVariable(rootScope);
 
 		adapterResourceManager.addControlFlowModel(rootScope, eOperation);
 	}
@@ -915,17 +915,20 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private CFVariable createTemporaryControlFlowVariable(final Scope scope, final Variable var) {
-		final EClassifier editorObjectVariableType = TieGtEcoreUtil.validateTypeExists(var, transformationStatus);
-		if (hasErrors())
+		final Optional<EClassifier> editorObjectVariableType = Variables.getType(var,
+				transformationStatus);
+		if (!editorObjectVariableType.isPresent()) {
+			TransformationExceptions.recordError(transformationStatus, "Variable %s has no type.", var);
 			return null;
+		}
 
-		TieGtEcoreUtil.validateTypeExistsInMetamodel(var, ePackage, ecorePackage, transformationStatus);
-		if (hasErrors())
+		final IStatus checkStatus = TypeLookup.validateTypeExistsInMetamodel(var, ePackage, ecorePackage);
+		if (StatusUtil.addAndCheckForErrors(checkStatus, transformationStatus))
 			return null;
 
 		final String name = CodeConventions.GENERATED_VARIABLE_NAME_PREFIX + var.getName();
 		final CFVariable temp = ControlFlowUtil.createControlFlowVariableWithoutConstructor(name,
-				editorObjectVariableType, scope);
+				editorObjectVariableType.get(), scope);
 		scope.getVariables().add(temp);
 		return temp;
 	}
@@ -1052,9 +1055,19 @@ public class EditorToControlFlowTransformation {
 
 		rootScope.getVariables().add(cfVariable);
 
+		setDummyConstructorOfThisVariable(cfVariable);
+	}
+
+	private void setDummyConstructorOfThisVariable(final CFVariable cfVariable) {
 		if (THIS_VARIABLE_NAME.equals(cfVariable.getName())) {
 			cfVariable.setConstructor(THIS_VARIABLE_DUMMY_ACTION);
 		}
+	}
+
+	private void resetConstructorOfThisVariable(final Scope rootScope) {
+		rootScope.getVariables().stream()
+				.filter(variable -> THIS_VARIABLE_DUMMY_ACTION.equals(variable.getConstructor()))
+				.forEach(thisVariable -> thisVariable.setConstructor(null));
 	}
 
 	private PatternBuilderVisitor createPatternBuilderVisitor() {

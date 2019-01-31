@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -13,6 +15,8 @@ import org.eclipse.emf.ecore.EReference;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
+import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 
 public class TypeLookup {
@@ -118,6 +122,18 @@ public class TypeLookup {
 		}
 
 		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", object));
+	}
+
+	public static IStatus validateTypeExistsInMetamodel(final Variable var, final EPackage ePackage,
+			final EPackage ecorePackage) {
+		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
+		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
+				ecorePackage);
+		if (properCfVariableType == null)
+			return TransformationExceptions.createError(
+					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, ePackage);
+		else
+			return Status.OK_STATUS;
 	}
 
 }

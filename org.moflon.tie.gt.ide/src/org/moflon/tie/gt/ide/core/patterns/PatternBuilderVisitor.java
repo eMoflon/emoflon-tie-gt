@@ -84,6 +84,7 @@ import org.moflon.tie.gt.ide.core.patterns.util.RelationalConstraints;
 import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
 import org.moflon.tie.gt.ide.core.patterns.util.TransformationExceptions;
 import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
+import org.moflon.tie.gt.ide.core.patterns.util.Variables;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatementParameter;
 
@@ -129,7 +130,7 @@ public class PatternBuilderVisitor {
 	 */
 	private static void addUnequalConstraints(final Pattern democlesPattern) {
 		final PatternBody body = Patterns.getBody(democlesPattern);
-		final List<Variable> variables = Patterns.collectVariables(democlesPattern);
+		final List<Variable> variables = Variables.collectVariables(democlesPattern);
 		for (final Variable variable1 : variables) {
 			for (final Variable variable2 : variables) {
 				if (variable1 != variable2 && variable1 instanceof EMFVariable && variable2 instanceof EMFVariable
@@ -574,14 +575,7 @@ public class PatternBuilderVisitor {
 		final PatternBody body = Patterns.getBody(patterns.get(type));
 
 		final EditorExpression expr = editorAttribute.getValue();
-		final ConstraintParameter rhs = getConstraintParameter(editorAttribute, source, type, body, expr);// TODO@rkluge:Add
-																											// prefix
-																											// param__
-																											// to
-																											// EMFVariables
-																											// originating
-																											// from
-																											// paramters
+		final ConstraintParameter rhs = getConstraintParameter(editorAttribute, source, type, body, expr);
 
 		if (hasErrors())
 			return;
@@ -775,7 +769,7 @@ public class PatternBuilderVisitor {
 			final String variableName = invokeeParameters.getName();
 			final String variableNameWithoutCastinPrefix = variableName.replace(CodeConventions.CASTING_SOURCE_PREFIX,
 					"");
-			final Optional<Variable> candidateVariable = Patterns.findVariableByName(invokerParameters,
+			final Optional<Variable> candidateVariable = Variables.findVariableByName(invokerParameters,
 					variableNameWithoutCastinPrefix);
 			if (candidateVariable.isPresent()) {
 
