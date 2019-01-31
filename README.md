@@ -23,6 +23,7 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 1. Open Eclipse, navigate to **Help &rarr; Install New Software...**, enter the following update site URL: https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-updatesite/master/, and select the following features:
    - Democles Pattern Matcher &rarr; Democles Pattern Matcher Specification and Pattern Matcher Compiler (0.5.0)
    - eMoflon::Core
+   - eMoflon::IBeX Democles
    - Xtext &rarr; Xtext Complete SDK
    - (Required for test suite) Emfatic (**Note:** you need to untick the option *Group items by category* to see the Emfatic feature)
 1. Import https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf (*Import &rarr; Team Project Set*)
