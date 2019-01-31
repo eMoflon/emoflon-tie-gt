@@ -9,9 +9,17 @@ https://emoflon.org/ .
    <feature url="features/org.moflon.tie.gt.feature_1.0.0.qualifier.jar" id="org.moflon.tie.gt.feature" version="1.0.0.qualifier">
       <category name="org.moflon.tie.gt.category"/>
    </feature>
+   <feature url="features/org.eclipse.emf.emfatic_0.8.0.201507261242.jar" id="org.eclipse.emf.emfatic" version="0.8.0.201507261242">
+      <category name="org.moflon.tie.gt.external"/>
+   </feature>
    <category-def name="org.moflon.tie.gt.category" label="eMoflon::TIE-GT">
       <description>
          eMoflon::TIE-GT Components
+      </description>
+   </category-def>
+   <category-def name="org.moflon.tie.gt.external" label="eMoflon::TIE-GT external dependencies">
+      <description>
+         Contains external dependencies that we provide for convenience
       </description>
    </category-def>
 </site>
