@@ -23,17 +23,16 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 1. Open Eclipse, navigate to **Help &rarr; Install New Software...**, enter the following update site URL: https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-updatesite/master/, and select the following features:
    - Democles Pattern Matcher &rarr; Democles Pattern Matcher Specification and Pattern Matcher Compiler (0.5.0)
    - eMoflon::Core
-   - eMoflon::TIE-GT external dependencies &rarr; Emfatic
    - Xtext &rarr; Xtext Complete SDK
+   - (Required for test suite) Emfatic (**Note:** you need to untick the option *Group items by category* to see the Emfatic feature)
 1. Import https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf (*Import &rarr; Team Project Set*)
 1. Run all MWE2 workflows (see *Ctrl+Shift+R* &rarr; '*.mwe2').
    * Proceed even if Eclipse warns you about "Errors in the Workspace"
 1. The subsequent build should complete without errors.
 1. Run the test suite 
-   1. Start Runtime Eclipse
-   1. Check out all projects from *https://github.com/eMoflon/emoflon-tie-gt-examples*
+   1. Start a runtime Eclipse instance (*Run &rarr; Run Configurations... &rarr; Eclipse Application*)
+   1. Import the following team project set *https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-examples/master/tieGtExamples.psf*
    1. Ensure that automatic build is enabled (*Project &rarr; Build Automatically*)
-   1. Run JUnit test suite *EMoflonTieGtTestSuite*
-      * Runner class *org.moflon.tie.gt.testsuite.EMoflonTieGtTestSuite*
+   1. Run JUnit test suite in *_EMoflonTieGtTestSuite* (launcher file *EMoflonTieGtTestSuite.launch*)
    
    
