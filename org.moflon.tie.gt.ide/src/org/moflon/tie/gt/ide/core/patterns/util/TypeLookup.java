@@ -3,6 +3,7 @@ package org.moflon.tie.gt.ide.core.patterns.util;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -90,17 +91,14 @@ public class TypeLookup {
 					eAttribute.getName(), eClass));
 	}
 
-	// TODO@rkluge: Make non-static
-	public static EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage,
-			final EPackage ecorePackage) {
+	public EClassifier lookupTypeInEcoreFile(final EClassifier statementEType) {
 		if (statementEType == null)
 			return null;
 
-		final EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
-		if (properEClassifierFromEPackage != null)
-			return properEClassifierFromEPackage;
-		else
-			return ecorePackage.getEClassifier(statementEType.getName());
+		final Optional<EClassifier> match = this.ePackages.stream()
+				.map(ePackage -> ePackage.getEClassifier(statementEType.getName()))
+				.filter(eClassifier -> eClassifier != null).findFirst();
+		return match.orElse(null);
 	}
 
 	public EClassifier determineType(final EObject object) {
@@ -124,15 +122,14 @@ public class TypeLookup {
 		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", object));
 	}
 
-	public static IStatus validateTypeExistsInMetamodel(final Variable var, final EPackage ePackage,
-			final EPackage ecorePackage) {
+	public IStatus validateTypeExistsInMetamodel(final Variable var) {
 		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
-		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
-				ecorePackage);
-		if (properCfVariableType == null)
+		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType);
+		if (properCfVariableType == null) {
+			final List<String> packageNames = ePackages.stream().map(EPackage::getName).collect(Collectors.toList());
 			return TransformationExceptions.createError(
-					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, ePackage);
-		else
+					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, packageNames);
+		} else
 			return Status.OK_STATUS;
 	}
 

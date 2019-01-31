@@ -97,11 +97,6 @@ public class EditorToControlFlowTransformation {
 	private CFNode recentControlFlowNode;
 
 	/**
-	 * The {@link EPackage} containing the Ecore metamodel
-	 */
-	private EPackage ecorePackage;
-
-	/**
 	 * The {@link EPackage} of the metamodel to be built
 	 */
 	private EPackage ePackage;
@@ -223,8 +218,7 @@ public class EditorToControlFlowTransformation {
 			final EClassifier returnType;
 			if (returnObject instanceof LiteralExpression) {
 				final LiteralExpression val = (LiteralExpression) returnObject;
-				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage,
-						ecorePackage);
+				final EClassifier returnVariableType = types.lookupTypeInEcoreFile(eOperation.getEType());
 				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
@@ -240,7 +234,7 @@ public class EditorToControlFlowTransformation {
 			} else if (returnObject instanceof ObjectVariableExpression) {
 				final ObjectVariableExpression namedObject = (ObjectVariableExpression) returnObject;
 				final ObjectVariableStatement oVarStmt = namedObject.getObj();
-				returnType = TypeLookup.lookupTypeInEcoreFile(oVarStmt.getEType(), ePackage, ecorePackage);
+				returnType = types.lookupTypeInEcoreFile(oVarStmt.getEType());
 
 				final String nameOfRequiredControlFlowVariable = oVarStmt.getName();
 				final Optional<CFVariable> returnVariableCandidate = ControlFlowUtil
@@ -302,8 +296,7 @@ public class EditorToControlFlowTransformation {
 				}
 			} else if (returnObject instanceof EnumExpression) {
 				final EnumExpression enumExpression = (EnumExpression) returnObject;
-				final EClassifier returnVariableType = TypeLookup.lookupTypeInEcoreFile(eOperation.getEType(), ePackage,
-						ecorePackage);
+				final EClassifier returnVariableType = types.lookupTypeInEcoreFile(eOperation.getEType());
 				returnType = returnVariableType;
 				final String returnVariableName = returnVariableType.getName() + "_0";
 
@@ -935,7 +928,7 @@ public class EditorToControlFlowTransformation {
 			return null;
 		}
 
-		final IStatus checkStatus = TypeLookup.validateTypeExistsInMetamodel(var, ePackage, ecorePackage);
+		final IStatus checkStatus = types.validateTypeExistsInMetamodel(var);
 		if (StatusUtil.addAndCheckForErrors(checkStatus, transformationStatus))
 			return null;
 
@@ -1052,8 +1045,7 @@ public class EditorToControlFlowTransformation {
 
 	private void createCFVariableFromObjectVariable(final Scope rootScope, final ObjectVariableStatement statement) {
 		final EClassifier editorObjectVariableType = statement.getEType();
-		final EClassifier properCfVariableType = TypeLookup.lookupTypeInEcoreFile(editorObjectVariableType, ePackage,
-				ecorePackage);
+		final EClassifier properCfVariableType = types.lookupTypeInEcoreFile(editorObjectVariableType);
 		if (properCfVariableType == null) {
 			TransformationExceptions.recordError(transformationStatus,
 					"Cannot translate the type %s (from the editor) to an EClassifier in %s", editorObjectVariableType,
@@ -1090,7 +1082,6 @@ public class EditorToControlFlowTransformation {
 	private void setTransformationParameters(final EPackage ePackage, final ResourceSet resourceSet,
 			final EPackage ecorePackage) {
 		this.ePackage = ePackage;
-		this.ecorePackage = ecorePackage;
 
 		this.adapterResourceManager = new AdapterResources(resourceSet, true);
 		this.patternNameGenerator = new PatternNameGenerator();
@@ -1101,7 +1092,6 @@ public class EditorToControlFlowTransformation {
 
 	private void unsetTransformationParameters() {
 		this.ePackage = null;
-		this.ecorePackage = null;
 		this.adapterResourceManager = null;
 		this.transformationStatus = null;
 		this.patternNameGenerator = null;
