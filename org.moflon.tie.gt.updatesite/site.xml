@@ -17,7 +17,7 @@ https://emoflon.org/ .
          eMoflon::TIE-GT Components
       </description>
    </category-def>
-   <category-def name="org.moflon.tie.gt.external" label="eMoflon::TIE-GT external dependencies">
+   <category-def name="org.moflon.tie.gt.external" label="eMoflon::TIE-GT Dependencies">
       <description>
          Contains external dependencies that we provide for convenience
       </description>
