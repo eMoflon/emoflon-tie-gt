@@ -11,11 +11,15 @@ import org.emoflon.ibex.gt.editor.gT.EditorEnumExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
 import org.gervarro.democles.specification.emf.Constant;
+import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
+import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.tie.gt.constraints.democles.DemoclesFactory;
 import org.moflon.tie.gt.constraints.democles.TypedConstant;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
 
 public final class Constants {
@@ -137,6 +141,35 @@ public final class Constants {
 		} else {
 			TransformationExceptions.recordError(transformationStatus, "The type of %s::%s must be an EDataType but is",
 					eParameter.getEOperation().getName(), eParameter.getName(), parameterType);
+			return null;
+		}
+	}
+
+	public static Constant createConstant(final CalledPatternParameter patternParameter, final Variable patternVariable,
+			final Pattern pattern, final MultiStatus transformationStatus) {
+
+		final EMFVariable emfPatternVariable = (EMFVariable) patternVariable;
+
+		final EClassifier parameterType = emfPatternVariable.getEClassifier();
+		if (parameterType instanceof EDataType) {
+			final EDataType parameterDataType = (EDataType) parameterType;
+
+			final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
+			final LiteralExpression literalExpression = patternParameter.getLiteral();
+			final Optional<Object> value = LiteralExpressions.convertLiteralValueToObject(parameterDataType,
+					literalExpression);
+			if (value.isPresent()) {
+				final Object valueObject = value.get();
+				setConstantValueWithAdjustedType(constant, valueObject);
+			} else {
+				constant.setValue(literalExpression.getVal());
+			}
+
+			Patterns.getBody(pattern).getConstants().add(constant);
+			return constant;
+		} else {
+			TransformationExceptions.recordError(transformationStatus, "The type of %s::%s must be an EDataType but is",
+					pattern.getName(), patternParameter.getParameter().getName(), parameterType);
 			return null;
 		}
 	}

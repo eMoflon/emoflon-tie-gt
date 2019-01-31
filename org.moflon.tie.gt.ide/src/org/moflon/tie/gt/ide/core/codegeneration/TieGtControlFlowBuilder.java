@@ -115,18 +115,10 @@ public class TieGtControlFlowBuilder {
 			final URI uri = URI.createURI(importPath);
 			final Resource ecoreResource = this.resourceSet.getResource(uri, true);
 			ecoreResource.load(null);
-
-			if (!ecoreResource.getContents().isEmpty()) {
-				final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
-
-				final IStatus status = helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet,
-						this.ecorePackage);
-				if (!status.isOK()) {
-					return status;
-				}
-			}
 		}
-		return Status.OK_STATUS;
+
+		final IStatus status = helper.transform(controlFlowSpecificationRoot, this.resourceSet);
+		return status;
 	}
 
 	private ResourceSet getResourceSet() {

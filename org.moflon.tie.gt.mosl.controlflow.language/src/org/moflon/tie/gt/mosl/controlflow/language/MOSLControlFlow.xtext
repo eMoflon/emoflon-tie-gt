@@ -38,7 +38,7 @@ MethodDec:
   '}')?;
 
 CalledPatternParameter:
-  (parameter=CalledPatternParameterName) '=' object=[TypedElement|QualifiedName] ;
+  (parameter=CalledPatternParameterName) '=' (object=[TypedElement|QualifiedName] | literal=LiteralExpression);
 
 CalledPatternParameterName:
   name=ID;

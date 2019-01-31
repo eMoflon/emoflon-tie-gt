@@ -91,16 +91,6 @@ public class TypeLookup {
 					eAttribute.getName(), eClass));
 	}
 
-	public EClassifier lookupTypeInEcoreFile(final EClassifier statementEType) {
-		if (statementEType == null)
-			return null;
-
-		final Optional<EClassifier> match = this.ePackages.stream()
-				.map(ePackage -> ePackage.getEClassifier(statementEType.getName()))
-				.filter(eClassifier -> eClassifier != null).findFirst();
-		return match.orElse(null);
-	}
-
 	public EClassifier determineType(final EObject object) {
 		if (object instanceof EditorParameter) {
 			final EditorParameter editorParameter = (EditorParameter) object;
@@ -123,14 +113,30 @@ public class TypeLookup {
 	}
 
 	public IStatus validateTypeExistsInMetamodel(final Variable var) {
-		final EClassifier editorObjectVariableType = ((EMFVariable) var).getEClassifier();
-		final EClassifier properCfVariableType = lookupTypeInEcoreFile(editorObjectVariableType);
-		if (properCfVariableType == null) {
-			final List<String> packageNames = ePackages.stream().map(EPackage::getName).collect(Collectors.toList());
-			return TransformationExceptions.createError(
-					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, packageNames);
-		} else
+		final EMFVariable emfVariable = (EMFVariable) var;
+		final EClassifier editorObjectVariableType = emfVariable.getEClassifier();
+		final EClassifier properCfVariableType = lookupType(editorObjectVariableType);
+		if (properCfVariableType == null)
+			return TransformationExceptions
+					.createError("Cannot translate the type %s (from the editor) to an EClassifier in %s", var, this);
+		else
 			return Status.OK_STATUS;
+	}
+
+	public EClassifier lookupType(final EClassifier statementEType) {
+		return statementEType == null ? null : lookupType(statementEType.getName());
+	}
+
+	public EClassifier lookupType(final String name) {
+		final Optional<EClassifier> match = this.ePackages.stream().map(ePackage -> ePackage.getEClassifier(name))
+				.filter(eClassifier -> eClassifier != null).findFirst();
+		return match.orElse(null);
+	}
+
+	@Override
+	public String toString() {
+		final List<String> packageNames = ePackages.stream().map(EPackage::getName).collect(Collectors.toList());
+		return String.format("TypeLookup %s", packageNames);
 	}
 
 }

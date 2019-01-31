@@ -1,7 +1,6 @@
 package org.moflon.tie.gt.ide.core.patterns.util;
 
 import org.eclipse.emf.ecore.EOperation;
-import org.emoflon.ibex.gt.editor.gT.EditorPattern;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.Operation;
@@ -27,10 +26,10 @@ public final class PatternInvocationActions {
 	}
 
 	public static PatternInvocation createPatternInvocation(final Scope rootscope, final CFNode cfNode,
-			final EditorPattern pattern, final Pattern blackPattern) {
+			final Pattern pattern) {
 		final RegularPatternInvocation patternInvocation = DemoclesFactory.eINSTANCE.createRegularPatternInvocation();
 		patternInvocation.setCfNode(cfNode);
-		patternInvocation.setPattern(blackPattern);
+		patternInvocation.setPattern(pattern);
 		return patternInvocation;
 	}
 

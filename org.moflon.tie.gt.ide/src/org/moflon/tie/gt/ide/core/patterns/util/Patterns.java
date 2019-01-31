@@ -134,4 +134,31 @@ public final class Patterns {
 		return getBody(pattern).getConstraints();
 	}
 
+	/**
+	 * Determines the {@link DemoclesPatternType} of the given {@link Pattern} based
+	 * on its name, which must be equal to one of the suffix in
+	 * {@link DemoclesPatternType} (e.g., {@link #BLACK_FILE_EXTENSION})
+	 * 
+	 * @param pattern the pattern
+	 * @return the pattern type
+	 * @throws RuntimeException if the name does not match any file extension
+	 */
+	public static DemoclesPatternType guessPatternType(final Pattern pattern) {
+		final String patterName = pattern.getName();
+		switch (patterName) {
+		case DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION:
+			return DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
+		case DemoclesPatternType.BLACK_FILE_EXTENSION:
+			return DemoclesPatternType.BLACK_PATTERN;
+		case DemoclesPatternType.RED_FILE_EXTENSION:
+			return DemoclesPatternType.RED_PATTERN;
+		case DemoclesPatternType.GREEN_FILE_EXTENSION:
+			return DemoclesPatternType.GREEN_PATTERN;
+		case DemoclesPatternType.EXPRESSION_FILE_EXTENSION:
+			return DemoclesPatternType.EXPRESSION_PATTERN;
+		default:
+			return null;
+		}
+	}
+
 }
