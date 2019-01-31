@@ -19,11 +19,12 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 1. Check out the following small example via **right-click &rarr; Import... &rarr; Team Project Set** and the following URL: TODO
 
 ## Developer setup
-1. Prerequisites
-   - Eclipse 2018-09 or 2018-12 with Modeling Components
-   - Xtext Complete SDK from http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
-   - eMoflon::Core from https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
-   - Democles Pattern Matcher Specification and Pattern Matcher Compiler 0.5.0 from http://gervarro.org/democles/integration-0.5.0/
+1. Install Eclipse with Modeling Components (2018-09 or above)
+1. Open Eclipse, navigate to **Help &rarr; Install New Software...**, enter the following update site URL: https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-updatesite/master/, and select the following features:
+   - Democles Pattern Matcher &rarr; Democles Pattern Matcher Specification and Pattern Matcher Compiler (0.5.0)
+   - eMoflon::Core
+   - eMoflon::TIE-GT external dependencies &rarr; Emfatic
+   - Xtext &rarr; Xtext Complete SDK
 1. Import https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf (*Import &rarr; Team Project Set*)
 1. Run all MWE2 workflows (see *Ctrl+Shift+R* &rarr; '*.mwe2').
    * Proceed even if Eclipse warns you about "Errors in the Workspace"
