@@ -7,8 +7,8 @@
       plugin="org.moflon.tie.gt.branding">
 
    <description url="https://www.emoflon.org/">
-      This feature all components for eMoflon::TIE-GT, an EMF-based, code-generating model transformation tool.
-Visit emoflon.github.io for more information.
+      This feature contains all components for eMoflon::TIE-GT, an EMF-based,
+code-generating model transformation tool.
    </description>
 
    <copyright>
