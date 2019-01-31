@@ -714,8 +714,22 @@ public class EditorToControlFlowTransformation {
 		patternNameGenerator.unsetApplicationConditionType();
 	}
 
-	private List<List<Statement>> getThenAndElseStatements(final ConditionStatement ifStatement) {
-		return Arrays.asList(ifStatement.getThenStatements(), ifStatement.getElseStatements());
+	/**
+	 * If the condition statement contains a negation ('!'), we exchange the else
+	 * and then statements
+	 * 
+	 * @param statement the condition statement
+	 * @return a pair of statement lists. The first list contains the sequence of
+	 *         statements to execute if the pattern matching is successful, the
+	 *         second list contains the sequence of statements to execute if the
+	 *         pattern matching fails.
+	 */
+	private List<List<Statement>> getThenAndElseStatements(final ConditionStatement statement) {
+		if (statement.isIsNegated()) {
+			return Arrays.asList(statement.getElseStatements(), statement.getThenStatements());
+		} else {
+			return Arrays.asList(statement.getThenStatements(), statement.getElseStatements());
+		}
 	}
 
 	private EditorPattern flattenPattern(final EditorPattern editorPattern) {
@@ -915,8 +929,7 @@ public class EditorToControlFlowTransformation {
 	}
 
 	private CFVariable createTemporaryControlFlowVariable(final Scope scope, final Variable var) {
-		final Optional<EClassifier> editorObjectVariableType = Variables.getType(var,
-				transformationStatus);
+		final Optional<EClassifier> editorObjectVariableType = Variables.getType(var, transformationStatus);
 		if (!editorObjectVariableType.isPresent()) {
 			TransformationExceptions.recordError(transformationStatus, "Variable %s has no type.", var);
 			return null;

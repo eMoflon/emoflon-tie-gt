@@ -55,7 +55,7 @@ PatternStatement:
   '(' (parameters+=CalledPatternParameter)? (',' parameters+=CalledPatternParameter)* ')';
 
 ConditionStatement:
-  'if' '(' cond=Condition ')' '{' thenStatements+=Statement* '}'
+  'if' '(' (isNegated ?= '!')? cond=Condition ')' '{' thenStatements+=Statement* '}'
   ('else' '{' elseStatements+=Statement* '}')?;
 
 OperationCallStatement:

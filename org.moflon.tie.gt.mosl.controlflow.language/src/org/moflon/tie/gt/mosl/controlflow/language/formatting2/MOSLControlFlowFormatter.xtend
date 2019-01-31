@@ -121,6 +121,8 @@ class MOSLControlFlowFormatter extends AbstractFormatter2 {
 
   def dispatch void format(ConditionStatement stmnt, extension IFormattableDocument document) {
     stmnt.regionFor.keyword(')').append[oneSpace]
+    stmnt.regionFor.keyword('(').append[noSpace]
+    stmnt.regionFor.keyword('!').surround[noSpace]
     stmnt.regionFor.keyword('if').append[oneSpace]
     stmnt.regionFor.keyword('while').append[oneSpace]
     stmnt.regionFor.keyword('do').append[oneSpace]
