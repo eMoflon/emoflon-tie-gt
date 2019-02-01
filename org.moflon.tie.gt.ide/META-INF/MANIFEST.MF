@@ -19,7 +19,7 @@ Require-Bundle:
  org.moflon.core.preferences;bundle-version="1.1.0",
  org.moflon.core.utilities;bundle-version="3.0.0",
  org.moflon.core.ui;bundle-version="1.2.0",
- org.moflon.emf.codegen;bundle-version="1.1.0",
+ org.moflon.emf.codegen;bundle-version="1.2.0",
  org.moflon.emf.build;bundle-version="1.1.0",
  org.moflon.emf.injection.ide;bundle-version="1.0.0",
  org.moflon.core.plugins;bundle-version="3.1.0",
