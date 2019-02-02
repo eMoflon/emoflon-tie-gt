@@ -46,7 +46,7 @@
 		<repository>
 			<id>emoflon-core</id>
 			<layout>p2</layout>
-			<url>https://emoflon.org/emoflon-core-updatesite/stable/updatesite/</url>
+			<url>https://emoflon.org/emoflon-core-updatesite/</url>
 		</repository>
 		<repository>
 			<id>plantuml</id>

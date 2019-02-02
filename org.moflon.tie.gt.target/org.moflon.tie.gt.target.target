@@ -20,8 +20,7 @@
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.moflon.core.feature.feature.group" version="0.0.0"/>
-<repository location="https://raw.githubusercontent.com/eMoflon/emoflon-core-updatesite/master/stable/updatesite/"/>
-<repository location="https://raw.githubusercontent.com/eMoflon/emoflon-core-updatesite/master/snapshot/updatesite/"/>
+<repository location="https://raw.githubusercontent.com/eMoflon/emoflon-core-updatesite/master/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.gervarro.democles.feature.compiler.feature.group" version="0.0.0"/>
@@ -40,22 +39,5 @@
 <unit id="net.sourceforge.plantuml.feature.feature.group" version="0.0.0"/>
 <repository location="https://hallvard.github.io/plantuml/"/>
 </location>
-<!--
-<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.emf.mwe2.launcher.feature.group" version="0.0.0"/>
-<unit id="org.stringtemplate" version="0.0.0"/>
-<unit id="org.gervarro.democles.codegen.emf" version="0.0.0"/>
-<unit id="org.gervarro.democles.codegen.stringtemplate" version="0.0.0"/>
-<unit id="org.gervarro.democles.codegen.stringtemplate.emf" version="0.0.0"/>
-<unit id="org.gervarro.democles.common" version="0.0.0"/>
-<unit id="org.gervarro.democles.compiler" version="0.0.0"/>
-<unit id="org.gervarro.democles.emf" version="0.0.0"/>
-<unit id="org.gervarro.democles.plan" version="0.0.0"/>
-<unit id="org.gervarro.democles.specification.emf" version="0.0.0"/>
-<unit id="org.gervarro.democles.plan.emf" version="0.0.0"/>
-<unit id="org.gervarro.util" version="0.0.0"/>
-<repository location="https://emoflon.org/emoflon-tie-gt-updatesite/"/>
-</location>
--->
 </locations>
 </target>
