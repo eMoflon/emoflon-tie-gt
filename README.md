@@ -15,10 +15,11 @@ eMoflon Tool Integration Environment with Unidirectional Graph Transformation
    * *Note:* The update site may take some time to load. Please be patient! After installing eMoflon::TIE-GT, you may use the following update site, which loads faster but provides no access to dependencies: https://emoflon.org/emoflon-tie-gt-updatesite/stable/updatesite
 1. Select **eMoflon::TIE-GT Feature**.
 1. (Optional) If you plan to work with Emfatic, untick the option *Group items by category* to select **Emfatic (Incubation)**.
+   * Note: The filter bar ("type filter text") is helpful here!
 1. Press **Next**, and following the instructions.
    * If certain dependencies cannot be resolved, you may try enabling *Contact all update sites during install to find software*.
 1. Restart Eclipse and switch to the **eMoflon** perspective.
-1. Check out the following small example via **right-click &rarr; Import... &rarr; Team Project Set** and the following URL: TODO
+<!--1. Check out the following small example via **right-click &rarr; Import... &rarr; Team Project Set** and the following URL: TODO-->
 
 ## Developer setup
 1. Install Eclipse with Modeling Components (2018-09 or above)
