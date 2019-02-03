@@ -48,6 +48,10 @@ public abstract class PatternMatcher {
 				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct. See also debug log. %s",
 				pattern.getName(), detailsFragment);
 
-		return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(PatternMatcherGenerator.class), message);
+		return new Status(IStatus.ERROR, getPluginId(), message);
+	}
+
+	public String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
 	}
 }

@@ -8,8 +8,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
@@ -40,11 +38,15 @@ abstract class FilteredResourceLoadingVisitor implements IResourceVisitor {
 			try {
 				schemaResource.load(null);
 			} catch (final IOException e) {
-				throw new CoreException(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-						String.format("Problems while loading resource with URI %s", schemaResource.getURI()), e));
+				throw new CoreException(StatusUtil.createErrorStatus(e, getPluginId(),
+						"Problems while loading resource with URI %s", schemaResource.getURI()));
 			}
 		}
 		return true;
+	}
+
+	public String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
 	}
 
 	/**

@@ -58,8 +58,8 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	@Override
 	public IStatus processResource(final IProgressMonitor monitor) {
 		try {
-			final MultiStatus processStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
-					"Problems during code generation", null);
+			final MultiStatus processStatus = new MultiStatus(getPluginId(), 0, "Problems during code generation",
+					null);
 			final int totalWork = 5 + 10 + 10 + 15 + 35 + 30 + 5;
 			final SubMonitor subMon = SubMonitor.convert(monitor, "Code generation task for " + getProject().getName(),
 					totalWork);
@@ -138,6 +138,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 	private TypeLookup createTypeLookup() {
 		final List<EPackage> typeList = new ArrayList<>();
+		this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
 		typeList.add(this.getGenModel().getEcoreGenPackage().getEcorePackage());
 		getResourceSet().getResources().stream().filter(TieGtEcoreUtil::isEcoreResource)
 				.forEach(resource -> typeList.addAll(TieGtEcoreUtil.getEPackages(resource)));
@@ -156,8 +157,6 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	private IStatus processControlFlowSpecification(final TieGtCodeGenerationConfiguration codeGeneratorConfig,
 			final SubMonitor monitor) {
 		final TieGtControlFlowBuilder controlFlowBuilder = new TieGtControlFlowBuilder(getPreferencesStorage());
-		this.getGenModel().findGenPackage(EcorePackage.eINSTANCE);
-		controlFlowBuilder.setECorePackage(this.getGenModel().getEcoreGenPackage().getEcorePackage());
 		final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
 				codeGeneratorConfig.getSearchPlanGenerators(), typeLookup, monitor.split(10));
 		return controlFlowBuilderStatus;
@@ -283,16 +282,16 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 		extensionToFactoryMap.put(extension, bindingAndBlackFactory);
 	}
 
-	private Status createErrorStatus(final Throwable e) {
+	private IStatus createErrorStatus(final Throwable e) {
 		return createErrorStatus(e.getMessage(), e);
 	}
 
-	private Status createErrorStatus(final String message) {
+	private IStatus createErrorStatus(final String message) {
 		return createErrorStatus(message, null);
 	}
 
-	private Status createErrorStatus(final String message, final Throwable e) {
-		return new Status(IStatus.ERROR, getPluginId(), IStatus.ERROR, message, e);
+	private IStatus createErrorStatus(final String message, final Throwable e) {
+		return StatusUtil.createErrorStatus(e, getPluginId());
 	}
 
 	private String getPluginId() {

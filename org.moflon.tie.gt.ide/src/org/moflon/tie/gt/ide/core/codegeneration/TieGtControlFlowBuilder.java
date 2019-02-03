@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
@@ -38,7 +37,6 @@ public class TieGtControlFlowBuilder {
 
 	private EditorToControlFlowTransformation controlFlowTransformation;
 	private final EMoflonPreferencesStorage preferencesStorage;
-	private EPackage ecorePackage;
 
 	public TieGtControlFlowBuilder(final EMoflonPreferencesStorage preferencesStorage) {
 		this.preferencesStorage = preferencesStorage;
@@ -48,17 +46,9 @@ public class TieGtControlFlowBuilder {
 		return "eMoflon::TIE-GT transformation";
 	}
 
-	public void setECorePackage(final EPackage ecorePackage) {
-		this.ecorePackage = ecorePackage;
-	}
-
 	public IStatus run(final IProject project, final Resource resource,
 			final PatternMatcherConfiguration patternMatcherConfiguration, final TypeLookup types,
 			final IProgressMonitor monitor) {
-
-		if (this.ecorePackage == null) {
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Ecore package was not set.");
-		}
 
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
@@ -88,7 +78,7 @@ public class TieGtControlFlowBuilder {
 	}
 
 	private IStatus processControlFlowFiles(final IProgressMonitor monitor) {
-		final MultiStatus controlFlowFilesStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
+		final MultiStatus controlFlowFilesStatus = new MultiStatus(getPluginId(), 0,
 				"Problems during transformation of control flow specification", null);
 		try {
 			final List<Resource> mcfResources = McfResourceLoadingVisitor.collectControlFlowResources(getResourceSet());
@@ -100,8 +90,7 @@ public class TieGtControlFlowBuilder {
 			}
 			EcoreUtil.resolveAll(this.resourceSet);
 		} catch (final IOException e) {
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-					"Problems while loading control flow specification", e);
+			return StatusUtil.createErrorStatus(e, getPluginId());
 		}
 		return StatusUtil.returnIfNotOK(controlFlowFilesStatus);
 	}
@@ -123,6 +112,10 @@ public class TieGtControlFlowBuilder {
 
 	private ResourceSet getResourceSet() {
 		return this.resourceSet;
+	}
+
+	private String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
 	}
 
 }

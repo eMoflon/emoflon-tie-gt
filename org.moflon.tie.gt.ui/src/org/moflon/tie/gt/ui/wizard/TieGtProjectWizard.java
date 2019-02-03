@@ -1,6 +1,5 @@
 package org.moflon.tie.gt.ui.wizard;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -14,17 +13,15 @@ import org.moflon.core.plugins.PluginProperties;
 import org.moflon.core.ui.AbstractMoflonProjectInfoPage;
 import org.moflon.core.ui.AbstractMoflonWizard;
 import org.moflon.core.ui.WorkingSetUtilities;
-import org.moflon.core.utilities.LogUtils;
 import org.moflon.core.utilities.MoflonConventions;
 import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.codegen.MoflonGenModelBuilder;
 import org.moflon.emf.ui.wizard.DefaultContentGenerator;
+import org.moflon.tie.gt.ide.core.codegeneration.StatusUtil;
 import org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature;
 
 public class TieGtProjectWizard extends AbstractMoflonWizard {
-
-	private static final Logger logger = Logger.getLogger(TieGtProjectWizard.class);
 
 	/**
 	 * This is the ID that is also used in plugin.xml
@@ -50,9 +47,7 @@ public class TieGtProjectWizard extends AbstractMoflonWizard {
 			final String projectName = projectInfo.getProjectName();
 
 			final IProject project = WorkspaceHelper.getProjectByName(projectName);
-			final PluginProperties pluginProperties = new PluginProperties();
-			pluginProperties.put(PluginProperties.NAME_KEY, projectName);
-			pluginProperties.put(PluginProperties.PLUGIN_ID_KEY, projectName);
+			final PluginProperties pluginProperties = initializePluginProperties(projectName);
 			createProject(subMon, project, pluginProperties);
 			subMon.worked(3);
 
@@ -66,8 +61,25 @@ public class TieGtProjectWizard extends AbstractMoflonWizard {
 			addToWorkingSet(project);
 
 		} catch (final Exception e) {
-			LogUtils.error(logger, e);
+			throw new CoreException(StatusUtil.createErrorStatus(e, getPluginId()));
 		}
+	}
+
+	private String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
+	}
+
+	/**
+	 * Create the properties for the project with the given name
+	 * 
+	 * @param projectName the project name
+	 * @return the initialized properties
+	 */
+	public PluginProperties initializePluginProperties(final String projectName) {
+		final PluginProperties pluginProperties = new PluginProperties();
+		pluginProperties.put(PluginProperties.NAME_KEY, projectName);
+		pluginProperties.put(PluginProperties.PLUGIN_ID_KEY, projectName);
+		return pluginProperties;
 	}
 
 	/**
@@ -94,16 +106,43 @@ public class TieGtProjectWizard extends AbstractMoflonWizard {
 	 * @throws CoreException if storing the file fails
 	 */
 	protected void generateDefaultFiles(final IProgressMonitor monitor, final IProject project) throws CoreException {
-		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating default files", 1);
-		final String projectName = project.getName();
-		final String packageName = MoflonUtil.lastSegmentOf(projectName);
-		final URI projectUri = MoflonGenModelBuilder.determineProjectUriBasedOnPreferences(project);
-		final URI packageUri = URI
-				.createURI(projectUri.toString() + MoflonConventions.getDefaultPathToEcoreFileInProject(projectName));
-		final String defaultEcoreFile = DefaultContentGenerator.generateDefaultEPackageForProject(projectName,
-				packageName, packageUri.toString());
-		WorkspaceHelper.addFile(project, MoflonConventions.getDefaultPathToEcoreFileInProject(projectName),
-				defaultEcoreFile, subMon.split(1));
+
+		if (projectInfo.generateDefaultEmfaticFile())
+			generateDefaultFilesForEmfatic(monitor, project);
+		else
+			generateDefaultFilesForEcore(monitor, project);
+	}
+
+	public void generateDefaultFilesForEcore(final IProgressMonitor monitor, final IProject project)
+			throws CoreException {
+		{
+			final SubMonitor subMon = SubMonitor.convert(monitor, "Creating default files", 1);
+			final String projectName = project.getName();
+			final String packageName = MoflonUtil.lastSegmentOf(projectName);
+			final URI projectUri = MoflonGenModelBuilder.determineProjectUriBasedOnPreferences(project);
+			final URI packageUri = URI.createURI(
+					projectUri.toString() + MoflonConventions.getDefaultPathToEcoreFileInProject(projectName));
+			final String defaultEcoreFile = DefaultContentGenerator.generateDefaultEPackageForProject(projectName,
+					packageName, packageUri.toString());
+			WorkspaceHelper.addFile(project, MoflonConventions.getDefaultPathToEcoreFileInProject(projectName),
+					defaultEcoreFile, subMon.split(1));
+		}
+	}
+
+	public void generateDefaultFilesForEmfatic(final IProgressMonitor monitor, final IProject project)
+			throws CoreException {
+		{
+			final SubMonitor subMon = SubMonitor.convert(monitor, "Creating default files", 1);
+			final String projectName = project.getName();
+			final String packageName = MoflonUtil.lastSegmentOf(projectName);
+			final URI projectUri = MoflonGenModelBuilder.determineProjectUriBasedOnPreferences(project);
+			final URI packageUri = URI.createURI(
+					projectUri.toString() + MoflonConventions.getDefaultPathToEcoreFileInProject(projectName));
+			final String defaultEmfaticFile = DefaultContentGenerator.generateDefaultEmfaticFileForProject(projectName,
+					packageName, packageUri.toString());
+			WorkspaceHelper.addFile(project, MoflonConventions.getDefaultPathToFileInProject(projectName, ".emf"),
+					defaultEmfaticFile, subMon.split(1));
+		}
 	}
 
 	/**

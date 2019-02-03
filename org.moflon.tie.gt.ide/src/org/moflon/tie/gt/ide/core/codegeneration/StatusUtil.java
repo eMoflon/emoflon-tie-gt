@@ -52,4 +52,44 @@ public final class StatusUtil {
 	public static boolean hasErrors(final IStatus status) {
 		return status.matches(IStatus.ERROR);
 	}
+
+	/**
+	 * Creates an error {@link Status} from the given exception with the given
+	 * plugin ID
+	 * 
+	 * @param exception the exception
+	 * @param pluginId  the plugin ID
+	 * @return the error status
+	 */
+	public static IStatus createErrorStatus(final Throwable exception, final String pluginId) {
+		return new Status(IStatus.ERROR, pluginId, exception.getMessage(), exception);
+	}
+
+	/**
+	 * Creates an error {@link Status} with the given message and the given plugin
+	 * ID
+	 * 
+	 * @param message  the message
+	 * @param pluginId the plugin ID
+	 * @return the error status
+	 */
+	public static Status createErrorStatus(final String message, final String pluginId) {
+		return new Status(IStatus.ERROR, pluginId, message);
+	}
+
+	/**
+	 * Creates an error {@link Status} from the given exception with the given
+	 * message and the given plugin ID
+	 * 
+	 * @param exception       the exception
+	 * @param pluginId        the plugin ID
+	 * @param formatString    the format string message
+	 * @param formatArguments the format string arguments
+	 * 
+	 * @return the error status
+	 */
+	public static IStatus createErrorStatus(final Throwable exception, final String pluginId, final String formatString,
+			final Object... formatArguments) {
+		return new Status(IStatus.ERROR, pluginId, String.format(formatString, formatArguments), exception);
+	}
 }

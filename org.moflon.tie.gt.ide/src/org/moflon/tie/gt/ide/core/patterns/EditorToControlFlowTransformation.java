@@ -1120,8 +1120,11 @@ public class EditorToControlFlowTransformation {
 		this.adapterResourceManager = new AdapterResources(resourceSet, false);
 		this.patternNameGenerator = new PatternNameGenerator();
 
-		this.transformationStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
-				"Creation of control flow model failed.", null);
+		this.transformationStatus = new MultiStatus(getPluginId(), 0, "Creation of control flow model failed.", null);
+	}
+
+	public String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
 	}
 
 	private void unsetTransformationParameters() {

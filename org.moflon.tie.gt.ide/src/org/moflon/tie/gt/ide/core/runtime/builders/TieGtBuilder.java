@@ -156,7 +156,7 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 	}
 
 	private Status createErrorStatus(final String message) {
-		return new Status(IStatus.ERROR, getPlugin(), message);
+		return StatusUtil.createErrorStatus(message, getPlugin());
 	}
 
 	private String getPlugin() {
