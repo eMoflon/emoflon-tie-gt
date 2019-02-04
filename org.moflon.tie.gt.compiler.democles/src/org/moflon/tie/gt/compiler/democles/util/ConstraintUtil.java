@@ -32,41 +32,26 @@ public class ConstraintUtil {
 
 	public static boolean requiresTypeCheck(final Constraint binaryConstraint) {
 		final List<? extends ConstraintVariable> parameters = binaryConstraint.getParameters();
-		if (parameters.size() != 2)
-			throw new IllegalArgumentException(String.format("Expected %s to be binary.", binaryConstraint));
+		validateBinaryConstraint(binaryConstraint);
 
-		final boolean requiresTypeCheck;
 		final ConstraintVariable lhsParameter = parameters.get(0);
 		final ConstraintVariable rhsParameter = parameters.get(1);
-		if (isVariable(lhsParameter) && isVariable(rhsParameter)) {
-			final Variable lhsVariable = (Variable) lhsParameter;
-			final Variable rhsVariable = (Variable) rhsParameter;
-			if (isEmfVariable(lhsVariable.getType()) && isEmfVariable(rhsVariable.getType())) {
-				final EMFVariable lhsEmfVariable = (EMFVariable) lhsVariable.getType();
-				final EMFVariable rhsEmfVariable = (EMFVariable) rhsVariable.getType();
-				final EClassifier lhsEClass = (EClassifier) lhsEmfVariable.getLinkedElement();
-				final EClassifier rhsEClass = (EClassifier) rhsEmfVariable.getLinkedElement();
+		if (isVariable(lhsParameter) && isVariable(rhsParameter))
+			return requiresTypeCheck((Variable) lhsParameter, (Variable) rhsParameter);
 
-				requiresTypeCheck = requiresTypeCheck(lhsEClass, rhsEClass);
-			} else {
-				requiresTypeCheck = false;
-			}
-		} else {
-			requiresTypeCheck = false;
-		}
-		return requiresTypeCheck;
+		return false;
 	}
 
 	public static boolean requiresTypeCheck(final EClassifier eclassifier1, final EClassifier eclassifier2) {
 		if (SearchplanEcoreUtil.typesEqual(eclassifier1, eclassifier2))
 			return false;
-		else if (SearchplanEcoreUtil.isSuperType(eclassifier1, eclassifier2))
+		if (SearchplanEcoreUtil.isSuperType(eclassifier1, eclassifier2))
 			return false;
-		else if (SearchplanEcoreUtil.isSuperType(eclassifier2, eclassifier1))
+		if (SearchplanEcoreUtil.isSuperType(eclassifier2, eclassifier1))
 			return true;
-		else
-			throw new IllegalArgumentException(
-					String.format("Incompatible types %s and %s", eclassifier1.getName(), eclassifier2.getName()));
+
+		throw new IllegalArgumentException(
+				String.format("Incompatible types %s and %s", eclassifier1.getName(), eclassifier2.getName()));
 	}
 
 	public static boolean isVariable(final Object origin) {
@@ -82,6 +67,24 @@ public class ConstraintUtil {
 			return emfVariable.getLinkedElement();
 		}
 		return null;
+	}
+
+	private static boolean requiresTypeCheck(final Variable lhsVariable, final Variable rhsVariable) {
+		if (isEmfVariable(lhsVariable.getType()) && isEmfVariable(rhsVariable.getType())) {
+			final EMFVariable lhsEmfVariable = (EMFVariable) lhsVariable.getType();
+			final EMFVariable rhsEmfVariable = (EMFVariable) rhsVariable.getType();
+			final EClassifier lhsEClass = (EClassifier) lhsEmfVariable.getLinkedElement();
+			final EClassifier rhsEClass = (EClassifier) rhsEmfVariable.getLinkedElement();
+
+			return requiresTypeCheck(lhsEClass, rhsEClass);
+		} else {
+			return false;
+		}
+	}
+
+	private static void validateBinaryConstraint(final Constraint constraint) {
+		if (constraint.getParameters().size() != 2)
+			throw ExceptionUtil.createIllegalArgumentException("Expected %s to be binary.", constraint);
 	}
 
 }

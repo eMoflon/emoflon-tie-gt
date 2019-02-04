@@ -14,6 +14,7 @@ import org.gervarro.democles.specification.Constraint;
 import org.gervarro.democles.specification.ConstraintType;
 import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 import org.moflon.tie.gt.compiler.democles.util.ConstraintUtil;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
 
 public class AssignmentTemplateProvider implements CodeGeneratorProvider<Chain<TemplateController>> {
 
@@ -38,7 +39,7 @@ public class AssignmentTemplateProvider implements CodeGeneratorProvider<Chain<T
 				}
 			}
 		}
-		throw new IllegalArgumentException(String.format("Cannot handle operation: %", operation));
+		throw ExceptionUtil.createIllegalArgumentException("Cannot handle operation: %", operation);
 	}
 
 	@Override

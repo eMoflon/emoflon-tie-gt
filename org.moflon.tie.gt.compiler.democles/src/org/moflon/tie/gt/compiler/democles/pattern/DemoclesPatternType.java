@@ -1,5 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.pattern;
 
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
+
 /**
  * Represents the different patterns that jointly form a graph transformation
  * rule
@@ -64,7 +66,7 @@ public enum DemoclesPatternType {
 		case EXPRESSION_PATTERN:
 			return DemoclesPatternType.EXPRESSION_FILE_EXTENSION;
 		default:
-			throw new IllegalArgumentException(String.format("No suffix registered for %s.", this));
+			throw ExceptionUtil.createIllegalArgumentException("No suffix registered for %s.", this);
 		}
 	}
 

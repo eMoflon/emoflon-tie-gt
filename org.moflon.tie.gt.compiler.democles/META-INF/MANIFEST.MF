@@ -25,7 +25,8 @@ Export-Package: org.moflon.tie.gt.compiler.democles,
  org.moflon.tie.gt.compiler.democles.config,
  org.moflon.tie.gt.compiler.democles.eclipse,
  org.moflon.tie.gt.compiler.democles.pattern,
- org.moflon.tie.gt.compiler.democles.searchplan
+ org.moflon.tie.gt.compiler.democles.searchplan,
+ org.moflon.tie.gt.compiler.democles.util
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-Vendor: eMoflon Developers
 Automatic-Module-Name: org.moflon.tie.gt.compiler.democles

@@ -17,6 +17,7 @@ import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
 import org.moflon.tie.gt.constraints.democles.DemoclesFactory;
 import org.moflon.tie.gt.constraints.democles.TypedConstant;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
@@ -52,7 +53,7 @@ public final class Constants {
 			final EEnumLiteral literal = (EEnumLiteral) valueObject;
 			constant.setValue(literal);
 		} else {
-			throw new IllegalArgumentException("Unsupported value type: " + valueObject);
+			throw ExceptionUtil.createIllegalArgumentException("Unsupported value type: %s.", valueObject);
 		}
 	}
 
@@ -60,11 +61,12 @@ public final class Constants {
 		if (type instanceof EDataType) {
 			final EDataType dataType = (EDataType) type;
 			return dataType.getEPackage().getEFactoryInstance().createFromString(dataType, val);
-		} else if ("null".equals(val)) {
-			return null;
-		} else {
-			throw new IllegalArgumentException(String.format("Cannot handle value %s for EClassifier %s", val, type));
 		}
+
+		if ("null".equals(val))
+			return null;
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot handle value %s for EClassifier %s", val, type);
 	}
 
 	public static Constant createAndRegister(final EditorEnumExpression editorEnumExpression, final PatternBody body) {

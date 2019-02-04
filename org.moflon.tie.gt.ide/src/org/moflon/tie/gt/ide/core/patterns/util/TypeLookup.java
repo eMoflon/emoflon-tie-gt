@@ -18,6 +18,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 
 public class TypeLookup {
@@ -48,9 +49,9 @@ public class TypeLookup {
 				.findFirst();
 		if (contextEClassMonad.isPresent())
 			return contextEClassMonad.get();
-		else
-			throw new IllegalArgumentException(String.format(
-					"Cannot find EClassifier with name '%s' in EPackages %s	", eClassifier.getName(), ePackages));
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot find EClassifier with name '%s' in EPackages %s	",
+				eClassifier.getName(), ePackages);
 	}
 
 	/**
@@ -67,9 +68,9 @@ public class TypeLookup {
 				.filter(reference -> reference.getName().equals(eReference.getName())).findFirst();
 		if (contextEReferenceMonad.isPresent())
 			return contextEReferenceMonad.get();
-		else
-			throw new IllegalArgumentException(String.format("Cannot find EReference with name '%s' in EClass '%s'",
-					eReference.getName(), eClass));
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot find EReference with name '%s' in EClass '%s'",
+				eReference.getName(), eClass);
 	}
 
 	/**
@@ -86,9 +87,9 @@ public class TypeLookup {
 				.filter(attribute -> attribute.getName().equals(eAttribute.getName())).findFirst();
 		if (foundEAttribute.isPresent())
 			return foundEAttribute.get();
-		else
-			throw new IllegalArgumentException(String.format("Cannot find EAttribute with name '%s' in EClass '%s'",
-					eAttribute.getName(), eClass));
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot find EAttribute with name '%s' in EClass '%s'",
+				eAttribute.getName(), eClass);
 	}
 
 	public EClassifier determineType(final EObject object) {
@@ -109,7 +110,7 @@ public class TypeLookup {
 			return editorVariable.getType();
 		}
 
-		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", object));
+		throw ExceptionUtil.createIllegalArgumentException("Object has unsupported type: '%s'", object);
 	}
 
 	public IStatus validateTypeExistsInMetamodel(final Variable var) {

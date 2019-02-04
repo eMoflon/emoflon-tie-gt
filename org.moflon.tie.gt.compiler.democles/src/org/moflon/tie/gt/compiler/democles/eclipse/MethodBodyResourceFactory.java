@@ -16,6 +16,7 @@ import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.moflon.core.utilities.EcoreUtils;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
 
 public class MethodBodyResourceFactory extends AdapterResourceFactory<EOperation> {
 
@@ -46,7 +47,8 @@ public class MethodBodyResourceFactory extends AdapterResourceFactory<EOperation
 	private static final String getNameOfClassifier(final EParameter param) {
 		final EClassifier eType = param.getEType();
 		if (eType == null)
-			throw new IllegalArgumentException(String.format("Type of %s is null.", param));
+			throw ExceptionUtil.createIllegalArgumentException("Type of %s is null.", param);
+
 		return eType.getInstanceTypeName() != null ? eType.getInstanceTypeName() : eType.getName();
 	}
 }
