@@ -18,26 +18,11 @@ public class PatternMatcherModelAdaptor extends ParameterHandler {
 	public synchronized Object getProperty(final Interpreter interpreter, final ST template, final Object object,
 			final Object property, final String propertyName) {
 		if (object instanceof GeneratorOperation) {
-			if ("freeParameters".equals(propertyName)) {
-				final GeneratorOperation operation = (GeneratorOperation) object;
-				final List<SpecificationExtendedVariableRuntime> freeParameters = new LinkedList<>();
-				final Adornment precondition = operation.getPrecondition();
-				for (int i = 0; i < precondition.size(); i++) {
-					if (Adornments.isFree(precondition, i)) {
-						freeParameters.add(operation.getParameters().get(i));
-					}
-				}
-				return freeParameters;
-			} else if ("boundParameters".equals(propertyName)) {
-				final GeneratorOperation operation = (GeneratorOperation) object;
-				final List<SpecificationExtendedVariableRuntime> boundParameters = new LinkedList<>();
-				final Adornment precondition = operation.getPrecondition();
-				for (int i = 0; i < precondition.size(); i++) {
-					if (Adornments.isBound(precondition, i)) {
-						boundParameters.add(operation.getParameters().get(i));
-					}
-				}
-				return boundParameters;
+			switch (propertyName) {
+			case "freeParameters":
+				return collectFreeParameters((GeneratorOperation) object);
+			case "boundParameters":
+				return collectBoundParameters((GeneratorOperation) object);
 			}
 		}
 		final Object result = super.getProperty(interpreter, template, object, property, propertyName);
@@ -47,6 +32,25 @@ public class PatternMatcherModelAdaptor extends ParameterHandler {
 			}
 		}
 		return result;
+	}
+
+	private Object collectBoundParameters(final GeneratorOperation operation) {
+		return collectParametersWithAdornment(operation, Adornment.BOUND);
+	}
+
+	private Object collectFreeParameters(final GeneratorOperation operation) {
+		return collectParametersWithAdornment(operation, Adornment.FREE);
+	}
+
+	private Object collectParametersWithAdornment(final GeneratorOperation operation, final int bound) {
+		final List<SpecificationExtendedVariableRuntime> boundParameters = new LinkedList<>();
+		final Adornment precondition = operation.getPrecondition();
+		for (int i = 0; i < precondition.size(); i++) {
+			if (Adornments.is(bound, precondition, i)) {
+				boundParameters.add(operation.getParameters().get(i));
+			}
+		}
+		return boundParameters;
 	}
 
 	public String toString(final Object o, final String formatString, final Locale locale) {

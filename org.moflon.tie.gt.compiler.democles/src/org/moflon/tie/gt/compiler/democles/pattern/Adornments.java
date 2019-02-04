@@ -124,19 +124,23 @@ public class Adornments {
 	}
 
 	public static boolean isBound(final Adornment adornment, final int i) {
-		return adornment.get(i) == Adornment.BOUND;
+		return is(Adornment.BOUND, adornment, i);
 	}
 
 	public static boolean isFree(final Adornment adornment, final int i) {
-		return adornment.get(i) == Adornment.FREE;
+		return is(Adornment.FREE, adornment, i);
 	}
 
 	public static boolean isNotTypechecked(final Adornment adornment, final int i) {
-		return adornment.get(i) == Adornment.NOT_TYPECHECKED;
+		return is(Adornment.NOT_TYPECHECKED, adornment, i);
 	}
 
 	public static boolean isOnlyBound(final Adornment adornment) {
 		return adornment.getBoundColumns().length == adornment.size();
+	}
+
+	public static boolean is(final int adornmentValue, final Adornment adornment, final int i) {
+		return adornment.get(i) == adornmentValue;
 	}
 
 }
