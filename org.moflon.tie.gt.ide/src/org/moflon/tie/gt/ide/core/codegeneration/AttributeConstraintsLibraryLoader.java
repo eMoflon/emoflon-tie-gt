@@ -13,6 +13,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionSpecification;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionTargetPlatform;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
+import org.moflon.tie.gt.compiler.democles.config.TypeLookup;
 import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
@@ -22,7 +23,6 @@ import org.moflon.tie.gt.constraints.operationspecification.OperationSpecificati
 import org.moflon.tie.gt.constraints.operationspecification.OperationspecificationFactory;
 import org.moflon.tie.gt.constraints.operationspecification.ParamIdentifier;
 import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
-import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 
 public class AttributeConstraintsLibraryLoader {
 

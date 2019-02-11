@@ -34,7 +34,7 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
-import org.moflon.tie.gt.ide.core.codegeneration.StatusUtil;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGtCodeGenerator;
 import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
@@ -145,7 +145,7 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 		PluginXmlUpdater.updatePluginXml(project, genModel, subMon.split(1));
 	}
 
-	private Status createGenModelErrorStatus() {
+	private IStatus createGenModelErrorStatus() {
 		return createErrorStatus(String.format("No generator model in project %s", getProject().getName()));
 	}
 
@@ -155,8 +155,8 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 		registerPatternResourceFactory(resourceSet, DemoclesPatternType.GREEN_FILE_EXTENSION);
 	}
 
-	private Status createErrorStatus(final String message) {
-		return StatusUtil.createErrorStatus(message, getPlugin());
+	private IStatus createErrorStatus(final String message) {
+		return StatusUtil.createErrorStatus(getPlugin(), message);
 	}
 
 	private String getPlugin() {

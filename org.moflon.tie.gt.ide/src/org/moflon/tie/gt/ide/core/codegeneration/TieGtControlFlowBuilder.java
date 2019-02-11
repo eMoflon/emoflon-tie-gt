@@ -17,9 +17,10 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.compiler.democles.config.TypeLookup;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
-import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import;
 

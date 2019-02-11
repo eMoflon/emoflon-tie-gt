@@ -13,10 +13,10 @@ import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFTypeFactory;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.tie.gt.compiler.democles.CodeConventions;
+import org.moflon.tie.gt.compiler.democles.config.TypeLookup;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 import org.moflon.tie.gt.ide.core.patterns.util.Patterns;
-import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 
 class VariableLookup {
 	private final Map<DemoclesPatternType, Map<Object, EMFVariable>> data = new HashMap<>();

@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.codegeneration;
+package org.moflon.tie.gt.compiler.democles.util;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
@@ -62,19 +62,23 @@ public final class StatusUtil {
 	 * @return the error status
 	 */
 	public static IStatus createErrorStatus(final Throwable exception, final String pluginId) {
-		return new Status(IStatus.ERROR, pluginId, exception.getMessage(), exception);
+		final String message = exception != null ? exception.getMessage() : "";
+		return new Status(IStatus.ERROR, pluginId, message, exception);
 	}
 
 	/**
 	 * Creates an error {@link Status} with the given message and the given plugin
 	 * ID
 	 * 
-	 * @param message  the message
-	 * @param pluginId the plugin ID
+	 * @param pluginId        the plugin ID
+	 * @param formatString    the format string for the message
+	 * @param formatArguments the arguments for the message format string
+	 * 
 	 * @return the error status
 	 */
-	public static Status createErrorStatus(final String message, final String pluginId) {
-		return new Status(IStatus.ERROR, pluginId, message);
+	public static IStatus createErrorStatus(final String pluginId, final String formatString,
+			final Object... formatArguments) {
+		return createErrorStatus(null, pluginId, formatString, formatArguments);
 	}
 
 	/**

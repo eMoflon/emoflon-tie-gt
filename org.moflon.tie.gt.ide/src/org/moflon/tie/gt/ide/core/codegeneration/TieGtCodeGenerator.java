@@ -38,17 +38,17 @@ import org.moflon.emf.injection.ide.InjectionManager;
 import org.moflon.tie.gt.compiler.democles.codegen.template.TemplateConfigurationProvider;
 import org.moflon.tie.gt.compiler.democles.config.DemoclesGeneratorAdapterFactory;
 import org.moflon.tie.gt.compiler.democles.config.TieGtCodeGenerationConfiguration;
+import org.moflon.tie.gt.compiler.democles.config.TypeLookup;
 import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
 import org.moflon.tie.gt.ide.core.patterns.util.TieGtEcoreUtil;
-import org.moflon.tie.gt.ide.core.patterns.util.TypeLookup;
 
 public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 
 	private static final Logger logger = Logger.getLogger(TieGtCodeGenerator.class);
-	private TypeLookup typeLookup;
 
 	public TieGtCodeGenerator(final IFile ecoreFile, final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage) {
@@ -126,12 +126,12 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	}
 
 	private TieGtCodeGenerationConfiguration createCodeGeneratorConfiguration() {
-		typeLookup = createTypeLookup();
+		final TypeLookup typeLookup = createTypeLookup();
 		final AttributeConstraintsLibraryRegistry attributeConstraintLibraries = loadAttributeConstraintLibraries(
 				typeLookup);
 
 		final TieGtCodeGenerationConfiguration codeGeneratorConfig = new TieGtCodeGenerationConfiguration(
-				getResourceSet(), getPreferencesStorage(), attributeConstraintLibraries);
+				getResourceSet(), getPreferencesStorage(), attributeConstraintLibraries, typeLookup);
 		inititializeResourceSet();
 		return codeGeneratorConfig;
 	}
@@ -158,7 +158,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 			final SubMonitor monitor) {
 		final TieGtControlFlowBuilder controlFlowBuilder = new TieGtControlFlowBuilder(getPreferencesStorage());
 		final IStatus controlFlowBuilderStatus = controlFlowBuilder.run(getProject(), getEcoreResource(),
-				codeGeneratorConfig.getSearchPlanGenerators(), typeLookup, monitor.split(10));
+				codeGeneratorConfig.getSearchPlanGenerators(), codeGeneratorConfig.getTypeLookup(), monitor.split(10));
 		return controlFlowBuilderStatus;
 	}
 
@@ -291,7 +291,7 @@ public class TieGtCodeGenerator extends MoflonEmfCodeGenerator {
 	}
 
 	private IStatus createErrorStatus(final String message, final Throwable e) {
-		return StatusUtil.createErrorStatus(e, getPluginId());
+		return StatusUtil.createErrorStatus(e, getPluginId(), message);
 	}
 
 	private String getPluginId() {

@@ -12,6 +12,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 
 abstract class FilteredResourceLoadingVisitor implements IResourceVisitor {
 	private final ResourceSet resourceSet;

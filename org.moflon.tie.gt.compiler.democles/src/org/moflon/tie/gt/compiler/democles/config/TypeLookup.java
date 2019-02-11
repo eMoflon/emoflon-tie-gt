@@ -1,4 +1,4 @@
-package org.moflon.tie.gt.ide.core.patterns.util;
+package org.moflon.tie.gt.compiler.democles.config;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +18,9 @@ import org.emoflon.ibex.gt.editor.gT.EditorParameter;
 import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
 import org.gervarro.democles.specification.emf.Variable;
 import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 
 public class TypeLookup {
@@ -118,8 +120,8 @@ public class TypeLookup {
 		final EClassifier editorObjectVariableType = emfVariable.getEClassifier();
 		final EClassifier properCfVariableType = lookupType(editorObjectVariableType);
 		if (properCfVariableType == null)
-			return TransformationExceptions
-					.createError("Cannot translate the type %s (from the editor) to an EClassifier in %s", var, this);
+			return StatusUtil.createErrorStatus(WorkspaceHelper.getPluginId(getClass()), "Dummy");
+//					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, this);
 		else
 			return Status.OK_STATUS;
 	}

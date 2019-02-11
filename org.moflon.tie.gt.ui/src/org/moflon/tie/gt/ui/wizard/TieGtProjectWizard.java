@@ -18,7 +18,7 @@ import org.moflon.core.utilities.MoflonUtil;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.emf.codegen.MoflonGenModelBuilder;
 import org.moflon.emf.ui.wizard.DefaultContentGenerator;
-import org.moflon.tie.gt.ide.core.codegeneration.StatusUtil;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.ide.core.runtime.natures.TieGtNature;
 
 public class TieGtProjectWizard extends AbstractMoflonWizard {
