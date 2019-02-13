@@ -306,7 +306,7 @@ WriteVariable(varRef, index, importManager) ::= <<
 >>
 
 BoundOrFree(varRef) ::= <<
-<if (varRef.free)>F<else>B<endif>
+<varRef.adornment>
 >>
 
 VariablesByFailedPatternMatching(invocation) ::= <<

@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.pattern;
 
 import org.gervarro.democles.common.Adornment;
+import org.moflon.tie.gt.controlflow.democles.VariableReference;
 
 /**
  * Convenience methods for working with pattern adornments
@@ -141,6 +142,18 @@ public class Adornments {
 
 	public static boolean is(final int adornmentValue, final Adornment adornment, final int i) {
 		return adornment.get(i) == adornmentValue;
+	}
+
+	public static int getAdornmentValue(final VariableReference varRef) {
+		final boolean isGreen = varRef.getInvocation().getPattern().getName().endsWith("_green");
+		final boolean isAttributeValueVariable = varRef.getFrom().getName().endsWith("_prime");
+		final int value;
+		if (isAttributeValueVariable) {
+			value = isGreen ? Adornment.BOUND : Adornment.FREE;
+		} else {
+			value = varRef.isFree() ? Adornment.FREE : Adornment.BOUND;
+		}
+		return value;
 	}
 
 }

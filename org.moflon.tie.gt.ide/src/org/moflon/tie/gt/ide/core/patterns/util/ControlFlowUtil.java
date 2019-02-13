@@ -4,13 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClassifier;
-import org.gervarro.democles.common.Adornment;
-import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.Variable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
-import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.controlflow.democles.Action;
 import org.moflon.tie.gt.controlflow.democles.CFNode;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
@@ -25,24 +21,8 @@ import org.moflon.tie.gt.controlflow.democles.TailControlledLoop;
 import org.moflon.tie.gt.controlflow.democles.VariableReference;
 
 public final class ControlFlowUtil {
-	private static final Action NO_CONSTRUCTOR = null;
-
 	private ControlFlowUtil() {
 		throw new UtilityClassNotInstantiableException();
-	}
-
-	/**
-	 * Returns the scope that contains the parent of the given scope (if exists)
-	 * 
-	 * @param scope the current scope
-	 * @return the next higher scope
-	 */
-	public static Scope getNextHigherScope(final Scope scope) {
-		final CompoundNode scopeContainer = scope.getParent();
-		if (scopeContainer != null) {
-			return scopeContainer.getScope();
-		}
-		return null;
 	}
 
 	/**
@@ -79,7 +59,7 @@ public final class ControlFlowUtil {
 				return searchResult;
 			}
 
-			currentScope = getNextHigherScope(currentScope);
+			currentScope = Scopes.getParent(currentScope);
 		}
 		return Optional.empty();
 	}
@@ -93,50 +73,11 @@ public final class ControlFlowUtil {
 		return varRef;
 	}
 
-	public static CFVariable createControlFlowVariable(final String name, final EClassifier type,
-			final Action constructor, final Scope scope) {
-		final CFVariable variable = DemoclesFactory.eINSTANCE.createCFVariable();
-		variable.setName(name);
-		variable.setType(type);
-		variable.setLocal(false);
-		variable.setConstructor(constructor);
-		variable.setScope(scope);
-		return variable;
-	}
-
-	public static CFVariable createControlFlowVariableWithoutConstructor(final String name, final EClassifier type,
-			final Scope scope) {
-		return createControlFlowVariable(name, type, NO_CONSTRUCTOR, scope);
-	}
-
 	public static CFVariable createLocalControlFlowVariable(final String name, final EClassifier type,
 			final Action constructor, final Scope scope) {
-		final CFVariable variable = createControlFlowVariable(name, type, constructor, scope);
+		final CFVariable variable = CFVariables.create(name, type, constructor, scope);
 		variable.setLocal(true);
 		return variable;
-	}
-
-	public static Adornment calculateAdornment(final PatternInvocation invocation,
-			final DemoclesPatternType patternType) {
-		int adornmentIndex = 0;
-		final Pattern pattern = invocation.getPattern();
-		final EList<Variable> symbolicParameters = pattern.getSymbolicParameters();
-		final Adornment adornment = new Adornment(symbolicParameters.size());
-		for (final Variable symbolicParameter : symbolicParameters) {
-			final Optional<VariableReference> maybeVariableRef = invocation.getParameters().stream()
-					.filter(invocationParameter -> invocationParameter.getTo().equals(symbolicParameter)).findAny();
-			if (maybeVariableRef.isPresent()) {
-				final VariableReference variableRef = maybeVariableRef.get();
-				final int value = variableRef.isFree() ? Adornment.FREE : Adornment.BOUND;
-				adornment.set(adornmentIndex, value);
-				adornmentIndex++;
-			} else
-				throw new IllegalArgumentException(
-						String.format("No binding for symbolic parameter %s of %s in invocation %s has ",
-								symbolicParameter, pattern, invocation.toString()));
-
-		}
-		return adornment;
 	}
 
 	public static org.moflon.tie.gt.controlflow.democles.ReturnStatement createReturnStatement(final int id,
