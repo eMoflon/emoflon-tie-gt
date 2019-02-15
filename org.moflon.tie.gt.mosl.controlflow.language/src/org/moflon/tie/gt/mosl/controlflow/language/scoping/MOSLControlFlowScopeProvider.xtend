@@ -140,7 +140,7 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
       candidate = candidate.eContainer;
     }
     val methodDec = candidate as MethodDec
-    methodDec.EParameters.forEach[EParameter param|candidates.add(param as EObject)]
+    methodDec.EParameters.forEach[candidates.add(it as EObject)]
     return Scopes.scopeFor(candidates)
   }
 
