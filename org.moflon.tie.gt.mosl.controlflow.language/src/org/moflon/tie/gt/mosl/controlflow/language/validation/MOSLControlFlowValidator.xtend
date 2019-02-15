@@ -49,6 +49,7 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
   public static val MISSING_OPERATION = CODE_PREFIX + 'missingOperation'
   public static val UNKNOWN_PATTERN_NAME = CODE_PREFIX + 'unknownPattern'
   public static val VARIABLE_ASSIGNED_MORE_THAN_ONCE = CODE_PREFIX + 'multipleAssignmentsToVariable'
+  public static val ABSTRACT_PATTERN_INVOKED = CODE_PREFIX + 'abstractPatternInvoked'
   public static val NO_GT_IMPORT = CODE_PREFIX + 'noGTImport'
 
   /*@Check
@@ -114,6 +115,14 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
           MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PARAMETERS, VARIABLE_ASSIGNED_MORE_THAN_ONCE)
       }
     ]
+  }
+
+  @Check
+  def calledPatternShouldBeConcrete(PatternStatement patternStatement) {
+    if (patternStatement.patternReference.pattern.abstract)
+      error("Invoked pattern " + patternStatement.patternReference.pattern.name + " must not be abstract.",
+        patternStatement, MoslControlFlowPackage.Literals.PATTERN_STATEMENT__PATTERN_REFERENCE,
+        ABSTRACT_PATTERN_INVOKED)
   }
 
   @Check
