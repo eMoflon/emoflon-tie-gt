@@ -16,7 +16,7 @@ public class BindingAssignmentOperationBuilder extends AssignmentOperationBuilde
 			final List<? extends SpecificationExtendedVariableRuntime> parameters) {
 		if (constraint == CoreConstraintModule.EQUAL) {
 			final List<CompilableAdornedOperation> result = new LinkedList<>();
-			result.add(new CompilableAdornedOperation(Adornments.create("FB"), constraint));
+			result.add(new CompilableAdornedOperation(Adornments.FB, constraint));
 			return result;
 		}
 		return null;

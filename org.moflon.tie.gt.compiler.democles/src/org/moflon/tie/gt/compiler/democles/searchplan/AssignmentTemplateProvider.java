@@ -1,13 +1,20 @@
 package org.moflon.tie.gt.compiler.democles.searchplan;
 
+import static org.moflon.tie.gt.compiler.democles.util.ConstraintUtil.isConstraint;
+import static org.moflon.tie.gt.compiler.democles.util.ConstraintUtil.isEqual;
+import static org.moflon.tie.gt.compiler.democles.util.TemplateUtil.createChain;
+
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.CodeGeneratorProvider;
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.common.Adornment;
-import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.CoreConstraintType;
+import org.gervarro.democles.specification.Constraint;
 import org.gervarro.democles.specification.ConstraintType;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
+import org.moflon.tie.gt.compiler.democles.util.ConstraintUtil;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
 
 public class AssignmentTemplateProvider implements CodeGeneratorProvider<Chain<TemplateController>> {
 
@@ -15,23 +22,24 @@ public class AssignmentTemplateProvider implements CodeGeneratorProvider<Chain<T
 	public final Chain<TemplateController> getTemplateController(final GeneratorOperation operation,
 			final Chain<TemplateController> tail) {
 		final Adornment adornment = operation.getPrecondition();
-		if (adornment.get(0) == Adornment.FREE && adornment.get(1) == Adornment.BOUND) {
+		if (adornment.equals(Adornments.FB)) {
 			final ConstraintType type = (ConstraintType) operation.getType();
-			if (type == CoreConstraintModule.EQUAL) {
-				// TODO@rkluge: No more postcondition
-//				if (operation.getPostcondition().get(0) == Adornment.NOT_TYPECHECKED) {
-//					return new Chain<TemplateController>(
-//							new TemplateController("/assignment/AssignWithTypeCheck", operation), tail);
-//				} else 
+			if (isEqual(type)) {
+				final Object origin = operation.getOrigin();
+				if (isConstraint(origin)) {
+					final Constraint constraint = (Constraint) origin;
+					if (ConstraintUtil.requiresTypeCheck(constraint))
+						return createChain("/assignment/AssignWithTypeCheck", operation, tail);
+				}
+
 				if (operation.isAlwaysSuccessful()) {
-					return new Chain<TemplateController>(new TemplateController("/assignment/Assign", operation), tail);
+					return createChain("/assignment/Assign", operation, tail);
 				} else {
-					return new Chain<TemplateController>(
-							new TemplateController("/assignment/AssignWithNullCheck", operation), tail);
+					return createChain("/assignment/AssignWithNullCheck", operation, tail);
 				}
 			}
 		}
-		throw new RuntimeException("Invalid operation");
+		throw ExceptionUtil.createIllegalArgumentException("Cannot handle operation: %", operation);
 	}
 
 	@Override

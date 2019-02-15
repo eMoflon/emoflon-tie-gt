@@ -3,13 +3,19 @@
  */
 package org.moflon.tie.gt.mosl.controlflow.language.ui.contentassist
 
+import java.util.Collections
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EOperation
+import org.eclipse.jface.text.contentassist.ICompletionProposal
 import org.eclipse.xtext.Assignment
 import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
 import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
 import org.emoflon.ibex.gt.editor.gT.EditorParameterOrNode
-import org.eclipse.jface.text.contentassist.ICompletionProposal
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
+import org.moflon.tie.gt.mosl.controlflow.language.ui.TieGTWorkspaceSearch
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
@@ -17,24 +23,78 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal
  */
 class MOSLControlFlowProposalProvider extends AbstractMOSLControlFlowProposalProvider {
 
-    /**
-     * This custom content proposal provider collects the names of all editor parameters and
-     * nodes of the referenced pattern
-     */
-    override void completeCalledPatternParameter_Parameter(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
-        super.completeCalledPatternParameter_Parameter(model, assignment, context, acceptor)
-        val patternStatement = model as PatternStatement
-        val editorPattern = patternStatement?.patternReference?.pattern
-        val proposals=<ICompletionProposal>newArrayList
-        proposals.addAll(editorPattern.nodes.map[editorNode | createCompletionProposal(editorNode, context)])
-        proposals.addAll(editorPattern.parameters.map[parameter | createCompletionProposal(parameter, context)])
-        proposals.forEach[proposal | acceptor.accept(proposal)]
-    }
+  /**
+   * This custom content proposal provider collects the names of all editor parameters and
+   * nodes of the referenced pattern
+   */
+  override void completeCalledPatternParameter_Parameter(EObject model, Assignment assignment,
+    ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+    super.completeCalledPatternParameter_Parameter(model, assignment, context, acceptor)
+    val patternStatement = model as PatternStatement
+    val editorPattern = patternStatement?.patternReference?.pattern
+    val proposals = <ICompletionProposal>newArrayList
+    proposals.addAll(editorPattern.nodes.map[editorNode|createCompletionProposal(editorNode, context)])
+    proposals.addAll(editorPattern.parameters.map[parameter|createCompletionProposal(parameter, context)])
+    proposals.forEach[proposal|acceptor.accept(proposal)]
+  }
 
-    /**
-     * Maps the given EditorParameterOrNode to a proposal that contains the name of the EditorParameterOrNode
-     */
-    private def ICompletionProposal createCompletionProposal(EditorParameterOrNode parameterOrNode, ContentAssistContext context) {
-        createCompletionProposal(parameterOrNode.name, context)
+  /**
+   * Creates a proposal for an entire operation signature (name, parameters, return type)
+   * Only unimplemented operations are proposed.
+   */
+  override void completeMethodDec_Name(EObject model, Assignment assignment, ContentAssistContext context,
+    ICompletionProposalAcceptor acceptor) {
+    super.completeMethodDec_Name(model, assignment, context, acceptor)
+    val methodDec = model as MethodDec
+    val proposals = <String>newArrayList
+    val container = methodDec.eContainer;
+    if (container instanceof EClassDef) {
+      val allMethodDeclarations = container.name.EOperations.map[eOperation|createProposalForEOperation(eOperation)]
+      val existingMethodDeclarations = container.operations.map [ methodDeclaration |
+        createProposalForEOperation(methodDeclaration)
+      ]
+      proposals.addAll(allMethodDeclarations)
+      proposals.removeAll(existingMethodDeclarations)
+      Collections.sort(proposals)
+      val proposalsWithInitialBody = proposals.map[String.format("%s {\n    this : %s\n  }\n", it, container.name.name)]
+      proposalsWithInitialBody.forEach[proposalString|acceptor.accept(createCompletionProposal(proposalString, context))]
     }
+  }
+
+  override completeImport_Name(EObject model, Assignment assignment, ContentAssistContext context,
+    ICompletionProposalAcceptor acceptor) {
+    super.completeImport_Name(model, assignment, context, acceptor)
+
+    val gtFile = if (model instanceof GraphTransformationControlFlowFile)
+        model
+      else
+        model.eContainer as GraphTransformationControlFlowFile
+    val currentImports = gtFile.imports.map[it.name].toList
+    TieGTWorkspaceSearch.getEcoreURIsInWorkspace(currentImports).forEach [
+      acceptor.accept(createCompletionProposal('''"«it»"''', context))
+    ]
+
+    val ecoreImport = "http://www.eclipse.org/emf/2002/Ecore"
+    if (!currentImports.contains(ecoreImport)) {
+      acceptor.accept(createCompletionProposal('''"«ecoreImport»"''', context))
+    }
+  }
+
+  /**
+   * Maps the given EditorParameterOrNode to a proposal that contains the name of the EditorParameterOrNode
+   */
+  private def ICompletionProposal createCompletionProposal(EditorParameterOrNode parameterOrNode,
+    ContentAssistContext context) {
+    createCompletionProposal(parameterOrNode.name, context)
+  }
+
+  /**
+   * Formats an EOperation including its name, parameter list and return type
+   */
+  private def createProposalForEOperation(EOperation operation) {
+    val formattedParameterList = operation.EParameters.map[eParameter|eParameter.name + ":" + eParameter.EType.name].
+      join(", ")
+    String.format("%s(%s):%s ", operation.name, formattedParameterList, operation.EType.name)
+  }
+
 }

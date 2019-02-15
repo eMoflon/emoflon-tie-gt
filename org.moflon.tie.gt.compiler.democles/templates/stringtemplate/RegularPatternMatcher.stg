@@ -7,15 +7,15 @@ VariableTypeAndName(variable, importManager) ::= <<
 >>
 
 AllMatches(engine, importManager, body, chain) ::= <<
-result.add(new <GenericDataFrame(importManager)>{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">});
+result.add(new </tiegt/GenericDataFrame(importManager)>{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">});
 >> 
 
 SingleMatch(engine, importManager, body, chain) ::= <<
-return new <GenericDataFrame(importManager)>{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">};
+return new </tiegt/GenericDataFrame(importManager)>{<[body.header.internalSymbolicParameters]:VariableName(); separator=", ">};
 >>
 
 MatchSingleMethod(engine, importManager, body, adornment, boundSymbolicParameters, chain, alwaysSuccessful) ::= <<
-public final <GenericDataFrame(importManager)> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
+public static final </tiegt/GenericDataFrame(importManager)> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
   <if (chain)><(chain.value.template)(engine, importManager, body, chain)>
   <if (!alwaysSuccessful)>return null;<endif>
   <else><SingleMatch(engine, importManager, body, chain)>
@@ -24,8 +24,8 @@ public final <GenericDataFrame(importManager)> <body.header.name; format="lowerc
 >>
 
 MatchAllMethod(engine, importManager, body, adornment, boundSymbolicParameters, chain, alwaysSuccessful) ::= <<
-public final <Iterable(importManager)>\<<GenericDataFrame(importManager)>\> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
-  <LinkedList(importManager)>\<<GenericDataFrame(importManager)>\> result = new <LinkedList(importManager)>\<>();
+public static final <Iterable(importManager)>\<</tiegt/GenericDataFrame(importManager)>\> <body.header.name; format="lowercase"><adornment>(<boundSymbolicParameters:VariableTypeAndName(importManager); separator=", ">) {
+  <LinkedList(importManager)>\<</tiegt/GenericDataFrame(importManager)>\> result = new <LinkedList(importManager)>\<>();
   <(chain.value.template)(engine, importManager, body, chain)>
   return result;
 }
@@ -33,10 +33,6 @@ public final <Iterable(importManager)>\<<GenericDataFrame(importManager)>\> <bod
 
 Iterable(importManager) ::= <<
 <importManager.("java.lang.Iterable")>
->>
-
-GenericDataFrame(importManager) ::= <<
-<importManager.("java.lang.Object")>[]
 >>
 
 LinkedList(importManager) ::= <<

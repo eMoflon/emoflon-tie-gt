@@ -20,16 +20,16 @@ public class EmfGreenSearchPlanOperationBuilder implements TieGtSearchPlanOperat
 		if (origin instanceof Variable) {
 			final VariableType variableType = ((Variable) origin).getType();
 			if (variableType instanceof EMFVariable) {
-				if (Adornments.equals(adornment, "F")) {
-					return new SearchPlanOperation<>(operation, Adornments.create("B"));
+				if (adornment.equals(Adornments.F)) {
+					return new SearchPlanOperation<>(operation, Adornments.B);
 				}
 			}
 		} else if (origin instanceof Constraint) {
 			final Constraint constraint = (Constraint) origin;
 			final ConstraintType constraintType = constraint.getType();
 			if (constraintType instanceof StructuralFeature<?>) {
-				if (Adornments.equals(adornment, "BB")) {
-					return new SearchPlanOperation<>(operation, Adornment.create(Adornment.BOUND, Adornment.BOUND));
+				if (adornment.equals(Adornments.BB)) {
+					return new SearchPlanOperation<>(operation, Adornments.BB);
 				}
 			}
 		}

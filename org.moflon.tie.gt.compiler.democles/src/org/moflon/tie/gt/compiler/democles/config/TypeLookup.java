@@ -1,9 +1,12 @@
-package org.moflon.tie.gt.ide.core.runtime.utilities;
+package org.moflon.tie.gt.compiler.democles.config;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
@@ -12,6 +15,12 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorParameter;
+import org.emoflon.ibex.gt.editor.gT.EditorPatternAttributeConstraintVariable;
+import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
+import org.moflon.core.utilities.WorkspaceHelper;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
 
 public class TypeLookup {
@@ -42,9 +51,9 @@ public class TypeLookup {
 				.findFirst();
 		if (contextEClassMonad.isPresent())
 			return contextEClassMonad.get();
-		else
-			throw new IllegalArgumentException(String.format(
-					"Cannot find EClassifier with name '%s' in EPackages %s	", eClassifier.getName(), ePackages));
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot find EClassifier with name '%s' in EPackages %s	",
+				eClassifier.getName(), ePackages);
 	}
 
 	/**
@@ -61,9 +70,9 @@ public class TypeLookup {
 				.filter(reference -> reference.getName().equals(eReference.getName())).findFirst();
 		if (contextEReferenceMonad.isPresent())
 			return contextEReferenceMonad.get();
-		else
-			throw new IllegalArgumentException(String.format("Cannot find EReference with name '%s' in EClass '%s'",
-					eReference.getName(), eClass));
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot find EReference with name '%s' in EClass '%s'",
+				eReference.getName(), eClass);
 	}
 
 	/**
@@ -80,39 +89,57 @@ public class TypeLookup {
 				.filter(attribute -> attribute.getName().equals(eAttribute.getName())).findFirst();
 		if (foundEAttribute.isPresent())
 			return foundEAttribute.get();
-		else
-			throw new IllegalArgumentException(String.format("Cannot find EAttribute with name '%s' in EClass '%s'",
-					eAttribute.getName(), eClass));
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot find EAttribute with name '%s' in EClass '%s'",
+				eAttribute.getName(), eClass);
 	}
 
-	public static EClassifier lookupTypeInEcoreFile(final EClassifier statementEType, final EPackage ePackage,
-			final EPackage ecorePackage) {
-		if (statementEType == null)
-			return null;
-
-		final EClassifier properEClassifierFromEPackage = ePackage.getEClassifier(statementEType.getName());
-		if (properEClassifierFromEPackage != null)
-			return properEClassifierFromEPackage;
-		else
-			return ecorePackage.getEClassifier(statementEType.getName());
-	}
-
-	public EClassifier determineTypeOfEditorElement(final EObject editorElement) {
-		if (editorElement instanceof EditorParameter) {
-			final EditorParameter editorParameter = (EditorParameter) editorElement;
+	public EClassifier determineType(final EObject object) {
+		if (object instanceof EditorParameter) {
+			final EditorParameter editorParameter = (EditorParameter) object;
 			return editorParameter.getType();
-		} else if (editorElement instanceof EditorNode) {
-			final EditorNode node = (EditorNode) editorElement;
+		} else if (object instanceof EditorNode) {
+			final EditorNode node = (EditorNode) object;
 			return node.getType();
-		} else if (editorElement instanceof CFVariable) {
-			final CFVariable variable = (CFVariable) editorElement;
+		} else if (object instanceof CFVariable) {
+			final CFVariable variable = (CFVariable) object;
 			return variable.getType();
-		} else if (editorElement instanceof EAttribute) {
-			final EAttribute attribute = (EAttribute) editorElement;
+		} else if (object instanceof EAttribute) {
+			final EAttribute attribute = (EAttribute) object;
 			return attribute.getEType();
+		} else if (object instanceof EditorPatternAttributeConstraintVariable) {
+			final EditorPatternAttributeConstraintVariable editorVariable = (EditorPatternAttributeConstraintVariable) object;
+			return editorVariable.getType();
 		}
 
-		throw new IllegalArgumentException(String.format("Object has unsupported type: '%s'", editorElement));
+		throw ExceptionUtil.createIllegalArgumentException("Object has unsupported type: '%s'", object);
+	}
+
+	public IStatus validateTypeExistsInMetamodel(final Variable var) {
+		final EMFVariable emfVariable = (EMFVariable) var;
+		final EClassifier editorObjectVariableType = emfVariable.getEClassifier();
+		final EClassifier properCfVariableType = lookupType(editorObjectVariableType);
+		if (properCfVariableType == null)
+			return StatusUtil.createErrorStatus(WorkspaceHelper.getPluginId(getClass()), "Dummy");
+//					"Cannot translate the type %s (from the editor) to an EClassifier in %s", var, this);
+		else
+			return Status.OK_STATUS;
+	}
+
+	public EClassifier lookupType(final EClassifier statementEType) {
+		return statementEType == null ? null : lookupType(statementEType.getName());
+	}
+
+	public EClassifier lookupType(final String name) {
+		final Optional<EClassifier> match = this.ePackages.stream().map(ePackage -> ePackage.getEClassifier(name))
+				.filter(eClassifier -> eClassifier != null).findFirst();
+		return match.orElse(null);
+	}
+
+	@Override
+	public String toString() {
+		final List<String> packageNames = ePackages.stream().map(EPackage::getName).collect(Collectors.toList());
+		return String.format("TypeLookup %s", packageNames);
 	}
 
 }

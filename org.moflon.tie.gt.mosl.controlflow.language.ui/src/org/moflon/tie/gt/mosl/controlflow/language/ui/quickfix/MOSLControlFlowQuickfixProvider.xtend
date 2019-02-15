@@ -4,6 +4,10 @@
 package org.moflon.tie.gt.mosl.controlflow.language.ui.quickfix
 
 import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
+import org.moflon.tie.gt.mosl.controlflow.language.validation.MOSLControlFlowValidator
+import org.eclipse.xtext.ui.editor.quickfix.IssueResolutionAcceptor
+import org.eclipse.xtext.validation.Issue
+import org.eclipse.xtext.ui.editor.quickfix.Fix
 
 /**
  * Custom quickfixes.
@@ -12,6 +16,12 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
  */
 class MOSLControlFlowQuickfixProvider extends DefaultQuickfixProvider {
 
+
+
+@Fix(MOSLControlFlowValidator.NO_THIS_VARIABLE)
+def insertThisObjectVariable(Issue issue,IssueResolutionAcceptor acceptor){
+	ControlFlowObjectVariableQuickfixes.createThisObjectVariable(issue,acceptor)
+}
 //	@Fix(MOSLControlFlowValidator.INVALID_NAME)
 //	def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
 //		acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [

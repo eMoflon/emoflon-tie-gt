@@ -29,10 +29,10 @@ public class AttributeVariableConstraintsTypeModule extends EMFConstraintModule 
 					.getLibrary(uri);
 			constraintSpecification = attributeConstraintLibrary.lookupConstraintType(constraint);
 			if (constraintSpecification != null) {
-				break;
+				return constraintSpecification;
 			}
 		}
-		return constraintSpecification;
+		throw new IllegalArgumentException(String.format("Cannot handle constraint %s", constraint));
 	}
 
 	public AttributeConstraintsLibraryRegistry getAttributeConstraintsLibraries() {

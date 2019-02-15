@@ -9,6 +9,7 @@ import java.util.Collections
 import java.util.HashMap
 import java.util.List
 import org.apache.log4j.Logger
+import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EClassifier
@@ -30,19 +31,22 @@ import org.moflon.core.xtext.scoping.MoflonSimpleScope
 import org.moflon.core.xtext.utils.ResourceUtil
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameterName
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ConditionStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EClassDef
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.EnumExpression
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LoopStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MethodDec
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowFactory
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.MoslControlFlowPackage
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableAttributeExpression
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ObjectVariableStatement
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternReference
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.PatternStatement
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.ReturnStatement
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Statement
 import org.moflon.tie.gt.mosl.controlflow.language.utils.MOSLGTControlFlowUtil
-import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCallStatement
 
 /**
  * This class contains custom scoping description.
@@ -53,35 +57,39 @@ import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.OperationCall
 class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider {
   var resolvingCache = new HashMap<GraphTransformationControlFlowFile, List<EditorGTFile>>();
 
-  Logger log = Logger.getLogger(MOSLControlFlowScopeProvider.getClass());
+  val log = Logger.getLogger(MOSLControlFlowScopeProvider.getClass());
 
   override getScope(EObject context, EReference reference) {
     MOSLGTControlFlowUtil.resolvePatterns(context, resolvingCache, context.eResource.resourceSet)
     try {
-      if (searchForEClass(context, reference)) {
+      if (searchForEClass(context, reference))
         return getScopeByType(context, EClass)
-      } else if (searchForEClassifier(context, reference)) {
+      if (searchForEClassifier(context, reference))
         return getScopeByType(context, EClassifier)
-      } else if (searchForPattern(context)) {
+      if (searchForPattern(context))
         return MOSLGTControlFlowUtil.getScopeByPattern(context, reference, resolvingCache)
-      } else if (searchForPatternParameter(context, reference)) {
-        return getScopeByPatternParameter(context, reference)
-      } else if (searchForTypedElement(context, reference)) {
+      if (searchForPatternParameter(context, reference))
+        return getScopeByPatternParameter(context as PatternStatement, reference)
+      if (searchForCalledPatternParameter(context, reference))
+        return getScopeForCalledPatternParameter(context as CalledPatternParameter, reference)
+      if (searchForTypedElement(context, reference))
         return getScopeByTypedElement(context, reference)
-      } else if (isEnumExpression(context, reference)) {
+      if (isEnumExpression(context, reference))
         return getScopeForEnumLiterals(context as EnumExpression)
-      } else if (isObjectVariableAttributeExpression(context, reference)) {
+      if (isObjectVariableAttributeExpression(context, reference))
         return getScopeForbjectVariableAttributeExpression(context as ObjectVariableAttributeExpression)
-      } else if (isOperationCallStatement(context, reference)) {
+      if (isOperationCallStatement(context, reference))
         return getScopeForOperationCallStatement(context as OperationCallStatement, reference)
-      }
+      if (searchForReturnObject(context, reference))
+        return getScopeForReturnObject(context as ReturnStatement, reference)
+
     } catch (CannotFindScopeException e) {
       log.error(String.format("Cannot find Scope for context %s and reference %s", context, reference), e)
     }
 
     super.getScope(context, reference);
   }
-
+  
   def isOperationCallStatement(EObject object, EReference reference) {
     return object instanceof OperationCallStatement &&
       reference == MoslControlFlowPackage.Literals.OPERATION_CALL_STATEMENT__CALL;
@@ -92,7 +100,7 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
     if (objectVariable instanceof ObjectVariableStatement) {
       val type = objectVariable.EType
       if (type instanceof EClass) {
-       return Scopes.scopeFor(type.EOperations) 
+        return Scopes.scopeFor(type.EOperations)
       }
     }
     return Scopes.scopeFor([])
@@ -132,12 +140,11 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
       candidate = candidate.eContainer;
     }
     val methodDec = candidate as MethodDec
-    methodDec.EParameters.forEach[EParameter param|candidates.add(param as EObject)]
+    methodDec.EParameters.forEach[candidates.add(it as EObject)]
     return Scopes.scopeFor(candidates)
   }
 
-  def IScope getScopeByPatternParameter(EObject context, EReference reference) {
-    val patternStmt = context as PatternStatement
+  def IScope getScopeByPatternParameter(PatternStatement patternStmt, EReference reference) {
     val patternRef = patternStmt.patternReference
     val pattern = patternRef.pattern
     val patternList = <EditorPattern>newArrayList
@@ -159,7 +166,16 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
   }
 
   def boolean searchForCalledPatternParameter(EObject context, EReference reference) {
-    return context instanceof CalledPatternParameter;
+    return context instanceof CalledPatternParameter &&
+      reference == MoslControlFlowPackage.eINSTANCE.calledPatternParameter_Object;
+  }
+
+  def getScopeForCalledPatternParameter(CalledPatternParameter parameter, EReference reference) {
+    Scopes.scopeFor(collectObjectVariablesInAllParentScopes(parameter))
+  }
+  
+  def collectObjectVariables(EList<Statement> statements) {
+    return statements.filter[it instanceof ObjectVariableStatement].toList
   }
 
   def boolean searchForPattern(EObject context) {
@@ -206,6 +222,15 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
     return context instanceof MethodDec || context instanceof ObjectVariableStatement ||
       (context instanceof EParameter && reference.name.equals("eType"))
   }
+  
+  def searchForReturnObject(EObject object, EReference reference) {
+    return object instanceof ReturnStatement && reference == MoslControlFlowPackage.eINSTANCE.returnStatement_Obj
+  }
+  
+  def getScopeForReturnObject(ReturnStatement object, EReference reference) {
+    Scopes.scopeFor(collectObjectVariablesInAllParentScopes(object))
+  }
+  
 
   def EObject getScopingObject(URI uri, Class<? extends EObject> clazz, ResourceSet resourceSet) throws IOException{
 
@@ -226,7 +251,7 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
   def <T extends EObject> IScope createScope(List<URI> uris, Class<? extends EObject> clazz, Class<T> type,
     List<T> currentFound, ResourceSet set) throws CannotFindScopeException{
     try {
-      var candidates = new ArrayList<EObject>();
+      var candidates = newArrayList;
 
       for (URI uri : uris) {
         var scopingObject = getScopingObject(uri, clazz, set);
@@ -240,4 +265,30 @@ class MOSLControlFlowScopeProvider extends AbstractMOSLControlFlowScopeProvider 
       throw new CannotFindScopeException("Cannot find Resource");
     }
   }
+  
+  private def List<? extends EObject> collectObjectVariablesInAllParentScopes(EObject parameter) {
+    var EObject currentContainer = parameter
+    var EObject previousContainer = parameter
+    val variablesList = newArrayList
+    do {
+      if (currentContainer instanceof MethodDec) {
+        variablesList.addAll(collectObjectVariables(currentContainer.statements))
+        variablesList.addAll(currentContainer.EParameters)
+      }
+      if (currentContainer instanceof LoopStatement)
+        variablesList.addAll(collectObjectVariables(currentContainer.loopStatements))
+      if (currentContainer instanceof ConditionStatement) {
+        if (currentContainer.thenStatements.contains(previousContainer))
+          variablesList.addAll(collectObjectVariables(currentContainer.thenStatements))
+        else
+          variablesList.addAll(collectObjectVariables(currentContainer.elseStatements))
+      }
+    
+      previousContainer = currentContainer
+      currentContainer = currentContainer.eContainer
+    } while (!(currentContainer instanceof EClassDef))
+    
+    return variablesList
+  }
+  
 }

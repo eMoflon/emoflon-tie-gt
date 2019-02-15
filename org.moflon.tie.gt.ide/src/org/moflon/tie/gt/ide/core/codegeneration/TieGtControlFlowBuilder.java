@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
@@ -18,9 +17,12 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.moflon.core.preferences.EMoflonPreferencesStorage;
 import org.moflon.core.utilities.WorkspaceHelper;
 import org.moflon.core.utilities.eMoflonEMFUtil;
+import org.moflon.tie.gt.compiler.democles.config.TypeLookup;
 import org.moflon.tie.gt.compiler.democles.searchplan.PatternMatcherConfiguration;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.ide.core.patterns.EditorToControlFlowTransformation;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.GraphTransformationControlFlowFile;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.Import;
 
 public class TieGtControlFlowBuilder {
 
@@ -36,7 +38,6 @@ public class TieGtControlFlowBuilder {
 
 	private EditorToControlFlowTransformation controlFlowTransformation;
 	private final EMoflonPreferencesStorage preferencesStorage;
-	private EPackage ecorePackage;
 
 	public TieGtControlFlowBuilder(final EMoflonPreferencesStorage preferencesStorage) {
 		this.preferencesStorage = preferencesStorage;
@@ -46,20 +47,13 @@ public class TieGtControlFlowBuilder {
 		return "eMoflon::TIE-GT transformation";
 	}
 
-	public void setECorePackage(final EPackage ecorePackage) {
-		this.ecorePackage = ecorePackage;
-	}
-
 	public IStatus run(final IProject project, final Resource resource,
-			final PatternMatcherConfiguration patternMatcherConfiguration, final IProgressMonitor monitor) {
-
-		if (this.ecorePackage == null) {
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()), "Ecore package was not set.");
-		}
+			final PatternMatcherConfiguration patternMatcherConfiguration, final TypeLookup types,
+			final IProgressMonitor monitor) {
 
 		this.ePackage = (EPackage) resource.getContents().get(0);
 		this.resourceSet = ePackage.eResource().getResourceSet();
-		this.controlFlowTransformation = new EditorToControlFlowTransformation(patternMatcherConfiguration,
+		this.controlFlowTransformation = new EditorToControlFlowTransformation(patternMatcherConfiguration, types,
 				preferencesStorage);
 		return run(monitor);
 	}
@@ -81,47 +75,48 @@ public class TieGtControlFlowBuilder {
 
 		final IStatus transformationStatus = processControlFlowFiles(subMon);
 
-		return transformationStatus.isOK() ? Status.OK_STATUS : transformationStatus;
+		return StatusUtil.returnIfNotOK(transformationStatus);
 	}
 
 	private IStatus processControlFlowFiles(final IProgressMonitor monitor) {
+		final MultiStatus controlFlowFilesStatus = new MultiStatus(getPluginId(), 0,
+				"Problems during transformation of control flow specification", null);
 		try {
 			final List<Resource> mcfResources = McfResourceLoadingVisitor.collectControlFlowResources(getResourceSet());
 
 			for (final Resource schemaResource : mcfResources) {
 				final IStatus status = processControlFlowResources(controlFlowTransformation, schemaResource);
-				if (status.matches(IStatus.ERROR)) {
-					return status;
-				}
+				if (StatusUtil.addAndCheckForErrors(status, controlFlowFilesStatus))
+					return controlFlowFilesStatus;
 			}
 			EcoreUtil.resolveAll(this.resourceSet);
 		} catch (final IOException e) {
-			return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-					"Problems while loading control flow specification", e);
+			return StatusUtil.createErrorStatus(e, getPluginId());
 		}
-		return Status.OK_STATUS;
+		return StatusUtil.returnIfNotOK(controlFlowFilesStatus);
 	}
 
 	private IStatus processControlFlowResources(final EditorToControlFlowTransformation helper,
 			final Resource schemaResource) throws IOException {
 		final GraphTransformationControlFlowFile controlFlowSpecificationRoot = GraphTransformationControlFlowFile.class
 				.cast(schemaResource.getContents().get(0));
-		if (controlFlowSpecificationRoot.getImports().size() > 0) {
-			// TODO@rkluge: This appears to be some hack
-			final String contextEcorePath = controlFlowSpecificationRoot.getImports().get(0).getName()
-					.replaceFirst("platform:/resource", "").replaceFirst("platform:/plugin", "");
-			final Resource ecoreResource = this.resourceSet
-					.getResource(URI.createPlatformResourceURI(contextEcorePath, false), true);
+		for (final Import mcfImport : controlFlowSpecificationRoot.getImports()) {
+			final String importPath = mcfImport.getName();
+			final URI uri = URI.createURI(importPath);
+			final Resource ecoreResource = this.resourceSet.getResource(uri, true);
 			ecoreResource.load(null);
-
-			final EPackage contextEPackage = (EPackage) ecoreResource.getContents().get(0);
-
-			return helper.transform(contextEPackage, controlFlowSpecificationRoot, this.resourceSet, this.ecorePackage);
 		}
-		return Status.OK_STATUS;
+
+		final IStatus status = helper.transform(controlFlowSpecificationRoot, this.resourceSet);
+		return status;
 	}
 
 	private ResourceSet getResourceSet() {
 		return this.resourceSet;
 	}
+
+	private String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
+	}
+
 }

@@ -9,20 +9,22 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttribute;
 import org.emoflon.ibex.gt.editor.gT.EditorNode;
 import org.emoflon.ibex.gt.editor.gT.EditorOperator;
 import org.emoflon.ibex.gt.editor.gT.EditorReference;
-import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.specification.emf.Constant;
 import org.gervarro.democles.specification.emf.Constraint;
-import org.gervarro.democles.specification.emf.ConstraintParameter;
-import org.gervarro.democles.specification.emf.ConstraintVariable;
 import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
 import org.gervarro.democles.specification.emf.Variable;
-import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
 import org.moflon.tie.gt.compiler.democles.pattern.PatternPrintingUtil;
 
+/**
+ * Utility methods related to {@link Pattern} and {@link PatternBody}
+ * 
+ * @author Roland Kluge - Initial implementation
+ *
+ */
 public final class Patterns {
 
 	private Patterns() {
@@ -66,32 +68,6 @@ public final class Patterns {
 		return mapOperatorToPatternTypes(operator, transformationStatus);
 	}
 
-	private static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorOperator operator,
-			final MultiStatus transformationStatus) {
-		switch (operator) {
-		case CONTEXT:
-			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN);
-		case DELETE:
-			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN, DemoclesPatternType.RED_PATTERN);
-		case CREATE:
-			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
-		default:
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
-					"Unsupported operator: " + operator);
-			return null;
-		}
-	}
-
-	public static boolean isOnlyBound(final Adornment adornment) {
-		return adornment.getBoundColumns().length == adornment.size();
-	}
-
-	public static ConstraintParameter createConstraintParameter(final ConstraintVariable variable) {
-		final ConstraintParameter constraintParameter = SpecificationFactory.eINSTANCE.createConstraintParameter();
-		constraintParameter.setReference(variable);
-		return constraintParameter;
-	}
-
 	public static DemoclesPatternType getPatternTypeForOperator(final EditorAttribute editorAttribute) {
 		switch (editorAttribute.getRelation()) {
 		case ASSIGNMENT:
@@ -103,8 +79,8 @@ public final class Patterns {
 
 	public static void moveSymbolicParameterToLocalVariable(final Variable symbolicParameter,
 			final Pattern newPattern) {
-		newPattern.getSymbolicParameters().remove(symbolicParameter);
-		newPattern.getBodies().get(0).getLocalVariables().add(symbolicParameter);
+		removeSymbolicParameter(symbolicParameter, newPattern);
+		addLocalVariable(symbolicParameter, newPattern);
 	}
 
 	public static Variable getSymbolicParameterByName(final Pattern pattern, final String variableName) {
@@ -118,24 +94,71 @@ public final class Patterns {
 						pattern.getName(), PatternPrintingUtil.describeSymbolicParameters(pattern)));
 	}
 
-	public static boolean registerConstant(final PatternBody patternBody, final Constant constant) {
+	public static boolean addConstant(final PatternBody patternBody, final Constant constant) {
 		return patternBody.getConstants().add(constant);
 	}
 
-	public static boolean registerConstraint(final Constraint constraint, final PatternBody body) {
+	public static boolean addConstraint(final Constraint constraint, final PatternBody body) {
 		return body.getConstraints().add(constraint);
 	}
 
-	public static boolean registerSymbolicParameter(final Variable symbolicParameter, final Pattern pattern) {
+	public static boolean addSymbolicParameter(final Variable symbolicParameter, final Pattern pattern) {
 		return pattern.getSymbolicParameters().add(symbolicParameter);
 	}
 
-	public static boolean registerLocalVariable(final Variable newAttribute, final Pattern pattern) {
-		return getBody(pattern).getLocalVariables().add(newAttribute);
+	public static boolean removeSymbolicParameter(final Variable variable, final Pattern pattern) {
+		return pattern.getSymbolicParameters().remove(variable);
 	}
 
-	public static boolean removeSymbolicParameter(final Pattern blackPattern, final EMFVariable toBeRemoved) {
-		return blackPattern.getSymbolicParameters().remove(toBeRemoved);
+	public static boolean addLocalVariable(final Variable localVariable, final Pattern pattern) {
+		return getBody(pattern).getLocalVariables().add(localVariable);
+	}
+
+	private static List<DemoclesPatternType> mapOperatorToPatternTypes(final EditorOperator operator,
+			final MultiStatus transformationStatus) {
+		switch (operator) {
+		case CONTEXT:
+			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN);
+		case DELETE:
+			return Arrays.asList(DemoclesPatternType.BLACK_PATTERN, DemoclesPatternType.RED_PATTERN);
+		case CREATE:
+			return Arrays.asList(DemoclesPatternType.GREEN_PATTERN);
+		default:
+			TransformationExceptions.recordError(transformationStatus, "Unsupported operator: %s",
+					operator);
+			return null;
+		}
+	}
+
+	public static List<Constraint> getConstraints(final Pattern pattern) {
+		return getBody(pattern).getConstraints();
+	}
+
+	/**
+	 * Determines the {@link DemoclesPatternType} of the given {@link Pattern} based
+	 * on its name, which must be equal to one of the suffix in
+	 * {@link DemoclesPatternType} (e.g., {@link #BLACK_FILE_EXTENSION})
+	 * 
+	 * @param pattern the pattern
+	 * @return the pattern type
+	 * @throws RuntimeException if the name does not match any file extension
+	 */
+	public static DemoclesPatternType guessPatternType(final Pattern pattern) {
+		final String patterName = pattern.getName();
+		switch (patterName) {
+		case DemoclesPatternType.BINDING_AND_BLACK_FILE_EXTENSION:
+			return DemoclesPatternType.BINDING_AND_BLACK_PATTERN;
+		case DemoclesPatternType.BLACK_FILE_EXTENSION:
+			return DemoclesPatternType.BLACK_PATTERN;
+		case DemoclesPatternType.RED_FILE_EXTENSION:
+			return DemoclesPatternType.RED_PATTERN;
+		case DemoclesPatternType.GREEN_FILE_EXTENSION:
+			return DemoclesPatternType.GREEN_PATTERN;
+		case DemoclesPatternType.EXPRESSION_FILE_EXTENSION:
+			return DemoclesPatternType.EXPRESSION_PATTERN;
+		default:
+			return null;
+		}
 	}
 
 }

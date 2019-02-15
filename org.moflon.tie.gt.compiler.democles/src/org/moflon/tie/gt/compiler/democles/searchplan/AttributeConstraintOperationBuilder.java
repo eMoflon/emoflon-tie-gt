@@ -1,14 +1,18 @@
 package org.moflon.tie.gt.compiler.democles.searchplan;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.gervarro.democles.codegen.CompilableAdornedOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
 import org.gervarro.democles.specification.ConstraintType;
+import org.gervarro.democles.specification.Variable;
 import org.gervarro.democles.specification.VariableType;
+import org.gervarro.democles.specification.impl.ConstraintVariable;
+import org.moflon.tie.gt.compiler.democles.CodeConventions;
 import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
+import org.moflon.tie.gt.compiler.democles.util.ConstraintUtil;
 import org.moflon.tie.gt.constraints.operationspecification.ConstraintSpecification;
 import org.moflon.tie.gt.constraints.operationspecification.OperationSpecification;
 import org.moflon.tie.gt.constraints.operationspecification.OperationSpecificationGroup;
@@ -21,32 +25,45 @@ public class AttributeConstraintOperationBuilder implements TieGtOperationBuilde
 
 		if (constraint instanceof ConstraintSpecification) {
 			final ConstraintSpecification constraintSpecification = (ConstraintSpecification) constraint;
-			return getOperations(constraint, parameters, constraintSpecification);
+			return getOperations(constraintSpecification, parameters);
 		}
 		return null;
 
 	}
 
-	public List<CompilableAdornedOperation> getOperations(final ConstraintType constraint,
-			final List<? extends SpecificationExtendedVariableRuntime> parameters,
-			final ConstraintSpecification constraintType) {
-		final List<CompilableAdornedOperation> result = new LinkedList<>();
-		final OperationSpecificationGroup operationSpecificationGroup = constraintType.getOperationSpecificationGroup();
+	public List<CompilableAdornedOperation> getOperations(final ConstraintSpecification constraint,
+			final List<? extends SpecificationExtendedVariableRuntime> parameters) {
+		final OperationSpecificationGroup specificationGroup = constraint.getOperationSpecificationGroup();
 
-		if (operationSpecificationGroup.getOperationSpecifications().isEmpty())
+		final List<CompilableAdornedOperation> result = specificationGroup.getOperationSpecifications().stream()//
+				.filter(specification -> hasCompatibleAdornment(specification, parameters))//
+				.map(specification -> getOperation(constraint, parameters, specification)).collect(Collectors.toList());
+
+		if (result.isEmpty())
 			return null;
+		else
+			return result;
 
-		for (final OperationSpecification operationSpecification : operationSpecificationGroup
-				.getOperationSpecifications()) {
-			result.add(getOperation(constraint, parameters, constraintType, operationSpecification));
-		}
-
-		return result;
 	}
 
-	public CompilableAdornedOperation getOperation(final ConstraintType constraint,
+	private boolean hasCompatibleAdornment(final OperationSpecification specification,
+			final List<? extends SpecificationExtendedVariableRuntime> parameters) {
+		final String adornmentString = specification.getAdornmentString();
+		for (int i = 0; i < parameters.size(); ++i) {
+			final ConstraintVariable referencedConstraintVariable = parameters.get(i).getSpecification();
+			if (ConstraintUtil.isVariable(referencedConstraintVariable)) {
+				final Variable variable = (Variable) referencedConstraintVariable;
+				if (variable.getName().endsWith(CodeConventions.FREE_VARIABLE_SUFFIX)
+						&& adornmentString.charAt(i) != Adornments.ADORNMENT_SYMBOL_FREE)
+					return false;
+			}
+		}
+		return true;
+	}
+
+	public CompilableAdornedOperation getOperation(final ConstraintSpecification constraint,
 			final List<? extends SpecificationExtendedVariableRuntime> parameters,
-			final ConstraintSpecification constraintType, final OperationSpecification operationSpecification) {
+			final OperationSpecification operationSpecification) {
 		final String adornmentString = operationSpecification.getAdornmentString();
 		final Adornment precondition = Adornments.create(adornmentString);
 		final CompilableAdornedOperation operation;

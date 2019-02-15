@@ -17,6 +17,7 @@ Require-Bundle: org.moflon.tie.gt.mosl.controlflow.language,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
  org.eclipse.xtext.xbase.lib;bundle-version="2.12.0",
+ org.moflon.core.ui;bundle-version="1.2.0",
  org.moflon.tie.gt.mosl.ui,
  org.moflon.core.utilities,
  org.emoflon.ibex.gt.editor

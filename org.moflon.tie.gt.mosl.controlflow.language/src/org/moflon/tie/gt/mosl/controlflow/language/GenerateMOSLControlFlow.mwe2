@@ -36,16 +36,11 @@ Workflow {
 				generateStub = false
 			}
 
-			formatter = {
-				generateStub = true
-				generateXtendStub = true
-			}
-
+      fragment = formatting.Formatter2Fragment2 {}
+      
 			validator = {
 				// composedCheck = "org.eclipse.xtext.validation.NamesAreUniqueValidator"
 			}
-//			fragment = scoping.ImportNamespacesScopingFragment2 {}
-//          fragment = exporting.SimpleNamesFragment2 {}
 		}
 	}
     component = FileCreatorMwe2Component {

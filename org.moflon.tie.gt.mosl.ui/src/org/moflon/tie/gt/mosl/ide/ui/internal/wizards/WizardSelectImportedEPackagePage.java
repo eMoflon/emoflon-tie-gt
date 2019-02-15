@@ -38,7 +38,7 @@ import com.google.common.collect.Iterables;
 @SuppressWarnings("restriction")
 public class WizardSelectImportedEPackagePage extends WizardPage {
 
-	private Set<EPackageInfo> ePackageInfos = new HashSet<EPackageInfo>();
+	private final Set<EPackageInfo> ePackageInfos = new HashSet<>();
 
 	private EPackageInfo defaultEPackageInfo;
 
@@ -46,9 +46,10 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 
 	private final IJdtHelper jdtHelper;
 
-	private List<EPackage> selectedPackages;
+	private final List<EPackage> selectedPackages;
 
-	public WizardSelectImportedEPackagePage(String pageName, IStructuredSelection selection, IJdtHelper jdtHelper) {
+	public WizardSelectImportedEPackagePage(final String pageName, final IStructuredSelection selection,
+			final IJdtHelper jdtHelper) {
 		super(pageName);
 		this.jdtHelper = jdtHelper;
 		selectedPackages = new ArrayList<>();
@@ -56,17 +57,17 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 		setDescription("Select all imports you need for the file");
 	}
 
-	private void addToSelectedtEPackages(Object object) {
+	private void addToSelectedtEPackages(final Object object) {
 		if (object instanceof EPackageInfo) {
 			selectedPackages.add(EPackageInfo.class.cast(object).getEPackage());
 		}
 	}
 
 	@Override
-	public void createControl(Composite parent) {
-		Composite composite = new Composite(parent, SWT.NONE);
+	public void createControl(final Composite parent) {
+		final Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(2, false));
-		Label label = new Label(composite, SWT.NONE);
+		final Label label = new Label(composite, SWT.NONE);
 		label.setText(Messages.WizardSelectImportedEPackagePage_ListTitle);
 		label.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
 		importedEPackagesViewer = new TableViewer(composite, SWT.BORDER);
@@ -75,8 +76,8 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 
 			@SuppressWarnings("unchecked")
 			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				ISelection iSelection = event.getSelection();
+			public void selectionChanged(final SelectionChangedEvent event) {
+				final ISelection iSelection = event.getSelection();
 				if (iSelection instanceof StructuredSelection) {
 					selectedPackages.clear();
 					StructuredSelection.class.cast(iSelection).iterator()
@@ -88,7 +89,7 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 		});
 		importedEPackagesViewer.setContentProvider(new IStructuredContentProvider() {
 			@Override
-			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+			public void inputChanged(final Viewer viewer, final Object oldInput, final Object newInput) {
 			}
 
 			@Override
@@ -96,15 +97,15 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 			}
 
 			@Override
-			public Object[] getElements(Object inputElement) {
+			public Object[] getElements(final Object inputElement) {
 				return Iterables.toArray(ePackageInfos, EPackageInfo.class);
 			}
 		});
 		importedEPackagesViewer.setLabelProvider(new LabelProvider() {
 			@Override
-			public String getText(Object element) {
+			public String getText(final Object element) {
 				if (element instanceof EPackageInfo) {
-					String label = ((EPackageInfo) element).getEPackageJavaFQN();
+					final String label = ((EPackageInfo) element).getEPackageJavaFQN();
 					if (element == getDefaultEPackageInfo()) {
 						return label + Messages.WizardSelectImportedEPackagePage_DefaultMarker;
 					} else {
@@ -114,26 +115,26 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 				return element.toString();
 			}
 		});
-		Button addButton = new Button(composite, SWT.PUSH);
+		final Button addButton = new Button(composite, SWT.PUSH);
 		addButton.setText(Messages.WizardSelectImportedEPackagePage_AddButtonText);
 		addButton.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 1, 1));
 		addButton.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
+			public void widgetSelected(final SelectionEvent e) {
 				addEPackageInfos(new EPackageChooser(getShell(), jdtHelper).open());
 			}
 		});
-		Button defaultButton = new Button(composite, SWT.PUSH);
+		final Button defaultButton = new Button(composite, SWT.PUSH);
 		defaultButton.setText(Messages.WizardSelectImportedEPackagePage_SetDefault);
 		defaultButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
 		defaultButton.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-				ISelection selection = importedEPackagesViewer.getSelection();
+			public void widgetSelected(final SelectionEvent e) {
+				final ISelection selection = importedEPackagesViewer.getSelection();
 				if (selection instanceof IStructuredSelection) {
-					IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+					final IStructuredSelection structuredSelection = (IStructuredSelection) selection;
 					if (structuredSelection.size() == 1) {
-						Object firstElement = structuredSelection.getFirstElement();
+						final Object firstElement = structuredSelection.getFirstElement();
 						if (firstElement instanceof EPackageInfo) {
 							defaultEPackageInfo = (EPackageInfo) firstElement;
 						}
@@ -142,16 +143,16 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 				updateUI();
 			}
 		});
-		Button removeButton = new Button(composite, SWT.PUSH);
+		final Button removeButton = new Button(composite, SWT.PUSH);
 		removeButton.setText(Messages.WizardSelectImportedEPackagePage_RemoveButtonText);
 		removeButton.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 1, 1));
 		removeButton.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-				ISelection selection = importedEPackagesViewer.getSelection();
+			public void widgetSelected(final SelectionEvent e) {
+				final ISelection selection = importedEPackagesViewer.getSelection();
 				if (selection instanceof IStructuredSelection) {
-					for (Iterator<?> i = ((IStructuredSelection) selection).iterator(); i.hasNext();) {
-						Object ePackageInfo = i.next();
+					for (final Iterator<?> i = ((IStructuredSelection) selection).iterator(); i.hasNext();) {
+						final Object ePackageInfo = i.next();
 						ePackageInfos.remove(ePackageInfo);
 						if (defaultEPackageInfo == ePackageInfo) {
 							defaultEPackageInfo = null;
@@ -162,7 +163,7 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 			}
 		});
 
-		GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+		final GridData layoutData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		layoutData.heightHint = 20;
 
 		updateUI();
@@ -174,11 +175,11 @@ public class WizardSelectImportedEPackagePage extends WizardPage {
 		return ePackageInfos;
 	}
 
-	private void addEPackageInfos(List<EPackageInfo> newEPackageInfos) {
-		for (Iterator<EPackageInfo> i = newEPackageInfos.iterator(); i.hasNext();) {
-			EPackage newEPackage = i.next().getEPackage();
-			for (EPackageInfo ePackageInfo : ePackageInfos) {
-				EPackage ePackage = ePackageInfo.getEPackage();
+	private void addEPackageInfos(final List<EPackageInfo> newEPackageInfos) {
+		for (final Iterator<EPackageInfo> i = newEPackageInfos.iterator(); i.hasNext();) {
+			final EPackage newEPackage = i.next().getEPackage();
+			for (final EPackageInfo ePackageInfo : ePackageInfos) {
+				final EPackage ePackage = ePackageInfo.getEPackage();
 				if (ePackage.getNsURI().equals(newEPackage.getNsURI())) {
 					i.remove();
 					break;

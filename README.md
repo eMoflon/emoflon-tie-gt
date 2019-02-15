@@ -8,37 +8,38 @@
 eMoflon Tool Integration Environment with Unidirectional Graph Transformation
 
 ## Gettings started (user setup)
-(If you are new to eMoflon::TIE-GT, please consult [our handbook](https://paper.dropbox.com/doc/AVuIhKAu4ZWDck9vCnnQMykWAg-FhfAuR8acECs3kUpgAxoZ).)
+(These instructions are part of the [eMoflon::TIE-GT handbook](https://paper.dropbox.com/doc/AVuIhKAu4ZWDck9vCnnQMykWAg-FhfAuR8acECs3kUpgAxoZ).)
 
+Try out the following Eclipse Marketplace link or follow the subsequent step-by-step instructions.
+[![Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client](https://marketplace.eclipse.org/sites/all/themes/solstice/public/images/marketplace/btn-install.png)](http://marketplace.eclipse.org/marketplace-client-intro?mpc_install=4488111 "Drag to your running Eclipse* workspace. *Requires Eclipse Marketplace Client")
+
+Step-by-step instructions:
 1. Install Eclipse with Modeling Components (2018-09 or above)
-1. Open Eclipse, navigate to **Help &rarr; Install New Software...**, and enter the following update site URL
-   * https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-updatesite/master/
-   * *Note:* The update site may take some time to load. Please be patient!
-1. Select **eMoflon::TIE-GT**, press **Next**, and following the instructions.
-   * Make sure that *Contact all update sites during install to find software* is selected. You may also try the installation without this option, but, then, certain dependencies may not be resolved.
+1. Open Eclipse, navigate to **Help &rarr; Install New Software...**, and enter the following update site URL: https://emoflon.org/emoflon-tie-gt-updatesite/
+   * *Note:* The update site may take some time to load. Please be patient! After installing eMoflon::TIE-GT, you may use the following update site, which loads faster but provides no access to dependencies: https://emoflon.org/emoflon-tie-gt-updatesite/stable/updatesite
+1. Select **eMoflon::TIE-GT Feature**.
+1. (Optional) If you plan to work with Emfatic, untick the option *Group items by category* to select **Emfatic (Incubation)**.
+   * Note: The filter bar ("type filter text") is helpful here!
+1. Press **Next**, and following the instructions.
+   * If certain dependencies cannot be resolved, you may try enabling *Contact all update sites during install to find software*.
 1. Restart Eclipse and switch to the **eMoflon** perspective.
-1. Check out the following small example via **right-click &rarr; Import... &rarr; Team Project Set** and the following URL: TODO
 
 ## Developer setup
-1. Prerequisites
-   - Eclipse 2018-09 or 2018-12 with Modeling Components
-   - Xtext Complete SDK
-      * Update site: http://download.eclipse.org/modeling/tmf/xtext/updates/releases/
+1. Install Eclipse with Modeling Components (2018-09 or above)
+1. Open Eclipse, navigate to **Help &rarr; Install New Software...**, enter the following update site URL: https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-updatesite/master/, and select the following features:
+   - Democles Pattern Matcher &rarr; Democles Pattern Matcher Specification and Pattern Matcher Compiler (0.5.0)
    - eMoflon::Core
-      * Update site: https://emoflon.org/emoflon-core-updatesite/stable/updatesite/
-   - Democles 0.5.0
-      * Update site: http://gervarro.org/democles/integration-0.5.0/
-      * Install
-         * Pattern Matcher Specification
-         * Pattern Matcher Compiler
-1. Install the following team project set (via *Import &rarr; Team Project Set*) https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf
-1. Run MWE2 workflows (Search for files ending with *.mwe2* via *Ctrl+Shift+R*).
+   - eMoflon::IBeX Democles
+   - Xtext &rarr; Xtext Complete SDK
+   - (Required for test suite) Emfatic (**Note:** you need to untick the option *Group items by category* to see the Emfatic feature)
+1. Import https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt/master/developerWorkspace.psf (*Import &rarr; Team Project Set*)
+1. Run all MWE2 workflows (see *Ctrl+Shift+R* &rarr; '*.mwe2').
    * Proceed even if Eclipse warns you about "Errors in the Workspace"
 1. The subsequent build should complete without errors.
 1. Run the test suite 
-   1. Start Runtime Eclipse
-   1. Check out all projects from *https://github.com/eMoflon/emoflon-tie-gt-examples*
-   1. Run JUnit test suite *EMoflonTieGtTestSuite*
-      * Runner class *org.moflon.tie.gt.testsuite.EMoflonTieGtTestSuite*
+   1. Start a runtime Eclipse instance (*Run &rarr; Run Configurations... &rarr; Eclipse Application*)
+   1. Import the following team project set *https://raw.githubusercontent.com/eMoflon/emoflon-tie-gt-examples/master/tieGtExamples.psf*
+   1. Ensure that automatic build is enabled (*Project &rarr; Build Automatically*)
+   1. Run JUnit test suite in *_EMoflonTieGtTestSuite* (launcher file *EMoflonTieGtTestSuite.launch*)
    
    

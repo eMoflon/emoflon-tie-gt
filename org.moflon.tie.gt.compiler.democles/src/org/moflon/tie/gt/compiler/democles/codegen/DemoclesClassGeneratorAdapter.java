@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.codegen;
 
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.eclipse.emf.codegen.ecore.genmodel.GenClass;
 import org.eclipse.emf.codegen.ecore.genmodel.GenOperation;
@@ -9,7 +10,6 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.Monitor;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.gervarro.democles.codegen.ImportManager;
 import org.gervarro.democles.codegen.OperationSequenceCompiler;
 import org.gervarro.democles.codegen.TemplateInvocation;
 import org.moflon.core.utilities.MoflonUtil;
@@ -26,7 +26,7 @@ import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 
 public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorAdapter {
-	private ImportManager democlesImportManager = ImportManager.EMPTY_IMPORT_MANAGER;
+	private TieGtImportManager democlesImportManager = new EmptyImportManager(null);
 
 	protected DemoclesClassGeneratorAdapter(final DemoclesGeneratorAdapterFactory generatorAdapterFactory) {
 		super(generatorAdapterFactory);
@@ -93,7 +93,21 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 				final ST template = group.getInstanceOf(templateName);
 				template.add("scope", scope);
 				template.add("importManager", democlesImportManager);
-				generatedMethodBody = template.render();
+
+				final Optional<GenOperation> genOperation = democlesImportManager.getGenModel()
+						.getAllGenPackagesWithClassifiers().stream()
+						.flatMap(genPackage -> genPackage.getGenClasses().stream())
+						.filter(genClass -> genClass.getEcoreClass().equals(eOperation.getEContainingClass()))
+						.flatMap(genClass -> genClass.getGenOperations().stream())
+						.filter(candidateGenOperation -> candidateGenOperation.getEcoreOperation().equals(eOperation))
+						.findAny();
+				if (genOperation.isPresent()) {
+					template.add("eOperation", genOperation.get());
+					generatedMethodBody = template.render();
+				} else {
+					throw new IllegalArgumentException(
+							String.format("Cannot find generator operation for EOperation %s", eOperation.getName()));
+				}
 			}
 		}
 
@@ -150,12 +164,16 @@ public class DemoclesClassGeneratorAdapter extends AbstractMoflonClassGeneratorA
 				democlesImportManager);
 
 		final ST st = templateProvider.getTemplateGroup(patternType).getInstanceOf(template.getTemplateName());
-		for (final Entry<String, Object> entry : template.getAttributes().entrySet()) {
-			st.add(entry.getKey(), entry.getValue());
-		}
+		configureTemplate(template, st);
 		code.append(st.render());
-
+		// st.inspect();
 		code.append("\n\n");
 		return code.toString();
+	}
+
+	private void configureTemplate(final TemplateInvocation templateInvocation, final ST stringTemplate) {
+		for (final Entry<String, Object> entry : templateInvocation.getAttributes().entrySet()) {
+			stringTemplate.add(entry.getKey(), entry.getValue());
+		}
 	}
 }

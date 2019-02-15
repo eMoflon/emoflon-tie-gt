@@ -1,5 +1,8 @@
 package org.moflon.tie.gt.compiler.democles.codegen.template;
 
+import static org.moflon.tie.gt.compiler.democles.util.ConstraintUtil.isEqual;
+import static org.moflon.tie.gt.compiler.democles.util.TemplateUtil.createChain;
+
 import java.util.List;
 
 import org.eclipse.emf.ecore.EcorePackage;
@@ -9,11 +12,11 @@ import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.SpecificationExtendedVariableRuntime;
-import org.gervarro.democles.constraint.CoreConstraintModule;
 import org.gervarro.democles.constraint.CoreConstraintType;
 import org.gervarro.democles.specification.ConstraintType;
 import org.gervarro.democles.specification.impl.Variable;
-import org.moflon.tie.gt.compiler.democles.searchplan.AssignmentOperationBuilder;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
+import org.moflon.tie.gt.compiler.democles.util.ConstraintUtil;
 
 public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvider<Chain<TemplateController>> {
 
@@ -21,20 +24,17 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 	public final Chain<TemplateController> getTemplateController(final GeneratorOperation operation,
 			final Chain<TemplateController> tail) {
 		final Adornment adornment = operation.getPrecondition();
-		if (adornment.get(0) == Adornment.FREE && adornment.get(1) == Adornment.BOUND) {
+		if (adornment.equals(Adornments.FB)) {
 			final ConstraintType type = (ConstraintType) operation.getType();
-			if (type == CoreConstraintModule.EQUAL) {
+			if (isEqual(type)) {
 				if (operation.isAlwaysSuccessful()) {
 					if (forceCasting(operation)) {
-						return new Chain<TemplateController>(
-								new TemplateController("/assignment/AssignWithClassCastException", operation), tail);
+						return createChain("/assignment/AssignWithClassCastException", operation, tail);
 					} else {
-						return new Chain<TemplateController>(new TemplateController("/assignment/Assign", operation),
-								tail);
+						return createChain("/assignment/Assign", operation, tail);
 					}
 				} else {
-					return new Chain<TemplateController>(
-							new TemplateController("/assignment/AssignWithNullCheck", operation), tail);
+					return createChain("/assignment/AssignWithNullCheck", operation, tail);
 				}
 			}
 		}
@@ -49,11 +49,10 @@ public class AttributeAssignmentTemplateProvider implements CodeGeneratorProvide
 
 	private final boolean forceCasting(final GeneratorOperation operation) {
 		final List<SpecificationExtendedVariableRuntime> parameters = operation.getParameters();
-		if (EcorePackage.eINSTANCE.getEDataType()
-				.isInstance(AssignmentOperationBuilder.lookupEClassifier(parameters.get(0)))) {
+		if (EcorePackage.eINSTANCE.getEDataType().isInstance(ConstraintUtil.lookupEClassifier(parameters.get(0)))) {
 			final SpecificationExtendedVariableRuntime variable = parameters.get(1);
-			if (variable.getSpecification() instanceof Variable && EcorePackage.eINSTANCE.getEJavaObject()
-					.equals(AssignmentOperationBuilder.lookupEClassifier(variable))) {
+			if (variable.getSpecification() instanceof Variable
+					&& EcorePackage.eINSTANCE.getEJavaObject().equals(ConstraintUtil.lookupEClassifier(variable))) {
 				return true;
 			}
 		}

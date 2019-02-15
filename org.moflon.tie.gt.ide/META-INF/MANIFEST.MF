@@ -7,9 +7,9 @@ Automatic-Module-Name: org.moflon.tie-gt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Require-Bundle: 
- org.eclipse.core.resources;bundle-version="3.13.100",
- org.eclipse.core.runtime;bundle-version="3.13.0",
- org.eclipse.ui.workbench;bundle-version="3.112.0",
+ org.eclipse.core.resources;bundle-version="3.0.0",
+ org.eclipse.core.runtime;bundle-version="3.0.0",
+ org.eclipse.ui.workbench;bundle-version="3.0.0",
  org.eclipse.xtext;bundle-version="2.15.0",
  org.gervarro.eclipse.task;bundle-version="1.0.1",
  org.gervarro.eclipse.workspace.util;bundle-version="2.0.0",
@@ -19,7 +19,7 @@ Require-Bundle:
  org.moflon.core.preferences;bundle-version="1.1.0",
  org.moflon.core.utilities;bundle-version="3.0.0",
  org.moflon.core.ui;bundle-version="1.2.0",
- org.moflon.emf.codegen;bundle-version="1.1.0",
+ org.moflon.emf.codegen;bundle-version="2.0.0",
  org.moflon.emf.build;bundle-version="1.1.0",
  org.moflon.emf.injection.ide;bundle-version="1.0.0",
  org.moflon.core.plugins;bundle-version="3.1.0",

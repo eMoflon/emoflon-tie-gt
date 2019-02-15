@@ -1,4 +1,5 @@
 /**/bin
 /**/target
 /**/output
+/**/.polyglot.build.properties
 *.launch

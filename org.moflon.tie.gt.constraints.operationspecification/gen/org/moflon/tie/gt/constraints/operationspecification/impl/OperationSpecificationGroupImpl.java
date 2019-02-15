@@ -228,8 +228,7 @@ public class OperationSpecificationGroupImpl extends EObjectImpl implements Oper
 	 */
 	public EList<ConstraintSpecification> getConstraintSpecifications() {
 		if (constraintSpecifications == null) {
-			constraintSpecifications = new EObjectWithInverseResolvingEList<ConstraintSpecification>(
-					ConstraintSpecification.class, this,
+			constraintSpecifications = new EObjectWithInverseResolvingEList<>(ConstraintSpecification.class, this,
 					OperationspecificationPackage.OPERATION_SPECIFICATION_GROUP__CONSTRAINT_SPECIFICATIONS,
 					OperationspecificationPackage.CONSTRAINT_SPECIFICATION__OPERATION_SPECIFICATION_GROUP);
 		}
@@ -243,8 +242,8 @@ public class OperationSpecificationGroupImpl extends EObjectImpl implements Oper
 	 */
 	public EList<OperationSpecification> getOperationSpecifications() {
 		if (operationSpecifications == null) {
-			operationSpecifications = new EObjectContainmentEList<OperationSpecification>(OperationSpecification.class,
-					this, OperationspecificationPackage.OPERATION_SPECIFICATION_GROUP__OPERATION_SPECIFICATIONS);
+			operationSpecifications = new EObjectContainmentEList<>(OperationSpecification.class, this,
+					OperationspecificationPackage.OPERATION_SPECIFICATION_GROUP__OPERATION_SPECIFICATIONS);
 		}
 		return operationSpecifications;
 	}
@@ -256,7 +255,7 @@ public class OperationSpecificationGroupImpl extends EObjectImpl implements Oper
 	 */
 	public EList<ParamIdentifier> getParameterIDs() {
 		if (parameterIDs == null) {
-			parameterIDs = new EObjectContainmentWithInverseEList<ParamIdentifier>(ParamIdentifier.class, this,
+			parameterIDs = new EObjectContainmentWithInverseEList<>(ParamIdentifier.class, this,
 					OperationspecificationPackage.OPERATION_SPECIFICATION_GROUP__PARAMETER_IDS,
 					OperationspecificationPackage.PARAM_IDENTIFIER__OPERATION_SPECIFICATION_GROUP);
 		}

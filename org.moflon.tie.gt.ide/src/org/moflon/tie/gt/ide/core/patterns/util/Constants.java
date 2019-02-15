@@ -11,11 +11,16 @@ import org.emoflon.ibex.gt.editor.gT.EditorEnumExpression;
 import org.emoflon.ibex.gt.editor.gT.EditorLiteralExpression;
 import org.emoflon.ibex.gt.editor.utils.GTEditorAttributeUtils;
 import org.gervarro.democles.specification.emf.Constant;
+import org.gervarro.democles.specification.emf.Pattern;
 import org.gervarro.democles.specification.emf.PatternBody;
 import org.gervarro.democles.specification.emf.SpecificationFactory;
+import org.gervarro.democles.specification.emf.Variable;
+import org.gervarro.democles.specification.emf.constraint.emf.emf.EMFVariable;
 import org.moflon.core.utilities.UtilityClassNotInstantiableException;
+import org.moflon.tie.gt.compiler.democles.util.ExceptionUtil;
 import org.moflon.tie.gt.constraints.democles.DemoclesFactory;
 import org.moflon.tie.gt.constraints.democles.TypedConstant;
+import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.CalledPatternParameter;
 import org.moflon.tie.gt.mosl.controlflow.language.moslControlFlow.LiteralExpression;
 
 public final class Constants {
@@ -48,7 +53,7 @@ public final class Constants {
 			final EEnumLiteral literal = (EEnumLiteral) valueObject;
 			constant.setValue(literal);
 		} else {
-			throw new IllegalArgumentException("Unsupported value type: " + valueObject);
+			throw ExceptionUtil.createIllegalArgumentException("Unsupported value type: %s.", valueObject);
 		}
 	}
 
@@ -56,22 +61,23 @@ public final class Constants {
 		if (type instanceof EDataType) {
 			final EDataType dataType = (EDataType) type;
 			return dataType.getEPackage().getEFactoryInstance().createFromString(dataType, val);
-		} else if ("null".equals(val)) {
-			return null;
-		} else {
-			throw new IllegalArgumentException(String.format("Cannot handle value %s for EClassifier %s", val, type));
 		}
+
+		if ("null".equals(val))
+			return null;
+
+		throw ExceptionUtil.createIllegalArgumentException("Cannot handle value %s for EClassifier %s", val, type);
 	}
 
 	public static Constant createAndRegister(final EditorEnumExpression editorEnumExpression, final PatternBody body) {
 		final EEnumLiteral literal = editorEnumExpression.getLiteral();
 		final Constant enumLiteralConstant = SpecificationFactory.eINSTANCE.createConstant();
 		enumLiteralConstant.setValue(literal);
-		Patterns.registerConstant(body, enumLiteralConstant);
+		Patterns.addConstant(body, enumLiteralConstant);
 		return enumLiteralConstant;
 	}
 
-	public static Constant createAndRegister(final EditorLiteralExpression literalExpression, final EDataType eDataType,
+	public static Constant add(final EditorLiteralExpression literalExpression, final EDataType eDataType,
 			final PatternBody patternBody) {
 		final Optional<Object> value = GTEditorAttributeUtils.convertLiteralValueToObject(eDataType, literalExpression);
 		final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
@@ -81,7 +87,7 @@ public final class Constants {
 		} else {
 			constant.setValue(literalExpression.getValue());
 		}
-		Patterns.registerConstant(patternBody, constant);
+		Patterns.addConstant(patternBody, constant);
 		return constant;
 	}
 
@@ -99,18 +105,29 @@ public final class Constants {
 			constant.setValue(literalExpression.getValue());
 		}
 
-		Patterns.registerConstant(patternBody, constant);
+		Patterns.addConstant(patternBody, constant);
+
+		return constant;
+	}
+
+	public static TypedConstant createAndRegisterTypedConstant(final EditorEnumExpression enumExpression,
+			final EDataType eDataType, final PatternBody patternBody) {
+
+		final TypedConstant constant = DemoclesFactory.eINSTANCE.createTypedConstant();
+		constant.setEClassifier(eDataType);
+		constant.setValue(enumExpression.getLiteral());
+		Patterns.addConstant(patternBody, constant);
 
 		return constant;
 	}
 
 	public static Constant createConstant(final LiteralExpression literalExpression, final EParameter eParameter,
 			final PatternBody body, final MultiStatus transformationStatus) {
-	
+
 		final EClassifier parameterType = eParameter.getEType();
 		if (parameterType instanceof EDataType) {
 			final EDataType parameterDataType = (EDataType) parameterType;
-	
+
 			final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
 			final Optional<Object> value = LiteralExpressions.convertLiteralValueToObject(parameterDataType,
 					literalExpression);
@@ -120,13 +137,41 @@ public final class Constants {
 			} else {
 				constant.setValue(literalExpression.getVal());
 			}
-	
+
 			body.getConstants().add(constant);
 			return constant;
 		} else {
-			TransformationExceptions.recordTransformationErrorMessage(transformationStatus,
-					"The type of %s::%s must be an EDataType but is", eParameter.getEOperation().getName(),
-					eParameter.getName(), parameterType);
+			TransformationExceptions.recordError(transformationStatus, "The type of %s::%s must be an EDataType but is",
+					eParameter.getEOperation().getName(), eParameter.getName(), parameterType);
+			return null;
+		}
+	}
+
+	public static Constant createConstant(final CalledPatternParameter patternParameter, final Variable patternVariable,
+			final Pattern pattern, final MultiStatus transformationStatus) {
+
+		final EMFVariable emfPatternVariable = (EMFVariable) patternVariable;
+
+		final EClassifier parameterType = emfPatternVariable.getEClassifier();
+		if (parameterType instanceof EDataType) {
+			final EDataType parameterDataType = (EDataType) parameterType;
+
+			final Constant constant = SpecificationFactory.eINSTANCE.createConstant();
+			final LiteralExpression literalExpression = patternParameter.getLiteral();
+			final Optional<Object> value = LiteralExpressions.convertLiteralValueToObject(parameterDataType,
+					literalExpression);
+			if (value.isPresent()) {
+				final Object valueObject = value.get();
+				setConstantValueWithAdjustedType(constant, valueObject);
+			} else {
+				constant.setValue(literalExpression.getVal());
+			}
+
+			Patterns.getBody(pattern).getConstants().add(constant);
+			return constant;
+		} else {
+			TransformationExceptions.recordError(transformationStatus, "The type of %s::%s must be an EDataType but is",
+					pattern.getName(), patternParameter.getParameter().getName(), parameterType);
 			return null;
 		}
 	}

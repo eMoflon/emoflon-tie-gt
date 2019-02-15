@@ -20,6 +20,10 @@ public abstract class PatternMatcher {
 
 	public abstract IStatus generateSearchPlan(Pattern pattern, Adornment adornment, boolean isMultipleMatch);
 
+	public IStatus generateSearchPlan(final Pattern pattern, final Adornment adornment) {
+		return generateSearchPlan(pattern, adornment, false);
+	}
+
 	/**
 	 * Creates a 'no search plan found' error for the given {@link Pattern} and
 	 * attaches it to the {@link ValidationReport}.
@@ -33,6 +37,10 @@ public abstract class PatternMatcher {
 		if (exception != null) {
 			detailsFragment = String.format("%s occured with error message: %s.", exception.getClass(),
 					exception.getMessage());
+
+			final String stacktrace = ExceptionUtils.getStackTrace(exception);
+			LogUtils.debug(logger, "%s\nStack trace: %s", detailsFragment, stacktrace);
+
 		} else {
 			detailsFragment = "";
 		}
@@ -40,9 +48,10 @@ public abstract class PatternMatcher {
 				"No search plan found for pattern '%s'. Please ensure that your patterns are not disjunct. See also debug log. %s",
 				pattern.getName(), detailsFragment);
 
-		final String stacktrace = ExceptionUtils.getStackTrace(exception);
-		LogUtils.debug(logger, "%s\nStack trace: %s", detailsFragment, stacktrace);
+		return new Status(IStatus.ERROR, getPluginId(), message);
+	}
 
-		return new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(PatternMatcherGenerator.class), message);
+	public String getPluginId() {
+		return WorkspaceHelper.getPluginId(getClass());
 	}
 }

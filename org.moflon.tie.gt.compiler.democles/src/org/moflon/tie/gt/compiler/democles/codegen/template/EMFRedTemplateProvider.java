@@ -1,5 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.codegen.template;
 
+import static org.moflon.tie.gt.compiler.democles.util.TemplateUtil.createChain;
+
 import org.eclipse.emf.ecore.EReference;
 import org.gervarro.democles.codegen.Chain;
 import org.gervarro.democles.codegen.CodeGeneratorProvider;
@@ -8,30 +10,27 @@ import org.gervarro.democles.codegen.TemplateController;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.constraint.emf.EMFConstraint;
 import org.gervarro.democles.constraint.emf.Reference;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 
 public class EMFRedTemplateProvider implements CodeGeneratorProvider<Chain<TemplateController>> {
 
-	public final Chain<TemplateController> getTemplateController(GeneratorOperation operation,
-			Chain<TemplateController> tail) {
-		Object type = operation.getType();
-		Adornment adornment = operation.getPrecondition();
+	public final Chain<TemplateController> getTemplateController(final GeneratorOperation operation,
+			final Chain<TemplateController> tail) {
+		final Object type = operation.getType();
+		final Adornment adornment = operation.getPrecondition();
 		if (type instanceof Reference) {
-			Reference ref = (Reference) type;
-			if (adornment.get(0) == Adornment.BOUND && adornment.get(1) == Adornment.BOUND) {
+			final Reference ref = (Reference) type;
+			if (adornment.equals(Adornments.BB)) {
 				if (ref.getLinkedElement().isMany()) {
-					return new Chain<TemplateController>(
-							new TemplateController("/emf-delete/DeleteToManyLink", operation), tail);
+					return createChain("/emf-delete/DeleteToManyLink", operation, tail);
 				} else if (ref.getLinkedElement().isChangeable()) {
-					return new Chain<TemplateController>(
-							new TemplateController("/emf-delete/DeleteToOneLink", operation), tail);
+					return createChain("/emf-delete/DeleteToOneLink", operation, tail);
 				} else if (ref.getLinkedElement().getEOpposite() != null) {
 					final EReference opposite = ref.getLinkedElement().getEOpposite();
 					if (opposite.isMany()) {
-						return new Chain<TemplateController>(
-								new TemplateController("/emf-delete/ReverseDeleteToManyEReference", operation), tail);
+						return createChain("/emf-delete/ReverseDeleteToManyEReference", operation, tail);
 					} else if (opposite.isChangeable()) {
-						return new Chain<TemplateController>(
-								new TemplateController("/emf-delete/ReverseDeleteToOneEReference", operation), tail);
+						return createChain("/emf-delete/ReverseDeleteToOneEReference", operation, tail);
 					}
 				}
 			}
@@ -39,7 +38,7 @@ public class EMFRedTemplateProvider implements CodeGeneratorProvider<Chain<Templ
 		throw new RuntimeException("Invalid operation");
 	}
 
-	public final boolean isResponsibleFor(GeneratorOperation operation) {
+	public final boolean isResponsibleFor(final GeneratorOperation operation) {
 		return operation.getType() instanceof EMFConstraint<?>;
 	}
 }

@@ -11,7 +11,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -35,6 +34,7 @@ import org.moflon.core.utilities.eMoflonEMFUtil;
 import org.moflon.tie.gt.compiler.democles.eclipse.MethodBodyResourceFactory;
 import org.moflon.tie.gt.compiler.democles.eclipse.PatternResourceFactory;
 import org.moflon.tie.gt.compiler.democles.pattern.DemoclesPatternType;
+import org.moflon.tie.gt.compiler.democles.util.StatusUtil;
 import org.moflon.tie.gt.ide.core.codegeneration.TieGtCodeGenerator;
 import org.moflon.tie.gt.mosl.controlflow.language.ui.internal.LanguageActivator;
 
@@ -98,70 +98,89 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 			final IProgressMonitor monitor) {
 		final IFile ecoreFile = getProject()
 				.getFile(MoflonConventions.getDefaultPathToEcoreFileInProject(getProject().getName()));
-		final MultiStatus emfBuilderStatus = new MultiStatus(WorkspaceHelper.getPluginId(getClass()), 0,
-				"Problems during EMF code generation", null);
+		final MultiStatus builderStatus = new MultiStatus(getPlugin(), 0,
+				"Problems during eMoflon::TIE-GT code generation", null);
 		try {
-			final SubMonitor subMon = SubMonitor.convert(monitor,
-					"Generating code for project " + getProject().getName(), 13);
+			final String taskName = "Generating code for project " + getProject().getName();
+			final SubMonitor subMon = SubMonitor.convert(monitor, taskName, 7);
 
-			final IProject project = getProject();
-			createFoldersIfNecessary(project, subMon.split(1));
-			ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getGenFolder(getProject()));
-			ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getInjectionFolder(getProject()));
+			createFoldersIfNecessary(subMon.split(1));
 
-			// Compute project dependencies
-			final IBuildConfiguration[] referencedBuildConfigs = project
-					.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
-			for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
-				addTriggerProject(referencedConfig.getProject());
-			}
+			computeProjectDependencies();
 
-			clean(new NullProgressMonitor());
+			clean(subMon.split(1));
 
-			// Build
-			final ResourceSet resourceSet = TieGtBuilder.initializeResourceSet();
-			final PatternResourceFactory blackFactory = new PatternResourceFactory(
-					DemoclesPatternType.BLACK_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(blackFactory);
-			final PatternResourceFactory redFactory = new PatternResourceFactory(
-					DemoclesPatternType.RED_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(redFactory);
-			final PatternResourceFactory greenFactory = new PatternResourceFactory(
-					DemoclesPatternType.GREEN_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(greenFactory);
-			final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
-					DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
-			resourceSet.getAdapterFactories().add(cfFactory);
-			eMoflonEMFUtil.installCrossReferencers(resourceSet);
-			subMon.worked(1);
+			final ResourceSet resourceSet = initializeResourceSet(subMon.split(1));
 
 			final EMoflonPreferencesStorage preferencesStorage = EMoflonPreferencesActivator.getDefault()
 					.getPreferencesStorage();
 			final TieGtCodeGenerator codeGenerationTask = new TieGtCodeGenerator(ecoreFile, resourceSet,
 					preferencesStorage);
 			final IStatus status = codeGenerationTask.run(subMon.split(4));
-			emfBuilderStatus.add(status);
 
-			if (!emfBuilderStatus.isOK())
+			if (StatusUtil.addAndCheckForErrors(status, builderStatus))
 				return;
 
 			final GenModel genModel = codeGenerationTask.getGenModel();
-			if (genModel == null) {
-				emfBuilderStatus.add(new Status(IStatus.ERROR, WorkspaceHelper.getPluginId(getClass()),
-						String.format("No GenModel found for '%s'", getProject())));
-			} else {
-				ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
+			final IStatus genModelStatus = genModel == null ? createGenModelErrorStatus() : Status.OK_STATUS;
 
-				PluginXmlUpdater.updatePluginXml(project, genModel, subMon.split(1));
-			}
+			if (StatusUtil.addAndCheckForErrors(genModelStatus, builderStatus))
+				return;
+
+			updateBundleMetadata(genModel, subMon);
+
 			ResourcesPlugin.getWorkspace().checkpoint(false);
 
 		} catch (final CoreException e) {
-			emfBuilderStatus.add(new Status(e.getStatus().getSeverity(), WorkspaceHelper.getPluginId(getClass()),
-					e.getMessage(), e));
+			builderStatus.add(new Status(e.getStatus().getSeverity(), getPlugin(), e.getMessage(), e));
 		} finally {
-			handleErrorsInEclipse(emfBuilderStatus, ecoreFile);
+			handleErrorsInEclipse(builderStatus, ecoreFile);
 		}
+	}
+
+	private void updateBundleMetadata(final GenModel genModel, final SubMonitor subMon) throws CoreException {
+		final IProject project = getProject();
+		ExportedPackagesInManifestUpdater.updateExportedPackageInManifest(project, genModel);
+
+		PluginXmlUpdater.updatePluginXml(project, genModel, subMon.split(1));
+	}
+
+	private IStatus createGenModelErrorStatus() {
+		return createErrorStatus(String.format("No generator model in project %s", getProject().getName()));
+	}
+
+	private static void registerPatternResourceFactories(final ResourceSet resourceSet) {
+		registerPatternResourceFactory(resourceSet, DemoclesPatternType.BLACK_FILE_EXTENSION);
+		registerPatternResourceFactory(resourceSet, DemoclesPatternType.RED_FILE_EXTENSION);
+		registerPatternResourceFactory(resourceSet, DemoclesPatternType.GREEN_FILE_EXTENSION);
+	}
+
+	private IStatus createErrorStatus(final String message) {
+		return StatusUtil.createErrorStatus(getPlugin(), message);
+	}
+
+	private String getPlugin() {
+		return WorkspaceHelper.getPluginId(getClass());
+	}
+
+	private void computeProjectDependencies() throws CoreException {
+		final IProject project = getProject();
+		final IBuildConfiguration[] referencedBuildConfigs = project
+				.getReferencedBuildConfigs(project.getActiveBuildConfig().getName(), false);
+		for (final IBuildConfiguration referencedConfig : referencedBuildConfigs) {
+			addTriggerProject(referencedConfig.getProject());
+		}
+	}
+
+	private static void registerMethodBodyResourceFactory(final ResourceSet resourceSet) {
+		final MethodBodyResourceFactory cfFactory = new MethodBodyResourceFactory(
+				DemoclesPatternType.CONTROL_FLOW_FILE_EXTENSION);
+		resourceSet.getAdapterFactories().add(cfFactory);
+	}
+
+	private static void registerPatternResourceFactory(final ResourceSet resourceSet, final String extension) {
+		final PatternResourceFactory blackFactory = new PatternResourceFactory(extension);
+		resourceSet.getAdapterFactories().add(blackFactory);
 	}
 
 	@Override
@@ -172,26 +191,36 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 	/**
 	 * Prepare an {@link ResourceSet} that is suitable for a MOSL-GT-based build
 	 * process
+	 * 
+	 * @param monitor
 	 *
 	 * @return the initialized resource set
 	 */
-	private static ResourceSet initializeResourceSet() {
+	private static ResourceSet initializeResourceSet(final IProgressMonitor monitor) {
 		final Injector injector = LanguageActivator.getInstance()
 				.getInjector(LanguageActivator.ORG_MOFLON_TIE_GT_MOSL_CONTROLFLOW_LANGUAGE_MOSLCONTROLFLOW);
 		final XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
 		resourceSet.addLoadOption(XtextResource.OPTION_RESOLVE_ALL, Boolean.TRUE);
 		eMoflonEMFUtil.installCrossReferencers(resourceSet);
+
+		registerPatternResourceFactories(resourceSet);
+		registerMethodBodyResourceFactory(resourceSet);
+
+		monitor.done();
 		return resourceSet;
 	}
 
-	private static void createFoldersIfNecessary(final IProject project, final IProgressMonitor monitor)
-			throws CoreException {
+	private void createFoldersIfNecessary(final IProgressMonitor monitor) throws CoreException {
+		final IProject project = getProject();
 		final SubMonitor subMon = SubMonitor.convert(monitor, "Creating folders within project " + project, 5);
 
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getSourceFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getBinFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getGenFolder(project), subMon.split(1));
 		WorkspaceHelper.createFolderIfNotExists(WorkspaceHelper.getInjectionFolder(project), subMon.split(1));
+
+		ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getGenFolder(project));
+		ClasspathUtil.makeSourceFolderIfNecessary(WorkspaceHelper.getInjectionFolder(project));
 	}
 
 	private void removeGeneratedModels(final IProject project) throws CoreException {
@@ -201,7 +230,7 @@ public class TieGtBuilder extends AbstractVisitorBuilder {
 	}
 
 	/**
-	 * Removes all contents in /gen, but preserves all versioning files
+	 * Removes all contents in /gen, but preserves all version control system files
 	 *
 	 * @param project the project to be cleaned
 	 * @throws CoreException if cleaning fails

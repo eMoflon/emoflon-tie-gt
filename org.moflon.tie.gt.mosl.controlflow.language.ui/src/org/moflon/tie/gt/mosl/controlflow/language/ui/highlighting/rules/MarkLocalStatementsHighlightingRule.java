@@ -48,9 +48,7 @@ public class MarkLocalStatementsHighlightingRule extends AbstractHighlightingRul
 			final boolean hasMatchingText = calledParameter.getObject() != null
 					&& calledParameter.getObject() instanceof ETypedElement
 					&& ETypedElement.class.cast(calledParameter.getObject()).getName().equals(text);
-			final boolean hasMatchingText2 = calledParameter.getCreate() != null
-					&& calledParameter.getCreate().getName().equals(text);
-			return hasMatchingText || hasMatchingText2;
+			return hasMatchingText;
 		} else if (moslObject instanceof MethodParameter) {
 			final MethodParameter methodParameter = MethodParameter.class.cast(moslObject);
 			return methodParameter.getName().equals(text);

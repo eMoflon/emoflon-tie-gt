@@ -116,11 +116,14 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	 */
 	private final AttributeConstraintsLibraryRegistry attributeConstraintLibraries;
 
+	private final TypeLookup typeLookup;
+
 	public TieGtCodeGenerationConfiguration(final ResourceSet resourceSet,
 			final EMoflonPreferencesStorage preferencesStorage,
-			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries) {
+			final AttributeConstraintsLibraryRegistry attributeConstraintLibraries, final TypeLookup typeLookup) {
 		this.preferencesStorage = preferencesStorage;
 		this.attributeConstraintLibraries = attributeConstraintLibraries;
+		this.typeLookup = typeLookup;
 
 		emfTypeModule = new EMFConstraintModule(resourceSet);
 		internalEMFTypeModule = new EMFTypeModule(emfTypeModule);
@@ -305,7 +308,8 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 	private PatternMatcherCompiler configureBindingAndBlackPatternMatcherCompiler() {
 
 		final TieGtCompilerPatternMatcherModule matcherModule = createPatternMatcherModule(
-				DemoclesPatternType.BINDING_AND_BLACK_PATTERN, asList(basicOperationBuilder));
+				DemoclesPatternType.BINDING_AND_BLACK_PATTERN,
+				asList(basicOperationBuilder, emfBlackOperationBuilder, relationalOperationBuilder));
 
 		final PatternMatcherCompiler bindingAndBlackPatternMatcherCompiler = new BindingAndBlackPatternMatcherCompiler(
 				bindingAndBlackPatternBuilder, matcherModule);
@@ -432,5 +436,9 @@ public class TieGtCodeGenerationConfiguration implements CodeGenerationConfigura
 		final PatternInvocationTypeModule<DefaultPattern, DefaultPatternBody> internalPatternInvocationTypeModule = new PatternInvocationTypeModule<>(
 				bindingAndBlackPatternInvocationTypeModule);
 		return internalPatternInvocationTypeModule.getConstraintTypeSwitch();
+	}
+
+	public TypeLookup getTypeLookup() {
+		return this.typeLookup;
 	}
 }

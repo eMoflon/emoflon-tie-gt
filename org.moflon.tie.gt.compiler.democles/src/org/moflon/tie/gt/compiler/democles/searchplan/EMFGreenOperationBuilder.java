@@ -27,7 +27,7 @@ public class EMFGreenOperationBuilder extends BasicEMFOperationBuilder {
 				result = new LinkedList<>();
 			}
 			if (constraint instanceof StructuralFeature<?>) {
-				final Adornment precondition = Adornments.create("BB");
+				final Adornment precondition = Adornments.BB;
 				result.add(new CompilableAdornedOperation(precondition, constraint,
 						CompilableAdornedOperation.ALWAYS_SUCCESSFUL));
 			}
@@ -42,7 +42,7 @@ public class EMFGreenOperationBuilder extends BasicEMFOperationBuilder {
 		if (variable instanceof EMFVariable) {
 			final EClassifier eClassifier = ((EMFVariable) variable).getLinkedElement();
 			if (eClassifier instanceof EClass) {
-				final Adornment precondition = Adornments.create("F");
+				final Adornment precondition = Adornments.F;
 				return new CompilableAdornedOperation(precondition, variable,
 						CompilableAdornedOperation.ALWAYS_SUCCESSFUL);
 			}

@@ -3,6 +3,8 @@ package org.moflon.tie.gt.compiler.democles.codegen.template;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.gervarro.democles.common.Adornment;
+import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 import org.moflon.tie.gt.controlflow.democles.Action;
 import org.moflon.tie.gt.controlflow.democles.CFNode;
 import org.moflon.tie.gt.controlflow.democles.CFVariable;
@@ -23,6 +25,11 @@ public class ControlFlowModelAdaptor extends ObjectModelAdaptor {
 			final VariableReference varRef = (VariableReference) object;
 			return varRef.getInvocation().getParameters().indexOf(varRef);
 		}
+		if (object instanceof VariableReference && "adornment".equals(propertyName)) {
+			final VariableReference varRef = (VariableReference) object;
+			final int value = Adornments.getAdornmentValue(varRef);
+			return Adornments.describe(value);
+		}
 		if (object instanceof CFVariable && "index".equals(propertyName)) {
 			final CFVariable variable = (CFVariable) object;
 			final Action action = variable.getConstructor();
@@ -39,19 +46,17 @@ public class ControlFlowModelAdaptor extends ObjectModelAdaptor {
 		if (object instanceof PatternInvocation) {
 			final PatternInvocation invocation = (PatternInvocation) object;
 			if ("boundParameters".equals(propertyName)) {
-				final ArrayList<VariableReference> boundParameters = new ArrayList<VariableReference>(
-						invocation.getParameters().size());
+				final ArrayList<VariableReference> boundParameters = new ArrayList<>();
 				for (final VariableReference reference : invocation.getParameters()) {
-					if (!reference.isFree()) {
+					if (Adornments.getAdornmentValue(reference) == Adornment.BOUND) {
 						boundParameters.add(reference);
 					}
 				}
 				return boundParameters;
 			} else if ("freeParameters".equals(propertyName)) {
-				final ArrayList<VariableReference> freeParameters = new ArrayList<VariableReference>(
-						invocation.getParameters().size());
+				final ArrayList<VariableReference> freeParameters = new ArrayList<>();
 				for (final VariableReference reference : invocation.getParameters()) {
-					if (reference.isFree()) {
+					if (Adornments.getAdornmentValue(reference) == Adornment.FREE) {
 						freeParameters.add(reference);
 					}
 				}

@@ -1,5 +1,8 @@
 package org.moflon.tie.gt.compiler.democles.searchplan;
 
+import static org.moflon.tie.gt.compiler.democles.util.ConstraintUtil.isConstraint;
+import static org.moflon.tie.gt.compiler.democles.util.ConstraintUtil.isVariable;
+
 import org.gervarro.democles.codegen.GeneratorOperation;
 import org.gervarro.democles.common.Adornment;
 import org.gervarro.democles.common.runtime.SearchPlanOperation;
@@ -19,18 +22,19 @@ public class EmfGreenWeightedOperationBuilder implements TieGtWeightedOperationB
 			final SearchPlanOperation<GeneratorOperation> operation) {
 		final Object origin = operation.getOrigin();
 		final Adornment adornment = operation.getPrecondition();
-		if (origin instanceof Variable) {
-			final VariableType variableType = ((Variable) origin).getType();
+		if (isVariable(origin)) {
+			final Variable variable = (Variable) origin;
+			final VariableType variableType = variable.getType();
 			if (variableType instanceof EMFVariable) {
-				if (Adornments.equals(adornment, "F")) {
+				if (adornment.equals(Adornments.F)) {
 					return WeightedOperation.createOperation(operation, -5);
 				}
 			}
-		} else if (origin instanceof Constraint) {
+		} else if (isConstraint(origin)) {
 			final Constraint constraint = (Constraint) origin;
 			final ConstraintType constraintType = constraint.getType();
 			if (constraintType instanceof StructuralFeature<?>) {
-				if (Adornments.equals(adornment, "BB")) {
+				if (adornment.equals(Adornments.BB)) {
 					return WeightedOperation.createOperation(operation, 1);
 				}
 			}

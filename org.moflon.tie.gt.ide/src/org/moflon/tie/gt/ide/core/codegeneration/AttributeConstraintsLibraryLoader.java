@@ -13,6 +13,7 @@ import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionSpecification;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionTargetPlatform;
 import org.emoflon.ibex.gt.editor.gT.EditorAttributeConditionType;
 import org.emoflon.ibex.gt.editor.gT.EditorGTFile;
+import org.moflon.tie.gt.compiler.democles.config.TypeLookup;
 import org.moflon.tie.gt.compiler.democles.pattern.Adornments;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintLibrary;
 import org.moflon.tie.gt.constraints.operationspecification.AttributeConstraintsLibraryRegistry;
@@ -24,6 +25,12 @@ import org.moflon.tie.gt.constraints.operationspecification.ParamIdentifier;
 import org.moflon.tie.gt.constraints.operationspecification.ParameterType;
 
 public class AttributeConstraintsLibraryLoader {
+
+	private final TypeLookup typeLookup;
+
+	public AttributeConstraintsLibraryLoader(final TypeLookup typeLookup) {
+		this.typeLookup = typeLookup;
+	}
 
 	public AttributeConstraintsLibraryRegistry run(final ResourceSet resourceSet) {
 
@@ -44,7 +51,6 @@ public class AttributeConstraintsLibraryLoader {
 		final AttributeConstraintLibrary democlesLibrary = OperationspecificationFactory.eINSTANCE
 				.createAttributeConstraintLibrary();
 		democlesLibrary.setPrefix(deriveAttributeConstraintsLibraryPrefix(gtFile));
-		// TODO@rkluge: Handle reuse
 		for (final EditorAttributeConditionLibrary editorLibrary : gtFile.getAttributeConditionLibraries()) {
 
 			for (final EditorAttributeConditionSpecification editorConditionSpecification : editorLibrary
@@ -109,7 +115,7 @@ public class AttributeConstraintsLibraryLoader {
 			final ConstraintSpecification democlesConstraintSpecification,
 			final OperationSpecificationGroup democlesOperationSpecificationGroup) {
 		for (final EditorAttributeConditionParameter editorParameter : editorConditionSpecification.getParameters()) {
-			final EDataType parameterType = editorParameter.getType();
+			final EDataType parameterType = typeLookup.getEClassifier(editorParameter.getType());
 			final ParameterType democlesParameterType = OperationspecificationFactory.eINSTANCE.createParameterType();
 			democlesParameterType.setType(parameterType);
 			democlesConstraintSpecification.getParameterTypes().add(democlesParameterType);

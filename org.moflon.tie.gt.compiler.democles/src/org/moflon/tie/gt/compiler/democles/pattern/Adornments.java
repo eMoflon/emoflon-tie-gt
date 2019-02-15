@@ -1,6 +1,7 @@
 package org.moflon.tie.gt.compiler.democles.pattern;
 
 import org.gervarro.democles.common.Adornment;
+import org.moflon.tie.gt.controlflow.democles.VariableReference;
 
 /**
  * Convenience methods for working with pattern adornments
@@ -28,6 +29,41 @@ public class Adornments {
 	 * Human-readable symbol for an unknown adornment value
 	 */
 	public static final char ADORNMENT_SYMBOL_UNKNOWN = '?';
+
+	/**
+	 * Convenience constant for a B adornment
+	 */
+	public static final Adornment B = create("B");
+
+	/**
+	 * Convenience constant for a U adornment
+	 */
+	public static final Adornment U = create("U");
+
+	/**
+	 * Convenience constant for a F adornment
+	 */
+	public static final Adornment F = create("F");
+
+	/**
+	 * Convenience constant for a BB adornment
+	 */
+	public static final Adornment BB = create("BB");
+
+	/**
+	 * Convenience constant for a UB adornment
+	 */
+	public static final Adornment UB = create("UB");
+
+	/**
+	 * Convenience constant for a FB adornment
+	 */
+	public static final Adornment FB = create("FB");
+
+	/**
+	 * Convenience constant for a BF adornment
+	 */
+	public static final Adornment BF = create("BF");
 
 	public static Adornment create(final String adornmentString) {
 		final int[] bindings = new int[adornmentString.length()];
@@ -75,37 +111,6 @@ public class Adornments {
 		}
 	}
 
-	/**
-	 * Returns true if the given adornment and adornmentString are equal
-	 * 
-	 * @param adornment       the adornment
-	 * @param adornmentString the adornment string
-	 * @return whether both are equal
-	 */
-	public static boolean equals(final Adornment adornment, final String adornmentString) {
-		return equals(adornment, create(adornmentString));
-	}
-
-	/**
-	 * Returns true if the given adornments are equal
-	 * 
-	 * @param adornment1 the first adornment
-	 * @param adornment2 the second adornment
-	 * @return whether both are equal
-	 */
-	private static boolean equals(final Adornment adornment1, final Adornment adornment2) {
-		if (adornment1.size() != adornment2.size())
-			return false;
-
-		for (int i = 0; i < adornment1.size(); i++) {
-			if (adornment1.get(i) != adornment2.get(i)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	public static String describe(final int adornmentValue) {
 		switch (adornmentValue) {
 		case Adornment.BOUND:
@@ -117,6 +122,38 @@ public class Adornments {
 		default:
 			return Character.toString(ADORNMENT_SYMBOL_UNKNOWN);
 		}
+	}
+
+	public static boolean isBound(final Adornment adornment, final int i) {
+		return is(Adornment.BOUND, adornment, i);
+	}
+
+	public static boolean isFree(final Adornment adornment, final int i) {
+		return is(Adornment.FREE, adornment, i);
+	}
+
+	public static boolean isNotTypechecked(final Adornment adornment, final int i) {
+		return is(Adornment.NOT_TYPECHECKED, adornment, i);
+	}
+
+	public static boolean isOnlyBound(final Adornment adornment) {
+		return adornment.getBoundColumns().length == adornment.size();
+	}
+
+	public static boolean is(final int adornmentValue, final Adornment adornment, final int i) {
+		return adornment.get(i) == adornmentValue;
+	}
+
+	public static int getAdornmentValue(final VariableReference varRef) {
+		final boolean isGreen = varRef.getInvocation().getPattern().getName().endsWith("_green");
+		final boolean isAttributeValueVariable = varRef.getFrom().getName().endsWith("_prime");
+		final int value;
+		if (isAttributeValueVariable) {
+			value = isGreen ? Adornment.BOUND : Adornment.FREE;
+		} else {
+			value = varRef.isFree() ? Adornment.FREE : Adornment.BOUND;
+		}
+		return value;
 	}
 
 }
