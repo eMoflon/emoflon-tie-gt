@@ -367,19 +367,6 @@ class MOSLControlFlowValidator extends BaseMOSLControlFlowValidator {
     }
   }
 
-  @Check
-  def containsThisObjectVariable(MethodDec operation) {
-    if (operation.eAllContents.filter[content|content instanceof ObjectVariableStatement].exists [ oVar |
-      (oVar as ObjectVariableStatement).name.equals("this")
-    ]) {
-      return
-    } else {
-      error("this ObjectVariable required", operation,
-        MoslControlFlowPackage.Literals.METHOD_DEC.getEStructuralFeature(MoslControlFlowPackage.METHOD_DEC),
-        NO_THIS_VARIABLE)
-    }
-  }
-
   def getControlFlowFile(EObject obj) {
     var gtcf = obj
     while (!(gtcf instanceof GraphTransformationControlFlowFile)) {

@@ -40,7 +40,7 @@ class MOSLControlFlowProposalProvider extends AbstractMOSLControlFlowProposalPro
 
   /**
    * Creates a proposal for an entire operation signature (name, parameters, return type)
-   * Only unimplemented operations are shown
+   * Only unimplemented operations are proposed.
    */
   override void completeMethodDec_Name(EObject model, Assignment assignment, ContentAssistContext context,
     ICompletionProposalAcceptor acceptor) {
@@ -56,7 +56,8 @@ class MOSLControlFlowProposalProvider extends AbstractMOSLControlFlowProposalPro
       proposals.addAll(allMethodDeclarations)
       proposals.removeAll(existingMethodDeclarations)
       Collections.sort(proposals)
-      proposals.forEach[proposalString|acceptor.accept(createCompletionProposal(proposalString, context))]
+      val proposalsWithInitialBody = proposals.map[String.format("%s {\n    this : %s\n  }\n", it, container.name.name)]
+      proposalsWithInitialBody.forEach[proposalString|acceptor.accept(createCompletionProposal(proposalString, context))]
     }
   }
 
@@ -92,7 +93,7 @@ class MOSLControlFlowProposalProvider extends AbstractMOSLControlFlowProposalPro
    */
   private def createProposalForEOperation(EOperation operation) {
     val formattedParameterList = operation.EParameters.map[eParameter|eParameter.name + ":" + eParameter.EType.name].
-      join(",")
+      join(", ")
     String.format("%s(%s):%s ", operation.name, formattedParameterList, operation.EType.name)
   }
 
