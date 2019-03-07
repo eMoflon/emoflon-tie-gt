@@ -6,7 +6,7 @@ https://github.com/eMoflon/emoflon-tie-gt-updatesite/ .
 For further information on eMoflon, see
 https://emoflon.org/ .
    </description>
-   <feature url="features/org.moflon.tie.gt.feature_1.0.0.201902032153.jar" id="org.moflon.tie.gt.feature" version="1.0.0.201902032153">
+   <feature url="features/org.moflon.tie.gt.feature_1.0.0.qualifier.jar" id="org.moflon.tie.gt.feature" version="1.0.0.qualifier">
       <category name="org.moflon.tie.gt.category"/>
    </feature>
    <category-def name="org.moflon.tie.gt.category" label="eMoflon::TIE-GT">
