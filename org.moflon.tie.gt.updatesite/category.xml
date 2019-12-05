@@ -13,5 +13,4 @@
    <repository-reference location="http://gervarro.org/eclipse-utils/" enabled="true" />
    <repository-reference location="http://gervarro.org/external" enabled="true" />
    <repository-reference location="http://gervarro.org/democles/integration-0.5.0/" enabled="true" />
-   <repository-reference location="https://emoflon.org/emoflon-ibex-democles-updatesite/stable/updatesite/" enabled="true" />
 </site>

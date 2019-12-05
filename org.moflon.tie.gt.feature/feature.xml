@@ -34,12 +34,33 @@ See here for more details on EPL: http://www.eclipse.org/org/documents/epl-v10.p
       <discovery label="eMoflon::IBeX update site" url="https://emoflon.org/emoflon-ibex-democles-updatesite/stable/updatesite/"/>
    </url>
 
-   <requires>
-      <import feature="org.moflon.core.feature" version="1.6.0" match="greaterOrEqual"/>
-      <import plugin="org.emoflon.ibex.gt.editor"/>
-      <import plugin="org.emoflon.ibex.gt.editor.ide"/>
-      <import plugin="org.emoflon.ibex.gt.editor.ui"/>
-   </requires>
+   <includes
+         id="org.moflon.core.feature"
+         version="0.0.0"/>
+
+   <includes
+         id="org.gervarro.democles.feature.compiler"
+         version="0.0.0"/>
+
+   <includes
+         id="org.gervarro.democles.feature.compiler.source"
+         version="0.0.0"/>
+
+   <includes
+         id="org.gervarro.democles.feature.interpreter"
+         version="0.0.0"/>
+
+   <includes
+         id="org.gervarro.democles.feature.interpreter.source"
+         version="0.0.0"/>
+
+   <includes
+         id="org.gervarro.democles.feature.specification"
+         version="0.0.0"/>
+
+   <includes
+         id="org.gervarro.democles.feature.specification.source"
+         version="0.0.0"/>
 
    <plugin
          id="org.moflon.tie.gt.branding"
@@ -127,6 +148,27 @@ See here for more details on EPL: http://www.eclipse.org/org/documents/epl-v10.p
 
    <plugin
          id="org.moflon.tie.gt.controlflow.democles"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.emoflon.ibex.gt.editor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.emoflon.ibex.gt.editor.ide"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.emoflon.ibex.gt.editor.ui"
          download-size="0"
          install-size="0"
          version="0.0.0"
